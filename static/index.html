@@ -6,46 +6,134 @@
     <link rel="stylesheet" href="vail.css">
   </head>
   <body>
-    <h1>Vail</h1>
-    <p>
-      You have to click in the page or press a key or something before you can hear anything.
-      These are browser rules
-      that prevent ads from blaring audio at you.
-    </p>
-    
-    <p>
-      Keys you can use:
-    </p>
-    
-    <dl>
-      <dd><code>,</code>, <code>w</code>, left mouse button</dd>
-      <dt>Short tone</dt>
-      
-      <dd><code>.</code>, <code>v</code>, right mouse button</dd>
-      <dt>Long tone</dt>
-    </dl>
+    <div>
+      <img src="1280px-Morse-code-tree.svg.png">
+    </div>
 
-    <hr>
+    <div>
+      <table>
+        <tr>
+          <th>Dot</th>
+          <td><code>,</code>, <code>w</code>, left mouse button</td>
+        </tr>
+        <tr>
+          <th>Dash</th>
+          <td><code>.</code>, <code>v</code>, right mouse button</td>
+        </tr>
+      </table>
+    </div>
+
+    <div>
+      <pre>
+a : .-
+b : -...
+c : -.-.
+d : -..
+e : .
+f : ..-.
+g : --.
+h : ....
+i : ..
+j : .---
+k : -.-
+l : .-..
+m : --
+n : -.
+o : ---
+p : .--.
+q : --.-
+r : .-.
+s : ...
+t : -
+u : ..-
+v : ...-
+w : .--
+x : -..-
+y : -.--
+z : --..
+0 : -----
+1 : .----
+2 : ..---
+3 : ...--
+4 : ....-
+5 : .....
+6 : -....
+7 : --...
+8 : ---..
+9 : ----.
+. : .-.-.-
+, : --..--
+: : ---...
+? : ..--..
+' : .----.
+- : -....-
+/ : -..-.
+" : .-..-.
+@ : .--.-.
+= : -...-
+! : -.-.--
+      </pre>
+    </div>
     
-    <p>
-      This is a CW repeater,
-      named after Alfred Vail,
-      who may or may not have invented what's called "Morse code",
-      but clearly had some role in it.
-    </p>
-    
-    <p>
-      Just like a radio repeater,
-      anybody can connect and start transmitting stuff,
-      and this will broadcast it to everyone connected.
-      If there's enough interest,
-      I'll add something like channels.
-    </p>
-    
-    <p>
-      If you need this to work on a cell phone,
-      let me know and I'll come up with something for you.
-    </p>
-    <div id="output"></div>
+    <div>
+      <h1>Vail</h1>
+
+      <p>
+        This is a CW repeater,
+        named after Alfred Vail,
+        who may or may not have invented what's called "Morse code",
+        but clearly had some role in it.
+      </p>
+      
+      <p>
+        Just like a radio repeater,
+        anybody can connect and start transmitting stuff,
+        and this will broadcast it to everyone connected.
+        If there's enough interest,
+        I'll add something like channels.
+      </p>
+      
+      <p>
+        If you need this to work on a cell phone,
+        let me know and I'll come up with something for you.
+      </p>
+    </div>
+
+    <div>
+      <h2>Why does this exist?</h2>
+
+      <p>
+        I need a place to practice CW with actual human beings,
+        and I want it to be as close as possible to what I'd experience on a radio.
+        Also, I don't want to make people buy a bunch of radio hardware.
+        Nothing else like this exists on the Internet, as far as I can tell.
+      </p>
+
+      <h2>Who made it?</h2>
+
+      <p>
+        <a href="mailto:neale@woozle.org">Neale Pickett</a> kd7oqi
+      </p>
+
+      <h2>Future plans</h2>
+
+      <ul>
+        <li>Move to a more permanent URL</li>
+        <li>Make this page less ugly</li>
+        <li>Arduino program to let you hook up an iambic paddle over USB</li>
+        <li>Document the protocol</li>
+        <li>Support multiple channels/frequencies</li>
+        <li>Sensible way to make this work on a cell phone</li>
+        <li>Make this page less ugly (I really hate it right now)</li>
+      </ul>
+
+
+      <h2>How can I help?</h2>
+
+      <ul>
+        <li>Improve the <a href="https://github.com/nealey/vail/">source code</a></li>
+        <li><a href="mailto:neale@woozle.org">Email me</a> and let me know you're using it</li>
+      </ul>
+    </div>
   </body>
 </html>
