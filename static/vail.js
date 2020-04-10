@@ -43,6 +43,11 @@ function key(event) {
   myosc.stop(ac.currentTime + duration * 0.001)
 }
 
+function canWeJustNot(event) {
+  event.preventDefault()
+  return false
+}
+
 function init() {
   let wsUrl = new URL(window.location)
   wsUrl.protocol = "ws:"
@@ -50,6 +55,8 @@ function init() {
   window.socket = new WebSocket(wsUrl)
   window.socket.addEventListener("message", message)
 
+  // disable RMB context menu
+  document.addEventListener("contextmenu", e => canWeJustNot(e))
   document.addEventListener("mousedown", e => key(e))
   document.addEventListener("keydown", e => key(e))
 }
