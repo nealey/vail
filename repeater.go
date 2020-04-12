@@ -5,33 +5,47 @@ import (
 )
 
 type Repeater struct {
-	Joins chan io.Writer
-	Parts chan io.Writer
-	Sends chan []byte
+	joins chan io.Writer
+	parts chan io.Writer
+	sends chan []byte
 	subscribers []io.Writer
 }
 
 func NewRepeater() *Repeater {
 	return &Repeater{
-		Joins: make(chan io.Writer, 5),
-		Parts: make(chan io.Writer, 5),
-		Sends: make(chan []byte, 5),
+		joins: make(chan io.Writer, 5),
+		parts: make(chan io.Writer, 5),
+		sends: make(chan []byte, 5),
 		subscribers: make([]io.Writer, 0, 20),
 	}
 }
 
-func (r *Repeater) Run() {
-	for {
-		r.loop()
-	}
+func (r *Repeater) Join(w io.Writer) {
+	r.joins <- w
 }
 
-func (r *Repeater) loop() {
+func (r *Repeater) Part(w io.Writer) {
+	r.parts <- w
+}
+
+func (r *Repeater) Send(p []byte) {
+	r.sends <- p
+}
+
+func (r *Repeater) Close() {
+	close(r.sends)
+}
+
+func (r *Repeater) Run() {
+	for r.loop() {}
+}
+
+func (r *Repeater) loop() bool {
 	select {
-	case w := <- r.Joins:
+	case w := <- r.joins:
 		// Add subscriber
 		r.subscribers = append(r.subscribers, w)
-	case w := <- r.Parts:
+	case w := <- r.parts:
 		// Remove subscriber
 		for i, s := range r.subscribers {
 			if s == w {
@@ -40,9 +54,13 @@ func (r *Repeater) loop() {
 				r.subscribers = r.subscribers[:nsubs-1]
 			}
 		}
-	case p := <- r.Sends:
+	case p, ok := <- r.sends:
+		if ! ok {
+			return false
+		}
 		for _, s := range r.subscribers {
 			s.Write(p)
 		}
 	}
+	return true
 }
