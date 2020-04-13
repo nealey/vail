@@ -4,32 +4,37 @@ import (
 	"io"
 )
 
+// A Repeater is just a list of Writers.
 type Repeater struct {
-	subscribers []io.Writer
+	writers []io.Writer
 }
 
 func NewRepeater() *Repeater {
 	return &Repeater{
-		subscribers: make([]io.Writer, 0, 20),
+		writers: make([]io.Writer, 0, 20),
 	}
 }
 
 func (r *Repeater) Join(w io.Writer) {
-	r.subscribers = append(r.subscribers, w)
+	r.writers = append(r.writers, w)
 }
 
 func (r *Repeater) Part(w io.Writer) {
-	for i, s := range r.subscribers {
+	for i, s := range r.writers {
 		if s == w {
-			nsubs := len(r.subscribers)
-			r.subscribers[i] = r.subscribers[nsubs-1]
-			r.subscribers = r.subscribers[:nsubs-1]
+			nsubs := len(r.writers)
+			r.writers[i] = r.writers[nsubs-1]
+			r.writers = r.writers[:nsubs-1]
 		}
 	}
 }
 
 func (r *Repeater) Send(p []byte) {
-	for _, s := range r.subscribers {
+	for _, s := range r.writers {
 		s.Write(p)
 	}
+}
+
+func (r *Repeater) Listeners() int {
+	return len(r.writers)
 }

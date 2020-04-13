@@ -79,7 +79,7 @@ func (b Book) loop() {
 			break
 		}
 		repeater.Part(event.w)
-		if len(repeater.subscribers) == 0 {
+		if repeater.Listeners() == 0 {
 			delete(b.entries, event.name)
 		}
 	case sendEvent:

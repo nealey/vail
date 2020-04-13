@@ -10,7 +10,7 @@ func TestRepeater(t *testing.T) {
 
 	buf1 := bytes.NewBufferString("buf1")
 	r.Join(buf1)
-	if len(r.subscribers) != 1 {
+	if r.Listeners() != 1 {
 		t.Error("Joining did nothing")
 	}
 	r.Send([]byte("moo"))
