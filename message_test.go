@@ -23,7 +23,7 @@ func TestMessage(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if ! bytes.Equal(bm, []byte("\x11\x22\x33\x44\x55\x66\x77\x88\x00\x03\xaa\xbb\xcc")) {
+	if ! bytes.Equal(bm, []byte("\x11\x22\x33\x44\x55\x66\x77\x88\xaa\xbb\xcc")) {
 		t.Error("Encoded wrong:", bm)
 	}
 	
