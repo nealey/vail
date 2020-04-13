@@ -6,6 +6,22 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+func (ch Channel) Write(msg Message) {
+	for i, o := range clients {
+		if o.active == false {
+			nclients := len(clients)
+			clients[i] = clients[nclients - 1]
+			clients[nclients - 1] = Client{}
+			clients = clients[:nclients - 1]
+		} else if o == c {
+			// Don't send it back to the sending client
+		} else {
+			o.ws.Write(msg)
+		}
+	}
+}
+
+
 type Client struct {
 	ws *websocket.Conn
 	active bool
@@ -14,6 +30,7 @@ type Client struct {
 var clients []Client
 
 func (c Client) Chat() {
+	websocket.Message.Receive
 	for c.active {
 		buf := make([]byte, 800)
 		n, err := c.ws.Read(buf)
@@ -21,19 +38,6 @@ func (c Client) Chat() {
 			c.active = false
 		}
 		buf = buf[:n]
-
-		for i, o := range clients {
-			if o.active == false {
-				nclients := len(clients)
-				clients[i] = clients[nclients - 1]
-				clients[nclients - 1] = Client{}
-				clients = clients[:nclients - 1]
-			} else if o == c {
-				// Don't send it back to the sending client
-			} else {
-				o.ws.Write(buf)
-			}
-		}
 	}
 }
 
