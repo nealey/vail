@@ -6,54 +6,43 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-func (ch Channel) Write(msg Message) {
-	for i, o := range clients {
-		if o.active == false {
-			nclients := len(clients)
-			clients[i] = clients[nclients - 1]
-			clients[nclients - 1] = Client{}
-			clients = clients[:nclients - 1]
-		} else if o == c {
-			// Don't send it back to the sending client
-		} else {
-			o.ws.Write(msg)
-		}
-	}
-}
-
+var book Book
 
 type Client struct {
-	ws *websocket.Conn
-	active bool
+	repeaterName string
 }
 
-var clients []Client
+func (c Client) Handle(ws *websocket.Conn) {
+	ws.MaxPayloadBytes = 500
+	book.Join(c.repeaterName, ws)
+	defer book.Part(c.repeaterName, ws)
 
-func (c Client) Chat() {
-	websocket.Message.Receive
-	for c.active {
-		buf := make([]byte, 800)
-		n, err := c.ws.Read(buf)
+	for {
+		buf := make([]byte, ws.MaxPayloadBytes)
+		n, err := ws.Read(buf)
 		if err != nil {
-			c.active = false
+			break
 		}
 		buf = buf[:n]
+		book.Send(c.repeaterName, buf)
 	}
 }
 
-func ChatServer(ws *websocket.Conn) {
-	me := Client{
-		ws: ws,
-		active: true,
+func ChatHandler(w http.ResponseWriter, r *http.Request) {
+	c := Client {
+		repeaterName: r.FormValue("repeater"),
 	}
-	clients = append(clients, me)
-	
-	me.Chat()
+
+	// This API is confusing as hell.
+	// I suspect there's a better way to do this.
+	websocket.Handler(c.Handle).ServeHTTP(w, r)
 }
 
 func main() {
-	http.Handle("/chat", websocket.Handler(ChatServer))
+	book = NewBook()
+	http.Handle("/chat", http.HandlerFunc(ChatHandler))
 	http.Handle("/", http.FileServer(http.Dir("static")))
+	go book.Run()
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal(err.Error())
