@@ -2,138 +2,178 @@
 <html>
   <head>
     <title>Vail</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Material Design Lite -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-purple.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <!-- Vail stuff -->
     <script src="vail.js"></script>
     <link rel="stylesheet" href="vail.css">
   </head>
   <body>
-    <div>
-      <img src="code-tree.png">
-    </div>
-
-    <div>
-      <table>
-        <tr>
-          <th>Dot</th>
-          <td><code>,</code>, <code>w</code>, left mouse button</td>
-        </tr>
-        <tr>
-          <th>Dash</th>
-          <td><code>.</code>, <code>v</code>, right mouse button</td>
-        </tr>
-      </table>
-    </div>
-
-    <div>
-      <pre>
-a : .-
-b : -...
-c : -.-.
-d : -..
-e : .
-f : ..-.
-g : --.
-h : ....
-i : ..
-j : .---
-k : -.-
-l : .-..
-m : --
-n : -.
-o : ---
-p : .--.
-q : --.-
-r : .-.
-s : ...
-t : -
-u : ..-
-v : ...-
-w : .--
-x : -..-
-y : -.--
-z : --..
-0 : -----
-1 : .----
-2 : ..---
-3 : ...--
-4 : ....-
-5 : .....
-6 : -....
-7 : --...
-8 : ---..
-9 : ----.
-. : .-.-.-
-, : --..--
-: : ---...
-? : ..--..
-' : .----.
-- : -....-
-/ : -..-.
-" : .-..-.
-@ : .--.-.
-= : -...-
-! : -.-.--
-      </pre>
-    </div>
-    
-    <div>
-      <h1>Vail</h1>
-
-      <p>
-        This is a CW repeater,
-        named after Alfred Vail,
-        who may or may not have invented what's called "Morse code",
-        but clearly had some role in it.
-      </p>
-      
-      <p>
-        Just like a radio repeater,
-        anybody can connect and start transmitting stuff,
-        and this will broadcast it to everyone connected.
-        If there's enough interest,
-        I'll add something like channels.
-      </p>
-      
-      <p>
-        If you need this to work on a cell phone,
-        let me know and I'll come up with something for you.
-      </p>
-    </div>
-
-    <div>
-      <h2>Why does this exist?</h2>
-
-      <p>
-        I need a place to practice CW with actual human beings,
-        and I want it to be as close as possible to what I'd experience on a radio.
-        Also, I don't want to make people buy a bunch of radio hardware.
-        Nothing else like this exists on the Internet, as far as I can tell.
-      </p>
-
-      <h2>Who made it?</h2>
-
-      <p>
-        <a href="mailto:neale@woozle.org">Neale Pickett</a> kd7oqi
-      </p>
-
-      <h2>Future plans</h2>
-
-      <ul>
-        <li>Move to a more permanent URL</li>
-        <li>Make this page less ugly</li>
-        <li>Arduino program to let you hook up an iambic paddle over USB</li>
-        <li>Document the protocol</li>
-        <li>Support multiple channels/frequencies</li>
-        <li>Sensible way to make this work on a cell phone</li>
-        <li>Make this page less ugly (I really hate it right now)</li>
-      </ul>
-
-
-      <h2>How can I help?</h2>
-
-      <ul>
-        <li>Improve the <a href="https://github.com/nealey/vail/">source code</a></li>
-        <li><a href="mailto:neale@woozle.org">Email me</a> and let me know you're using it</li>
-      </ul>
+    <div class="mdl-layout mdl-js-layout">
+      <header class="mdl-layout__header mdl-layout__header--scroll">
+        <div class="mdl-layout__header-row">
+          <!-- Title -->
+          <span class="mdl-layout-title">Vail</span>
+          <!-- Add spacer, to align navigation to the right -->
+          <div class="mdl-layout-spacer"></div>
+          <!-- Navigation -->
+          <nav class="mdl-navigation">
+            <a class="mdl-navigation__link" href="">Link</a>
+            <a class="mdl-navigation__link" href="">Link</a>
+            <a class="mdl-navigation__link" href="">Link</a>
+            <a class="mdl-navigation__link" href="">Link</a>
+          </nav>
+        </div>
+      </header>
+      <div class="mdl-layout__drawer">
+        <span class="mdl-layout-title">Title</span>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="">Link</a>
+          <a class="mdl-navigation__link" href="">Link</a>
+          <a class="mdl-navigation__link" href="">Link</a>
+          <a class="mdl-navigation__link" href="">Link</a>
+        </nav>
+      </div>
+      <main class="mdl-layout__content">
+        <div class="flex">
+          <div class="mdl-card mdl-shadow--4dp">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">
+                Code Tree
+              </h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <img src="code-tree.png">
+            </div>
+          </div>
+          
+          <div class="mdl-card mdl-shadow--4dp">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">
+                Input
+              </h2>
+            </div>
+            <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+              <div class="mdl-tabs__tab-bar">
+                <a href="#iambic" class="mdl-tabs__tab is-active">Iambic</a>
+                <a href="#straight" class="mdl-tabs__tab">Straight Key</a>
+              </div>
+              <div class="mdl-tabs__panel is-active" id="iambic">
+                <table style="width: 100%; text-align: center;">
+                  <tr>
+                    <td>
+                      <button class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                        dit
+                      </button>
+                    </td>
+                    <td>
+                      <button class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                        dah
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>.</code> or <code>⇧</code>
+                    </td>
+                    <td>
+                      <code>/</code> or <code>z</code>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="mdl-tabs__panel" id="straight">
+                <button class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                  Key
+                </button>
+              </div>
+            </div>
+          </div>
+  
+          <div class="mdl-card mdl-shadow--4dp">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">
+                Vail
+              </h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <p>
+                This is a CW repeater,
+                named after Alfred Vail,
+                who may or may not have invented what's called "Morse code",
+                but clearly had some role in it.
+              </p>
+              
+              <p>
+                Just like a radio repeater,
+                anybody can connect and start transmitting stuff,
+                and this will broadcast it to everyone connected.
+                If there's enough interest,
+                I'll add something like channels.
+              </p>
+              
+              <p>
+                If you need this to work on a cell phone,
+                let me know and I'll come up with something for you.
+              </p>
+            </div>
+          </div>
+  
+          <div class="mdl-card mdl-shadow--4dp">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">
+                Why Does This Exist?
+              </h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <p>
+                I need a place to practice CW with actual human beings,
+                and I want it to be as close as possible to what I'd experience on a radio.
+                Also, I don't want to make people buy a bunch of radio hardware.
+                Nothing else like this exists on the Internet, as far as I can tell.
+              </p>
+        
+              <h3>Who made it?</h3>
+        
+              <p>
+                <a href="mailto:neale@woozle.org">Neale Pickett</a> kd7oqi
+              </p>
+        
+            </div>
+          </div>
+  
+          <div class="mdl-card mdl-shadow--4dp">
+            <div class="mdl-card__title">
+              <h3 class="mdl-card__title-text">Future plans</h3>
+            </div>
+            <div class="mdl-card__supporting_text">
+              <ul>
+                <li>Move to a more permanent URL</li>
+                <li>Make this page less ugly</li>
+                <li>Arduino program to let you hook up an iambic paddle over USB</li>
+                <li>Document the protocol</li>
+                <li>Support multiple channels/frequencies</li>
+                <li>Sensible way to make this work on a cell phone</li>
+                <li>Make this page less ugly (I really hate it right now)</li>
+              </ul>
+        
+        
+              <h3>How can I help?</h3>
+        
+              <ul>
+                <li>Improve the <a href="https://github.com/nealey/vail/">source code</a></li>
+                <li><a href="mailto:neale@woozle.org">Email me</a> and let me know you're using it</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   </body>
 </html>
