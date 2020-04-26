@@ -68,12 +68,12 @@
                 <table style="width: 100%; text-align: center;">
                   <tr>
                     <td>
-                      <button class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                      <button id="dit" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                         dit
                       </button>
                     </td>
                     <td>
-                      <button class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                      <button id="dah" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                         dah
                       </button>
                     </td>
@@ -87,6 +87,17 @@
                     </td>
                   </tr>
                 </table>
+                <p>
+                  dit length
+                  <input
+                    id="duration"
+                    class="mdl-slider mdl-js-slider"
+                    type="range"
+                    min="40"
+                    max="255"
+                    value="80">
+                  <output id="duration-value"></output>
+                </p>
               </div>
               <div class="mdl-tabs__panel" id="straight">
                 <button class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
