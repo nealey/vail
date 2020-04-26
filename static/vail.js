@@ -1,22 +1,26 @@
 // jshint asi:true
 
-var recFreq = 660
-var sendFreq = recFreq * 6 / 5 // Perfect minor third
+const lowFreq = 660
+const highFreq = lowFreq * 6 / 5 // Perfect minor third
 
 const DIT = 1
 const DAH = 3
 
 class Iambic {
-  constructor(BeginTxFunc, endTxFunc) {
+  constructor(beginTxFunc, endTxFunc) {
     this.beginTxFunc = beginTxFunc
     this.endTxFunc = endTxFunc
     this.interval = null
-    this.state = this.space
-    this.keyFunc = null
+    this.state = this.stateSpace
+    this.keyState = null
   }
   
-  // Set a new interval (transmission rate)
-  setInterval(duration) {
+  /**
+   * Set a new interval (transmission rate)
+   *
+   * @param {number} duration New interval duration, in ms
+   */
+  SetInterval(duration) {
     clearInterval(this.interval)
     this.interval = setInterval(e => this.pulse(), duration)
   }
@@ -26,111 +30,158 @@ class Iambic {
     this.state()
   }
   
-  // Don't transmit for one interval.
-  // If a transmission was requested, start transmitting at the next interval
-  space() {
-    if (this.keyFunc) {
-      this.state = this.keyFunc
-    }
+  stateSpace() {
+    // Don't transmit for one interval.
+    this.state = this.keyState || this.stateSpace
   }
-
-  // Send a dit
-  dit() {
+  stateDit() {
+    // Send a dit
     this.beginTxFunc()
-    this.state = this.end
+    this.state = this.stateEnd
   }
-  
-  // Send a dah
-  dah() {
+  stateDah() {
+    // Send a dah
     this.beginTxFunc()
-    this.state = this.dah2
+    this.state = this.stateDah2
   }
-  dah2() {
-    this.state = this.dah3
+  stateDah2() {
+    this.state = this.stateDah3
   }
-  dah3() {
-    this.state = this.end
+  stateDah3() {
+    this.state = this.stateEnd
   }
-  
-  // Stop sending
-  end() {
+  stateEnd() {
+    // Stop sending
     this.endTxFunc()
-    this.state = this.space
+    this.state = this.stateSpace
     this.state()
   }
   
-  // Edge trigger on key press
-  KeyDown(key) {
+  /**
+   * Edge trigger on key press or release
+   *
+   * @param {boolean} down True if key was pressed, false if released
+   * @param {number} key DIT or DAH
+   */
+  Key(down, key) {
+    // By setting keyState we request this state transition,
+    // the next time the transition is possible.
+    let keyState = null
     if (key == DIT) {
-      this.keyFunc = this.dit
+      keyState = this.stateDit
     } else if (key == DAH) {
-      this.keyFunc = this.dah
+      keyState = this.stateDah
     }
-  }
-  
-  // Edge trigger on key release
-  KeyUp() {
-    // Only clear the keyFunc if the key released is the same one that we think is pressed
-    if ((key == DIT) && (this.keyFunc == this.dit)) {
-      this.keyFunc = null
-    } else if ((key == DAH) && (this.keyFunc = this.dah)) {
-      this.keyFunc = null
+    
+    if (down) {
+      this.keyState = keyState
+    } else if (keyState == this.keyState) {
+      // Only stop when we've released the right key
+      this.keyState = null
     }
   }
 }
 
 class Buzzer {
-  constructor(txGain=0.1) {
+  // Buzzers keep two oscillators: one high and one low.
+  // They generate a continuous waveform,
+  // and we change the gain to turn the pitches off and on.
+  //
+  // This also implements a very quick ramp-up and ramp-down in gain,
+  // in order to avoid "pops" (square wave overtones)
+  // that happen with instant changes in gain.
+  
+  constructor(txGain=0.5) {
     this.txGain = txGain
     
     this.ac = new AudioContext()
     
     this.lowGain = this.ac.createGain()
-    this.lowGain.connect(ac.destination)
+    this.lowGain.connect(this.ac.destination)
     this.lowGain.gain.value = 0
     this.lowOsc = this.ac.createOscillator()
-    this.lowOsc.connect(recGain)
-    this.lowOsc.frequency.value = recFreq
+    this.lowOsc.connect(this.lowGain)
+    this.lowOsc.frequency.value = lowFreq
+    this.lowOsc.start()
     
     this.highGain = this.ac.createGain()
-    this.highGain.connect(ac.destination)
+    this.highGain.connect(this.ac.destination)
     this.highGain.gain.value = 0
     this.highOsc = this.ac.createOscillator()
-    this.highOsc.connect(sendGain)
-    this.highOsc.frequency.value = recFreq
+    this.highOsc.connect(this.highGain)
+    this.highOsc.frequency.value = highFreq
+    this.highOsc.start()
   }
   
   gain(high) {
     if (high) {
-      return this.highGain
+      return this.highGain.gain
     } else {
-      return this.lowGain
+      return this.lowGain.gain
     }
   }
 
-  // Begin buzzing at time (null = now)
-  Buzz(high=false, when=null) {
-    if (when === null) {
-      when = this.ac.currentTime
+  /**
+   * Convert clock time to AudioContext time
+   *
+   * @param {number} when Clock time in ms
+   * @return {number} AudioContext offset time
+   */
+  acTime(when) {
+    if (! when) {
+      return this.ac.currentTime
     }
-    this.gain(high).linearRampToValueAtTime(this.txGain, when + 0.1)
+
+    let acOffset = Date.now() - this.ac.currentTime*1000
+    return (when - acOffset) / 1000
   }
   
-  // End buzzing at time (null = now)
-  Silence(high=false, when=null) {
-    if (when === null) {
-      when = this.ac.currentTime
-    }
-    this.gain(high).linearRampToValueAtTime(0, when + 0.1)
+  /**
+   * Set gain
+   *
+   * @param {number} gain Value (0-1)
+   */
+  SetGain(gain) {
+    this.txGain = gain
   }
-  
-  // Buzz for a duration at time
-  BuzzDuration(high, when, duration) {
+
+  /**
+   * Begin buzzing at time
+   *
+   * @param {boolean} high High or low pitched tone
+   * @param {number} when Time to begin (null=now)
+   */
+  Buzz(high, when=null) {
     let gain = this.gain(high)
-    gain.setValueAtTime(0, when)
-    gain.linearRampToValueAtTime(this.txGain, when+0.1)
-    gain.setValueAtTime(this.txGain, when+duration)
-    gain.linearRampToValueAtTime(this.txGain, when+duration+0.1)
+    let acWhen = this.acTime(when)
+    
+    this.ac.resume()
+    gain.setTargetAtTime(this.txGain, acWhen, 0.001)
+  }
+  
+  /**
+   * End buzzing at time
+   *
+   * @param {boolean} high High or low pitched tone
+   * @param {number} when Time to begin (null=now)
+   */
+  Silence(high, when=null) {
+    let gain = this.gain(high)
+    let acWhen = this.acTime(when)
+
+    gain.setTargetAtTime(0, acWhen, 0.001)
+  }
+  
+  /**
+   * Buzz for a duration at time
+   *
+   * @param {boolean} high High or low pitched tone
+   * @param {number} when Time to begin (ms since 1970-01-01Z, null=now)
+   * @param {number} duration Duration of buzz (ms)
+   */
+  BuzzDuration(high, when, duration) {
+    this.Buzz(high, when)
+    this.Silence(high, when+duration)
   }
 }
 
@@ -147,107 +198,80 @@ class Vail {
   
     // Listen for right clicks on dit button
     let dit = document.querySelector("#dit")
-    dit.addEventListener("contextmenu", e => this.canWeJustNot(e))
+    dit.addEventListener("contextmenu", e => {e.preventDefault(); return false})
     dit.addEventListener("mousedown", e => this.ditMouse(e))
     dit.addEventListener("mouseup", e => this.ditMouse(e))
 
     // Listen for keystrokes
     document.addEventListener("keydown", e => this.key(e))
     document.addEventListener("keyup", e => this.key(e))
-
-    // Make an Iambic input device
+    
+    // Make helpers
     this.iambic = new Iambic(() => this.beginTx(), () => this.endTx())
+    this.buzzer = new Buzzer()
 
-
-    let durationElement = document.querySelector("#duration")
-    durationElement.addEventListener("input", e => this.changeDuration(e))
-    this.durationInterval = setInterval(e => this.durationElapsed(e), durationElement.value)
-    
-    this.keyDownTime = 0
-    this.durationsLeft = 0
-    
+    // Listen for slider values
+    this.inputListen("#iambic-duration", e => this.setIambicDuration(e))
   }
   
-  keyDown() {
-    this.keyDownTime = new Date()
-    this.sendGain.linearRampToValueAtTime(0.1, this.ac.currentTime + 0.1)
-  }
-  
-  keyUp() {
-    let keyUpTime = new Date()
-    let duration = keyUpTime - keyDownTime
-    this.sendGain.linearRampToValueAtTime(0.0, this.ac.currentTime + 0.1)
-    this.send(keyDownTime, [duration])
-  }
-  
-  durationElapsed(e) {
-    if (this.durationsLeft === 0) {
-      this.durationsLeft = this.keyDown + 1
-    }
-    if (this.keyDown == 2) {
-      return
-    }
+  inputListen(selector, func) {
+    let element = document.querySelector(selector)
+    element.addEventListener("input", func)
+    element.dispatchEvent(new Event("input"))
   }
 
-  beep(gain, duration) {
-    let now = ac.currentTime
-    let end = now + duration
-    if (now === 0) {
-      return
-    }
+  setIambicDuration(event) {
+    console.log(this)
+    this.iambic.SetInterval(event.target.value)
+    document.querySelector("#iambic-duration-value").value = event.target.value
+  }
+  
+  beginTx() {
+    this.beginTxTime = Date.now()
+    this.buzzer.Buzz(true)
+  }
+  
+  endTx() {
+    let endTxTime = Date.now()
+    let duration = endTxTime - this.beginTxTime
+    this.buzzer.Silence(true)
     
-    // Ramping in and out prevents square wave overtones
-    gain.linearRampToValueAtTime(0.1, now + 0.1)
-    gain.setValueAtTime(0.1, end - 0.1)
-    gain.linearRampToValueAtTime(0.0, end)
+    let msg = JSON.stringify([this.beginTxTime, duration])
+    window.socket.send(msg)
   }
   
-  message(event) {
-    let duration = Number(event.data) || 0
-    duration = Math.min(duration, long)
-    beep(this.recGain.gain, duration)
+  wsMessage(event) {
+    let msg = JSON.parse(event.data)
+    let beginTxTime = msg[0]
+    let duration = msg[1]
+    
   }
-  
-  send(duration) {
-    window.socket.send(duration)
-    beep(this.sendGain.gain, duration)
-  }
-  
+
   key(event) {
-    let duration = 0
-    
-    ac.resume()
-  
     if (event.repeat) {
       // Ignore key repeats generated by the OS, we do this ourselves
       return
     }
-  
-    if ((event.button === 0) || (event.code == "Period") || (event.key == "Shift")) {
-      duration = short
-    }
-    if ((event.button === 2) || (event.code == "Slash") || (event.code == "KeyZ")) {
-      duration = long
-    }
-    if (duration === 0) {
-      return
-    }
     
-    if (repeatInterval) {
-      clearInterval(repeatInterval)
-    }
+    let begin = event.type.endsWith("down")
   
-    if (event.type.endsWith("down")) {
-      send(duration)
-      repeatInterval = setInterval(() => {send(duration)}, duration + short)
+    if ((event.code == "Period") || (event.key == "KeyZ")) {
+      event.preventDefault()
+      this.iambic.Key(begin, DIT)
+    }
+    if ((event.code == "Slash") || (event.code == "KeyX")) {
+      event.preventDefault()
+      this.iambic.Key(begin, DAH)
+    }
+    if ((event.key == "Shift")) {
+      event.preventDefault()
+      if (begin) {
+        this.beginTx()
+      } else {
+        this.endTx()
+      }
     }
   }
-  
-  canWeJustNot(event) {
-    event.preventDefault()
-    return false
-  }
-
 }
 
 function vailInit() {

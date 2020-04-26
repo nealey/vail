@@ -5,6 +5,10 @@
   justify-content: space-around;
 }
 
+.mdl-card {
+  margin: 0.5em;
+}
+
 .key {
   width: 100%;
   height: 6em;
