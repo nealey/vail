@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"golang.org/x/net/websocket"
-	"time"
 )
 
 var book Book
@@ -18,9 +17,7 @@ func (c Client) Handle(ws *websocket.Conn) {
 	book.Join(c.repeaterName, ws)
 	defer book.Part(c.repeaterName, ws)
 
-  offset := int64{0}
 	for {
-	  var m Message
 		buf := make([]byte, ws.MaxPayloadBytes)
 
 		if n, err := ws.Read(buf); err != nil {
@@ -28,12 +25,6 @@ func (c Client) Handle(ws *websocket.Conn) {
 		} else {
 		  buf = buf[:n]
 		}
-
-		if err := m.UnmarshalBinary(buf); err != nil {
-		  log("Unmarshal error:", err)
-		  continue
-		}
-		
 		
 		book.Send(c.repeaterName, buf)
 	}

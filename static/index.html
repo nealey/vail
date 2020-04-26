@@ -45,36 +45,30 @@
           <div class="mdl-card mdl-shadow--4dp">
             <div class="mdl-card__title">
               <h2 class="mdl-card__title-text">
-                Code Tree
-              </h2>
-            </div>
-            <div class="mdl-card__supporting-text">
-              <img src="code-tree.png">
-            </div>
-          </div>
-          
-          <div class="mdl-card mdl-shadow--4dp">
-            <div class="mdl-card__title">
-              <h2 class="mdl-card__title-text">
                 Input
               </h2>
             </div>
             <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
               <div class="mdl-tabs__tab-bar">
-                <a href="#iambic" class="mdl-tabs__tab is-active">Iambic</a>
-                <a href="#straight" class="mdl-tabs__tab">Straight Key</a>
+                <a href="#straight" class="mdl-tabs__tab is-active">Straight Key</a>
+                <a href="#iambic" class="mdl-tabs__tab">Iambic</a>
               </div>
-              <div class="mdl-tabs__panel is-active" id="iambic">
+              <div class="mdl-tabs__panel is-active" id="straight">
+                <button id="key" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                  Key
+                </button>
+              </div>
+              <div class="mdl-tabs__panel" id="iambic">
                 <table style="width: 100%; text-align: center;">
                   <tr>
                     <td>
                       <button id="dit" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                        dit
+                        Dit
                       </button>
                     </td>
                     <td>
                       <button id="dah" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                        dah
+                        Dah
                       </button>
                     </td>
                   </tr>
@@ -88,7 +82,7 @@
                   </tr>
                 </table>
                 <p>
-                  dit length:
+                  Dit length:
                   <output id="iambic-duration-value"></output>ms
                   <input
                     id="iambic-duration"
@@ -99,14 +93,20 @@
                     value="80">
                 </p>
               </div>
-              <div class="mdl-tabs__panel" id="straight">
-                <button class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                  Key
-                </button>
-              </div>
             </div>
           </div>
   
+          <div class="mdl-card mdl-shadow--4dp">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">
+                Code Tree
+              </h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <img src="code-tree.png">
+            </div>
+          </div>
+
           <div class="mdl-card mdl-shadow--4dp">
             <div class="mdl-card__title">
               <h2 class="mdl-card__title-text">

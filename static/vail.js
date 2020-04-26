@@ -196,11 +196,12 @@ class Vail {
     window.socket = new WebSocket(wsUrl)
     window.socket.addEventListener("message", this.wsMessage)
   
-    // Listen for right clicks on dit button
-    let dit = document.querySelector("#dit")
-    dit.addEventListener("contextmenu", e => {e.preventDefault(); return false})
-    dit.addEventListener("mousedown", e => this.ditMouse(e))
-    dit.addEventListener("mouseup", e => this.ditMouse(e))
+    // Listen to HTML buttons
+    for (let e of document.querySelectorAll("button.key")) {
+      e.addEventListener("contextmenu", e => {e.preventDefault(); return false})
+      e.addEventListener("mousedown", e => this.keyButton(e))
+      e.addEventListener("mouseup", e => this.keyButton(e))
+    }
 
     // Listen for keystrokes
     document.addEventListener("keydown", e => this.key(e))
@@ -211,21 +212,26 @@ class Vail {
     this.buzzer = new Buzzer()
 
     // Listen for slider values
-    this.inputListen("#iambic-duration", e => this.setIambicDuration(e))
+    this.inputInit("#iambic-duration", e => this.iambic.SetInterval(e.target.value))
   }
   
-  inputListen(selector, func) {
+  inputInit(selector, func) {
     let element = document.querySelector(selector)
-    element.addEventListener("input", func)
+    let storedValue = localStorage[element.id]
+    if (storedValue) {
+      element.value = storedValue
+    }
+    let outputElement = document.querySelector(selector + "-value")
+    element.addEventListener("input", e => {
+      localStorage[element.id] = element.value
+      if (outputElement) {
+        outputElement.value = element.value
+      }
+      func(e)
+    })
     element.dispatchEvent(new Event("input"))
   }
 
-  setIambicDuration(event) {
-    console.log(this)
-    this.iambic.SetInterval(event.target.value)
-    document.querySelector("#iambic-duration-value").value = event.target.value
-  }
-  
   beginTx() {
     this.beginTxTime = Date.now()
     this.buzzer.Buzz(true)
@@ -245,6 +251,7 @@ class Vail {
     let beginTxTime = msg[0]
     let duration = msg[1]
     
+    console.log(msg)
   }
 
   key(event) {
@@ -265,6 +272,24 @@ class Vail {
     }
     if ((event.key == "Shift")) {
       event.preventDefault()
+      if (begin) {
+        this.beginTx()
+      } else {
+        this.endTx()
+      }
+    }
+  }
+  
+  keyButton(event) {
+    let begin = event.type.endsWith("down")
+    
+    if (event.target.id == "dah") {
+      this.iambic.Key(begin, DAH)
+    } else if ((event.target.id == "dit") && (event.button == 2)) {
+      this.iambic.Key(begin, DAH)
+    } else if (event.target.id == "dit") {
+      this.iambic.Key(begin, DIT)
+    } else if (event.target.id == "key") {
       if (begin) {
         this.beginTx()
       } else {
