@@ -134,7 +134,8 @@ class Buzzer {
     }
 
     let acOffset = Date.now() - this.ac.currentTime*1000
-    return (when - acOffset) / 1000
+    let acTime = (when - acOffset) / 1000
+    return acTime
   }
   
   /**
@@ -206,8 +207,8 @@ class Vail {
     let wsUrl = new URL(window.location)
     wsUrl.protocol = "ws:"
     wsUrl.pathname += "chat"
-    window.socket = new WebSocket(wsUrl)
-    window.socket.addEventListener("message", e => this.wsMessage(e))
+    this.socket = new WebSocket(wsUrl)
+    this.socket.addEventListener("message", e => this.wsMessage(e))
   
     // Listen to HTML buttons
     for (let e of document.querySelectorAll("button.key")) {
@@ -226,7 +227,7 @@ class Vail {
 
     // Listen for slider values
     this.inputInit("#iambic-duration", e => this.iambic.SetInterval(e.target.value))
-    this.inputInit("#rx-delay", e => {this.rxDelay = e.target.value})
+    this.inputInit("#rx-delay", e => {this.rxDelay = Number(e.target.value)})
   }
   
   inputInit(selector, func) {
@@ -268,7 +269,7 @@ class Vail {
   
   updateReadings() {
     let avgLag = this.lagTimes.reduce((a,b) => (a+b)) / this.lagTimes.length
-    let longestRx = this.rxDurations.reduce(Math.max)
+    let longestRx = this.rxDurations.reduce((a,b) => Math.max(a,b))
     let suggestedDelay = (avgLag + longestRx) * 1.2
     
     this.updateReading("#lag-value", avgLag.toFixed())
@@ -278,7 +279,7 @@ class Vail {
   
   addLagReading(duration) {
     this.lagTimes.push(duration)
-    if (this.lagTimes.length > 20) {
+    while (this.lagTimes.length > 20) {
       this.lagTimes.shift()
     }
     this.updateReadings()
@@ -286,7 +287,7 @@ class Vail {
   
   addRxDuration(duration) {
     this.rxDurations.push(duration)
-    if (this.rxDurations.length > 20) {
+    while (this.rxDurations.length > 20) {
       this.rxDurations.shift()
     }
     this.updateReadings()
@@ -295,29 +296,45 @@ class Vail {
   wsSend(time, duration) {
     let msg = [time, duration]
     let jmsg = JSON.stringify(msg)
-    window.socket.send(jmsg)
+    this.socket.send(jmsg)
     this.sent.push(jmsg)
   }
   
   wsMessage(event) {
+    let now = Date.now()
     let jmsg = event.data
     let msg = JSON.parse(jmsg)
     let beginTxTime = msg[0]
-    let duration = msg[1]
+    let durations = msg.slice(1)
 
     let sent = this.sent.filter(e => e != jmsg)
     if (sent.length < this.sent.length) {
       // We're getting our own message back, which tells us our lag.
       // We shouldn't emit a tone, though.
+      let totalDuration = durations.reduce((a,b) => a+b)
       this.sent = sent
-      this.addLagReading(Date.now() - beginTxTime - duration)
+      this.addLagReading(now - beginTxTime - totalDuration)
+      return
+    }
+
+
+    let adjustedTxTime = beginTxTime+this.rxDelay
+    if (adjustedTxTime < now) {
+      this.buzzer.ErrorTone()
       return
     }
     
-    // Beep!
-    this.buzzer.BuzzDuration(false, beginTxTime+this.rxDelay, duration)
-    
-    this.addRxDuration(duration)
+    // Every other value is a silence duration
+    let tx = true
+    for (let duration of durations) {
+      duration = Number(duration)
+      if (tx) {
+        this.buzzer.BuzzDuration(false, adjustedTxTime, duration)
+        this.addRxDuration(duration)
+      }
+      adjustedTxTime = Number(adjustedTxTime) + duration
+      tx = !tx
+    }
   }
 
   key(event) {
@@ -361,7 +378,26 @@ class Vail {
       } else {
         this.endTx()
       }
+    } else if (event.target.id == "ck") {
+      this.Test()
     }
+  }
+  
+  /**
+   * Send "CK" to server, and don't squelch the repeat
+   */
+  Test() {
+    let dit = Number(document.querySelector("#iambic-duration-value").value)
+    let dah = dit * 3
+    let s = dit
+    
+    let msg = [
+      Date.now(),
+      dah, s, dit, s, dah, s, dit,
+      s * 3,
+      dah, s, dit, s, dah
+    ]
+    this.socket.send(JSON.stringify(msg))
   }
 }
 

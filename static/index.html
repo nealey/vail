@@ -26,6 +26,7 @@
           <nav class="mdl-navigation">
             <a class="mdl-navigation__link" href="https://github.com/nealey/vail">Source Code</a>
             <a class="mdl-navigation__link" href="https://github.com/nealey/vail/issues/new">Bug Report</a>
+            <a class="mdl-navigation__link" href="https://morse.withgoogle.com/learn/">Learn Morse</a>
           </nav>
         </div>
       </header>
@@ -36,6 +37,10 @@
           <a class="mdl-navigation__link" href="?repeater=">1-15 WPM</a>
           <a class="mdl-navigation__link" href="?repeater=int">16-20 WPM</a>
           <a class="mdl-navigation__link" href="?repeater=adv">21-99 WPM</a>
+        </nav>
+        <hr>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="https://morse.withgoogle.com/learn/">Learn Morse Code</a>
         </nav>
       </div>
       
@@ -51,6 +56,7 @@
               <div class="mdl-tabs__tab-bar">
                 <a href="#straight" class="mdl-tabs__tab is-active">Straight Key</a>
                 <a href="#iambic" class="mdl-tabs__tab">Iambic</a>
+                <a href="#tools" class="mdl-tabs__tab">Tools</a>
               </div>
               <div class="mdl-tabs__panel is-active" id="straight">
                 <table class="center wide">
@@ -89,6 +95,20 @@
                     <td>
                       <code>/</code> or <code>x</code>
                     </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="mdl-tabs__panel" id="tools">
+                <table class="center wide">
+                  <tr>
+                    <td>
+                      <button id="ck" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                        CK
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Echo On</td>
                   </tr>
                 </table>
               </div>
@@ -142,7 +162,7 @@
                   type="range"
                   min="0"
                   max="5000"
-                  value="300">
+                  value="400">
               </p>
               <p>
                 Dit length (iambic):
@@ -153,7 +173,7 @@
                   type="range"
                   min="40"
                   max="255"
-                  value="80">
+                  value="100">
               </p>
             </div>
           </div>
@@ -210,7 +230,6 @@
                 <li>Make this page less ugly</li>
                 <li>Arduino program to let you hook up an iambic paddle over USB</li>
                 <li>Document the protocol</li>
-                <li>Support multiple channels/frequencies</li>
               </ul>
         
         
