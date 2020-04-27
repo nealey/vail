@@ -328,7 +328,7 @@ class Vail {
     let tx = true
     for (let duration of durations) {
       duration = Number(duration)
-      if (tx) {
+      if (tx && (duration > 0)) {
         this.buzzer.BuzzDuration(false, adjustedTxTime, duration)
         this.addRxDuration(duration)
       }
@@ -397,6 +397,7 @@ class Vail {
       s * 3,
       dah, s, dit, s, dah
     ]
+    this.wsSend(Date.now(), 0) // Get round-trip time
     this.socket.send(JSON.stringify(msg))
   }
 }
