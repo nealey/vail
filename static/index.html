@@ -24,22 +24,21 @@
           <div class="mdl-layout-spacer"></div>
           <!-- Navigation -->
           <nav class="mdl-navigation">
-            <a class="mdl-navigation__link" href="">Link</a>
-            <a class="mdl-navigation__link" href="">Link</a>
-            <a class="mdl-navigation__link" href="">Link</a>
-            <a class="mdl-navigation__link" href="">Link</a>
+            <a class="mdl-navigation__link" href="https://github.com/nealey/vail">Source Code</a>
+            <a class="mdl-navigation__link" href="https://github.com/nealey/vail/issues/new">Bug Report</a>
           </nav>
         </div>
       </header>
+      
       <div class="mdl-layout__drawer">
-        <span class="mdl-layout-title">Title</span>
+        <span class="mdl-layout-title">Repeaters</span>
         <nav class="mdl-navigation">
-          <a class="mdl-navigation__link" href="">Link</a>
-          <a class="mdl-navigation__link" href="">Link</a>
-          <a class="mdl-navigation__link" href="">Link</a>
-          <a class="mdl-navigation__link" href="">Link</a>
+          <a class="mdl-navigation__link" href="?repeater=">1-15 WPM</a>
+          <a class="mdl-navigation__link" href="?repeater=int">16-20 WPM</a>
+          <a class="mdl-navigation__link" href="?repeater=adv">21-99 WPM</a>
         </nav>
       </div>
+      
       <main class="mdl-layout__content">
         <div class="flex">
           <div class="mdl-card mdl-shadow--4dp">
@@ -54,12 +53,23 @@
                 <a href="#iambic" class="mdl-tabs__tab">Iambic</a>
               </div>
               <div class="mdl-tabs__panel is-active" id="straight">
-                <button id="key" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                  Key
-                </button>
+                <table class="center wide">
+                  <tr>
+                    <td>
+                      <button id="key" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                        Key
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>⇧</code>
+                    </td>
+                  </tr>
+                </table>
               </div>
               <div class="mdl-tabs__panel" id="iambic">
-                <table style="width: 100%; text-align: center;">
+                <table class="center wide">
                   <tr>
                     <td>
                       <button id="dit" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
@@ -74,25 +84,77 @@
                   </tr>
                   <tr>
                     <td>
-                      <code>.</code> or <code>⇧</code>
+                      <code>.</code> or <code>z</code>
                     </td>
                     <td>
-                      <code>/</code> or <code>z</code>
+                      <code>/</code> or <code>x</code>
                     </td>
                   </tr>
                 </table>
-                <p>
-                  Dit length:
-                  <output id="iambic-duration-value"></output>ms
-                  <input
-                    id="iambic-duration"
-                    class="mdl-slider mdl-js-slider"
-                    type="range"
-                    min="40"
-                    max="255"
-                    value="80">
-                </p>
               </div>
+            </div>
+          </div>
+
+          <div class="mdl-card mdl-shadow--4dp">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">
+                Knobs
+              </h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <table>
+                <tbody>
+                  <tr>
+                    <td>
+                      Average round-trip time:
+                    </td>
+                    <td>
+                      <output id="lag-value">0</output>ms
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      Longest recent transmission:
+                    </td>
+                    <td>
+                      <output id="longest-rx-value">0</output>ms
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      Suggested receive delay:
+                    </td>
+                    <td>
+                      <output id="suggested-delay-value">0</output>ms
+                    </td>
+                  </tr>
+                  <tr>
+                  </tr>
+                </tbody>
+              </table>
+              <hr>
+              <p>
+                Recieve delay:
+                <output id="rx-delay-value"></output>ms
+                <input
+                  id="rx-delay"
+                  class="mdl-slider mdl-js-slider"
+                  type="range"
+                  min="0"
+                  max="5000"
+                  value="300">
+              </p>
+              <p>
+                Dit length (iambic):
+                <output id="iambic-duration-value"></output>ms
+                <input
+                  id="iambic-duration"
+                  class="mdl-slider mdl-js-slider"
+                  type="range"
+                  min="40"
+                  max="255"
+                  value="80">
+              </p>
             </div>
           </div>
   
@@ -125,62 +187,44 @@
                 Just like a radio repeater,
                 anybody can connect and start transmitting stuff,
                 and this will broadcast it to everyone connected.
-                If there's enough interest,
-                I'll add something like channels.
               </p>
+
+              <h3 class="mdl-card__title-text">Why Does This Exist?</h3>
               
-              <p>
-                If you need this to work on a cell phone,
-                let me know and I'll come up with something for you.
-              </p>
-            </div>
-          </div>
-  
-          <div class="mdl-card mdl-shadow--4dp">
-            <div class="mdl-card__title">
-              <h2 class="mdl-card__title-text">
-                Why Does This Exist?
-              </h2>
-            </div>
-            <div class="mdl-card__supporting-text">
               <p>
                 I need a place to practice CW with actual human beings,
                 and I want it to be as close as possible to what I'd experience on a radio.
                 Also, I don't want to make people buy a bunch of radio hardware.
                 Nothing else like this exists on the Internet, as far as I can tell.
               </p>
-        
-              <h3>Who made it?</h3>
-        
-              <p>
-                <a href="mailto:neale@woozle.org">Neale Pickett</a> kd7oqi
-              </p>
-        
             </div>
           </div>
   
           <div class="mdl-card mdl-shadow--4dp">
             <div class="mdl-card__title">
-              <h3 class="mdl-card__title-text">Future plans</h3>
+              <h2 class="mdl-card__title-text">Future plans</h2>
             </div>
-            <div class="mdl-card__supporting_text">
+            <div class="mdl-card__supporting-text">
               <ul>
                 <li>Move to a more permanent URL</li>
                 <li>Make this page less ugly</li>
                 <li>Arduino program to let you hook up an iambic paddle over USB</li>
                 <li>Document the protocol</li>
                 <li>Support multiple channels/frequencies</li>
-                <li>Sensible way to make this work on a cell phone</li>
-                <li>Make this page less ugly (I really hate it right now)</li>
               </ul>
         
         
-              <h3>How can I help?</h3>
+              <h3 class="mdl-card__title-text">How can I help?</h3>
         
               <ul>
                 <li>Improve the <a href="https://github.com/nealey/vail/">source code</a></li>
-                <li><a href="mailto:neale@woozle.org">Email me</a> and let me know you're using it</li>
+                <li>Email me and let me know you're using it</li>
               </ul>
+              
+              <p>
+                <a href="mailto:neale@woozle.org">Neale Pickett</a> kd7oqi
+              </p>
+        
             </div>
           </div>
         </div>

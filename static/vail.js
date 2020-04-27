@@ -2,6 +2,7 @@
 
 const lowFreq = 660
 const highFreq = lowFreq * 6 / 5 // Perfect minor third
+const errorFreq = 30
 
 const DIT = 1
 const DAH = 3
@@ -91,26 +92,26 @@ class Buzzer {
   // in order to avoid "pops" (square wave overtones)
   // that happen with instant changes in gain.
   
-  constructor(txGain=0.5) {
+  constructor(txGain=0.3) {
     this.txGain = txGain
     
     this.ac = new AudioContext()
     
-    this.lowGain = this.ac.createGain()
-    this.lowGain.connect(this.ac.destination)
-    this.lowGain.gain.value = 0
-    this.lowOsc = this.ac.createOscillator()
-    this.lowOsc.connect(this.lowGain)
-    this.lowOsc.frequency.value = lowFreq
-    this.lowOsc.start()
-    
-    this.highGain = this.ac.createGain()
-    this.highGain.connect(this.ac.destination)
-    this.highGain.gain.value = 0
-    this.highOsc = this.ac.createOscillator()
-    this.highOsc.connect(this.highGain)
-    this.highOsc.frequency.value = highFreq
-    this.highOsc.start()
+    this.lowGain = this.create(lowFreq)
+    this.highGain = this.create(highFreq)
+    this.errorGain = this.create(errorFreq, "square")
+  }
+  
+  create(frequency, type="sine") {
+    let gain = this.ac.createGain()
+    gain.connect(this.ac.destination)
+    gain.gain.value = 0
+    let osc = this.ac.createOscillator()
+    osc.type = type
+    osc.connect(gain)
+    osc.frequency.value = frequency
+    osc.start()
+    return gain
   }
   
   gain(high) {
@@ -143,6 +144,14 @@ class Buzzer {
    */
   SetGain(gain) {
     this.txGain = gain
+  }
+
+  /**
+   * Play an error tone
+   */
+  ErrorTone() {
+    this.errorGain.gain.setTargetAtTime(this.txGain * 0.5, this.ac.currentTime, 0.001)
+    this.errorGain.gain.setTargetAtTime(0, this.ac.currentTime + 0.2, 0.001)
   }
 
   /**
@@ -187,6 +196,10 @@ class Buzzer {
 
 class Vail {
   constructor() {
+    this.sent = []
+    this.lagTimes = [0]
+    this.rxDurations = [0]
+    this.rxDelay = 0 // Milliseconds to add to incoming timestamps
     this.beginTxTime = null // Time when we began transmitting
 
     // Set up WebSocket
@@ -194,7 +207,7 @@ class Vail {
     wsUrl.protocol = "ws:"
     wsUrl.pathname += "chat"
     window.socket = new WebSocket(wsUrl)
-    window.socket.addEventListener("message", this.wsMessage)
+    window.socket.addEventListener("message", e => this.wsMessage(e))
   
     // Listen to HTML buttons
     for (let e of document.querySelectorAll("button.key")) {
@@ -213,6 +226,7 @@ class Vail {
 
     // Listen for slider values
     this.inputInit("#iambic-duration", e => this.iambic.SetInterval(e.target.value))
+    this.inputInit("#rx-delay", e => {this.rxDelay = e.target.value})
   }
   
   inputInit(selector, func) {
@@ -241,17 +255,69 @@ class Vail {
     let endTxTime = Date.now()
     let duration = endTxTime - this.beginTxTime
     this.buzzer.Silence(true)
+    this.wsSend(this.beginTxTime, duration)
+    this.beginTxTime = null
+  }
+  
+  updateReading(selector, value) {
+    let e = document.querySelector(selector)
+    if (e) {
+      e.value = value
+    }
+  }
+  
+  updateReadings() {
+    let avgLag = this.lagTimes.reduce((a,b) => (a+b)) / this.lagTimes.length
+    let longestRx = this.rxDurations.reduce(Math.max)
+    let suggestedDelay = (avgLag + longestRx) * 1.2
     
-    let msg = JSON.stringify([this.beginTxTime, duration])
-    window.socket.send(msg)
+    this.updateReading("#lag-value", avgLag.toFixed())
+    this.updateReading("#longest-rx-value", longestRx)
+    this.updateReading("#suggested-delay-value", suggestedDelay.toFixed())
+  }
+  
+  addLagReading(duration) {
+    this.lagTimes.push(duration)
+    if (this.lagTimes.length > 20) {
+      this.lagTimes.shift()
+    }
+    this.updateReadings()
+  }
+  
+  addRxDuration(duration) {
+    this.rxDurations.push(duration)
+    if (this.rxDurations.length > 20) {
+      this.rxDurations.shift()
+    }
+    this.updateReadings()
+  }
+  
+  wsSend(time, duration) {
+    let msg = [time, duration]
+    let jmsg = JSON.stringify(msg)
+    window.socket.send(jmsg)
+    this.sent.push(jmsg)
   }
   
   wsMessage(event) {
-    let msg = JSON.parse(event.data)
+    let jmsg = event.data
+    let msg = JSON.parse(jmsg)
     let beginTxTime = msg[0]
     let duration = msg[1]
+
+    let sent = this.sent.filter(e => e != jmsg)
+    if (sent.length < this.sent.length) {
+      // We're getting our own message back, which tells us our lag.
+      // We shouldn't emit a tone, though.
+      this.sent = sent
+      this.addLagReading(Date.now() - beginTxTime - duration)
+      return
+    }
     
-    console.log(msg)
+    // Beep!
+    this.buzzer.BuzzDuration(false, beginTxTime+this.rxDelay, duration)
+    
+    this.addRxDuration(duration)
   }
 
   key(event) {
@@ -262,11 +328,11 @@ class Vail {
     
     let begin = event.type.endsWith("down")
   
-    if ((event.code == "Period") || (event.key == "KeyZ")) {
+    if ((event.code == "KeyZ") || (event.code == "Period")) {
       event.preventDefault()
       this.iambic.Key(begin, DIT)
     }
-    if ((event.code == "Slash") || (event.code == "KeyX")) {
+    if ((event.code == "KeyX") || (event.code == "Slash")) {
       event.preventDefault()
       this.iambic.Key(begin, DAH)
     }
