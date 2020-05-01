@@ -22,6 +22,29 @@
   width: 100%;
 }
 
+#errors {
+    color: rgba(127, 0, 0, .54);
+    max-height: 5em;
+    overflow-y: scroll;
+}
+
+@keyframes yellow-fade {
+	0% {background: yellow;}
+	100% {background: none;}
+}
+#errors p {
+    margin: 0;
+    animation: yellow-fade 2s ease-in 1;
+}
+
+kbd {
+    background-color: #eee;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    font-size: 9pt;
+    padding: .1em .6em;
+}
+
 code {
   background-color: #333;
   color: #fff;
@@ -30,4 +53,9 @@ code {
 
 img {
   max-width: 20em;
+}
+
+.mdl-card__supporting-text {
+	max-height: 20em;
+	overflow-y: scroll;
 }
