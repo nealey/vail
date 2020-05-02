@@ -290,11 +290,13 @@ class Vail {
 		let data = Array.from(event.data)
 		
 		let begin
-		switch (Number(data[0])) {
-			case 0x90:
+		let cmd = data[0] >> 4
+		let chan = data[0] & 0xf
+		switch (cmd) {
+			case 9:
 				begin = true
 				break
-			case 0x80:
+			case 8:
 				begin = false
 				break
 			default:
