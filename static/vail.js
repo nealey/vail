@@ -221,7 +221,7 @@ class Vail {
 
 		// Set up WebSocket
 		let wsUrl = new URL(window.location)
-		wsUrl.protocol = "ws:"
+		wsUrl.protocol = wsUrl.protocol.replace("http", "ws")
 		wsUrl.pathname += "chat"
 		this.socket = new WebSocket(wsUrl)
 		this.socket.addEventListener("message", e => this.wsMessage(e))
