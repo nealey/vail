@@ -13,7 +13,8 @@ class Iambic {
 		this.endTxFunc = endTxFunc
 		this.intervalDuration = null
 		this.state = this.stateBegin
-		this.keyState = null
+		this.ditDown = false
+		this.dahDown = false
 	}
 
 	/**
@@ -34,23 +35,35 @@ class Iambic {
 		this.state()
 	}
 
-	
 	stateBegin() {
-		if (this.keyState) {
-			// Don't transmit for one interval.
-			this.state = this.keyState
-			this.state()
+		if (this.ditDown) {
+			this.stateDit()
+		} else if (this.dahDown) {
+			this.stateDah()
 		} else {
-			// No key pressed, go back to sleep.
 			clearInterval(this.interval)
 			this.interval = null
 		}
 	}
+	
 	stateDit() {
 		// Send a dit
 		this.beginTxFunc()
-		this.state = this.stateEnd
+		this.state = this.stateDitEnd
 	}
+	stateDitEnd() {
+		this.endTxFunc()
+		this.state = this.stateDitNext
+	}
+	stateDitNext() {
+		if (this.dahDown) {
+			this.state = this.stateDah
+		} else {
+			this.state = this.stateBegin
+		}
+		this.state()
+	}
+
 	stateDah() {
 		// Send a dah
 		this.beginTxFunc()
@@ -60,13 +73,21 @@ class Iambic {
 		this.state = this.stateDah3
 	}
 	stateDah3() {
-		this.state = this.stateEnd
+		this.state = this.stateDahEnd
 	}
-	stateEnd() {
-		// Stop sending
+	stateDahEnd() {
 		this.endTxFunc()
-		this.state = this.stateBegin
+		this.state = this.stateDahNext
 	}
+	stateDahNext() {
+		if (this.ditDown) {
+			this.state = this.stateDit
+		} else {
+			this.state = this.stateBegin
+		}
+		this.state()
+	}
+	
 
 	/**
 	  * Edge trigger on key press or release
@@ -75,22 +96,12 @@ class Iambic {
 	  * @param {number} key DIT or DAH
 	  */
 	Key(down, key) {
-		// By setting keyState we request this state transition,
-		// the next time the transition is possible.
-		let keyState = null
 		if (key == DIT) {
-			keyState = this.stateDit
+			this.ditDown = down
 		} else if (key == DAH) {
-			keyState = this.stateDah
+			this.dahDown = down
 		}
-
-		if (down) {
-			this.keyState = keyState
-		} else if (keyState == this.keyState) {
-			// Only stop when we've released the right key
-			this.keyState = null
-		}
-		
+				
 		// Not pulsing yet? Start right away!
 		if (! this.interval) {
 			this.interval = setInterval(e => this.pulse(), this.intervalDuration)
@@ -219,16 +230,13 @@ class Vail {
 		this.rxDelay = 0 // Milliseconds to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 
-		// Set up WebSocket
-		let wsUrl = new URL(window.location)
-		wsUrl.protocol = wsUrl.protocol.replace("http", "ws")
-		wsUrl.pathname += "chat"
-		this.socket = new WebSocket(wsUrl)
-		this.socket.addEventListener("message", e => this.wsMessage(e))
+		this.openSocket()
 
 		// Listen to HTML buttons
 		for (let e of document.querySelectorAll("button.key")) {
 			e.addEventListener("contextmenu", e => {e.preventDefault(); return false})
+			e.addEventListener("touchstart", e => this.keyButton(e))
+			e.addEventListener("touchend", e => this.keyButton(e))
 			e.addEventListener("mousedown", e => this.keyButton(e))
 			e.addEventListener("mouseup", e => this.keyButton(e))
 		}
@@ -250,8 +258,20 @@ class Vail {
 		document.querySelector("#repeater").textContent = repeater
 		
 		// Request MIDI access
-		navigator.requestMIDIAccess()
-		.then(a => this.midiInit(a))
+		if (navigator.requestMIDIAccess) {
+			navigator.requestMIDIAccess()
+			.then(a => this.midiInit(a))
+		}
+	}
+	
+	openSocket() {
+		// Set up WebSocket
+		let wsUrl = new URL(window.location)
+		wsUrl.protocol = wsUrl.protocol.replace("http", "ws")
+		wsUrl.pathname += "chat"
+		this.socket = new WebSocket(wsUrl)
+		this.socket.addEventListener("message", e => this.wsMessage(e))
+		this.socket.addEventListener("close", e => this.openSocket())
 	}
 
 	inputInit(selector, func) {
@@ -280,10 +300,8 @@ class Vail {
   	}
 	
 	midiStateChange(event) {
-		if (event.port.connection == "open") {
-			console.log(event)
-			event.port.addEventListiner("midimessage", e => this.midiMessage(e))
-		}
+		// XXX: it's not entirely clear how to handle new devices showing up.
+		// XXX: possibly we go through this.midiAccess.inputs and somehow only listen on new things
 	}
 	
 	midiMessage(event) {
@@ -441,7 +459,7 @@ class Vail {
 		}
 
 		let begin = event.type.endsWith("down")
-
+		
 		if ((event.code == "KeyZ") || (event.code == "Period")) {
 			event.preventDefault()
 			this.iambic.Key(begin, DIT)
@@ -461,7 +479,9 @@ class Vail {
 	}
 
 	keyButton(event) {
-		let begin = event.type.endsWith("down")
+		let begin = event.type.endsWith("down") || event.type.endsWith("start")
+
+		event.preventDefault()
 
 		if (event.target.id == "dah") {
 			this.iambic.Key(begin, DAH)
@@ -471,7 +491,7 @@ class Vail {
 			this.iambic.Key(begin, DIT)
 		} else if (event.target.id == "key") {
 			this.straightKey(begin)
-		} else if (event.target.id == "ck") {
+		} else if ((event.target.id == "ck") && begin) {
 			this.Test()
 		}
 	}
