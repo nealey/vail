@@ -240,6 +240,9 @@ class Vail {
 			e.addEventListener("mousedown", e => this.keyButton(e))
 			e.addEventListener("mouseup", e => this.keyButton(e))
 		}
+		for (let e of document.querySelectorAll("button.maximize")) {
+			e.addEventListener("click", e => this.maximize(e))
+		}
 
 		// Listen for keystrokes
 		document.addEventListener("keydown", e => this.key(e))
@@ -254,7 +257,7 @@ class Vail {
 		this.inputInit("#rx-delay", e => {this.rxDelay = Number(e.target.value)})
 
 		// Show what repeater we're on
-		let repeater = (new URL(location)).searchParams.get("repeater") || "Default"
+		let repeater = (new URL(location)).searchParams.get("repeater") || "General Chaos"
 		document.querySelector("#repeater").textContent = repeater
 		
 		// Request MIDI access
@@ -262,6 +265,19 @@ class Vail {
 			navigator.requestMIDIAccess()
 			.then(a => this.midiInit(a))
 		}
+	}
+	
+	maximize(e) {
+		let element = e.target
+		while (! element.classList.contains("mdl-card")) {
+			element = element.parentElement
+			if (! element) {
+				console.log("Maximize button: couldn't find parent card")
+				return
+			}
+		}
+		element.classList.toggle("maximized")
+		console.log(element)
 	}
 	
 	openSocket() {
@@ -338,12 +354,13 @@ class Vail {
 
 	error(msg) {
 		let now = new Date()
-		let e = document.querySelector("#errors")
-		if (e) {
-			let p = e.appendChild(document.createElement("p"))
-			p.innerText = "[" + now.toLocaleTimeString() + "] " + msg
-			e.scrollTop = e.scrollHeight
+		let el = document.querySelector("#snackbar")
+		let data = {
 		}
+		el.MaterialSnackbar.showSnackbar({
+			message: msg,
+			timeout: 2000
+		})
 		this.buzzer.ErrorTone()
 	}
 
@@ -474,6 +491,9 @@ class Vail {
 				this.beginTx()
 			} else {
 				this.endTx()
+				if (this.buzzer.ac.state != "running") {
+					this.error("Browser won't let me play sound yet. Try pressing a button first.")
+				}
 			}
 		}
 	}

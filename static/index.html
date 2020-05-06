@@ -15,6 +15,11 @@
 		<link rel="stylesheet" href="vail.css">
 	</head>
 	<body>
+		<div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+			<div class="mdl-snackbar__text"></div>
+			<button class="mdl-snackbar__action" type="button"></button>
+		</div>
+		
 		<div class="mdl-layout mdl-js-layout">
 			<header class="mdl-layout__header mdl-layout__header--scroll">
 				<div class="mdl-layout__header-row">
@@ -35,9 +40,9 @@
 				<span class="mdl-layout-title">Repeaters</span>
 				<nav class="mdl-navigation">
 					<a class="mdl-navigation__link" href="?repeater=">General Chaos</a>
-					<a class="mdl-navigation__link" href="?repeater=beg">1-15 WPM</a>
-					<a class="mdl-navigation__link" href="?repeater=int">16-20 WPM</a>
-					<a class="mdl-navigation__link" href="?repeater=adv">21-99 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=1-15+WPM">1-15 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=16-20+WPM">16-20 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=21-99+WPM">21-99 WPM</a>
 				</nav>
 				<hr>
 				<nav class="mdl-navigation">
@@ -90,11 +95,14 @@
 									<tr>
 										<td>
 											<kbd>.</kbd> or <kbd>z</kbd>
-											<br>
-											right-click for Dah
 										</td>
 										<td>
 											<kbd>/</kbd> or <kbd>x</kbd>
+										</td>
+									</tr>
+									<tr>
+										<td colspan="2">
+											Right-click on Dit = Dah
 										</td>
 									</tr>
 								</table>
@@ -113,6 +121,9 @@
 									</tr>
 								</table>
 							</div>
+						</div>
+						<div class="mdl-card__actions right">
+							<button class="maximize" title="maximize">↕</button>
 						</div>
 					</div>
 
@@ -143,7 +154,7 @@
 									max="9999"
 									value="4000">
 							</p>
-	      <hr>
+							<hr>
 							<table>
 								<tbody>
 									<tr>
@@ -180,9 +191,6 @@
 									</tr>
 								</tbody>
 							</table>
-							<hr>
-							<p>Errors</p>
-							<div id="errors"></div>
 						</div>
 					</div>
 

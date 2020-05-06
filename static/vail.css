@@ -18,6 +18,13 @@
   text-align: center;
 }
 
+.right {
+	text-align: right;
+}
+.maximized .key {
+	height: 100vh;
+}
+
 .wide {
   width: 100%;
 }
