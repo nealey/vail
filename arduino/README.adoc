@@ -76,8 +76,14 @@ Make sure any straight key you plug in has a TS adapter (mono plug):
 this will short pin 11 to ground and signal to the Arduino to 
 go into straight key mode.
 
+You need to reset the Arduino if you change from an iambic to straight key.
+On the micro, reset is a white button.
+
 If you plug in your straight key and it looks like DAH is being held down,
-it means you need to switch 11 and 12.
+it means you need to switch the connections to pins 11 and 12.
+
+If you plug in your straight key and it looks like DIT is being held down,
+it means you need to reset the Arduino to make it detect the key type again.
 
 
 == Step 3: Load the code
