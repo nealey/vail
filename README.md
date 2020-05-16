@@ -10,6 +10,6 @@ to key down.
 
 You can also connect a physical key or paddle,
 through an Arduino micro running a keyer program.
-This program is in the [arduino directory](arduino/),
+This program is on github as [vail-adapter](https://github.com/nealey/vail-adapter),
 or [in Arduino Create](https://create.arduino.cc/editor/neale/f94bb765-47bd-4bc4-9cbf-b978f7124bdc).
 
