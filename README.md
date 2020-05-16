@@ -8,4 +8,8 @@ You can use any key on the keyboard,
 or a mouse button,
 to key down.
 
-Network jitter is going to make this horrible.
+You can also connect a physical key or paddle,
+through an Arduino micro running a keyer program.
+This program is in the [arduino directory](arduino/),
+or [in Arduino Create](https://create.arduino.cc/editor/neale/f94bb765-47bd-4bc4-9cbf-b978f7124bdc).
+
