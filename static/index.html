@@ -36,9 +36,9 @@
 				<span class="mdl-layout-title">Repeaters</span>
 				<nav class="mdl-navigation">
 					<a class="mdl-navigation__link" href="?repeater=">General Chaos</a>
-					<a class="mdl-navigation__link" href="?repeater=beg">1-15 WPM</a>
-					<a class="mdl-navigation__link" href="?repeater=int">16-20 WPM</a>
-					<a class="mdl-navigation__link" href="?repeater=adv">21-99 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=1-15+WPM">1-15 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=16-20+WPM">16-20 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=21-99+WPM">21-99 WPM</a>
 				</nav>
 				<hr>
 				<nav class="mdl-navigation">
@@ -130,75 +130,111 @@
 
 					<div class="mdl-card mdl-shadow--4dp">
 						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">Dichotomous Key</h2>
+							<h2 class="mdl-card__title-text">Alphabet</h2>
 						</div>
-						<table class="mdl-card__supporting-text long morsetree">
-								<tbody>
-									<tr> 
-										<td rowspan="8">e ·</td>
-										<td rowspan="4">i ··</td>
-										<td rowspan="2">s ···</td>
-										<td rowspan="1">h ····</td>
-									</tr>
-									<tr>
-										<td rowspan="1">v ···–</td>
-									</tr>
-									<tr>
-										<td rowspan="2">u ··–</td>
-										<td rowspan="1">f ··–·</td>
-									</tr>
-									<tr>
-										<td rowspan="1"></td>
-									</tr>
-									<tr>
-										<td rowspan="4">a ·–</td>
-										<td rowspan="2">r ·–·</td>	
-										<td rowspan="1">l ·–··</td>
-									</tr>
-									<tr> 
-										<td rowspan="1">j ·–––</td>
-									</tr> 
-									<tr>
-										<td rowspan="2">w ·––</td>
-										<td rowspan="1">p ·––·</td>
-									</tr> 
-									<tr> 
-										<td rowspan="1"></td>
-									</tr>
+						<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+							<div class="mdl-tabs__tab-bar">
+								<a href="#morse-tree" class="mdl-tabs__tab is-active">Dichotomous Key</a>
+								<a href="#morse-list" class="mdl-tabs__tab">List</a>
+							</div>
+							<div class="mdl-tabs__panel is-active" id="morse-tree">
+								<table>
+									<tbody>
+										<tr> 
+											<td rowspan="8">e .</td>
+											<td rowspan="4">i ..</td>
+											<td rowspan="2">s ...</td>
+											<td rowspan="1">h ....</td>
+										</tr>
+										<tr>
+											<td rowspan="1">v ...-</td>
+										</tr>
+										<tr>
+											<td rowspan="2">u ..-</td>
+											<td rowspan="1">f ..-.</td>
+										</tr>
+										<tr>
+											<td rowspan="1"></td>
+										</tr>
+										<tr>
+											<td rowspan="4">a .-</td>
+											<td rowspan="2">r .-.</td>	
+											<td rowspan="1">l .-..</td>
+										</tr>
+										<tr> 
+											<td rowspan="1">j .---</td>
+										</tr> 
+										<tr>
+											<td rowspan="2">w .--</td>
+											<td rowspan="1">p .--.</td>
+										</tr> 
+										<tr> 
+											<td rowspan="1"></td>
+										</tr>
 
-									<tr>
-										<td rowspan="8">t –</td> 
-										<td rowspan="4">n –·</td> 
-										<td rowspan="2">d –··</td>
-										<td rowspan="1">b –···</td>
-									</tr>				
-									<tr>
-										<td rowspan="1">x –··–</td>
-									</tr>
-									<tr>
-										<td rowspan="2">k –·–</td> 
-										<td rowspan="1">c –·–·</td>
-									</tr>
-									<tr>
-										<td rowspan="1">y –·––</td>
-									</tr>
-									<tr>
-										<td rowspan="4">m ––</td> 
-										<td rowspan="2">g ––·</td>
-										<td rowspan="1">z ––··</td>
-									</tr>
-									<tr>
-										<td rowspan="1">q ––·–</td>
-									</tr> 
-									<tr>
-										<td rowspan="2">o –––</td>
-										<td rowspan="1"></td>
-									</tr> 
-									<tr>
-										<td rowspan="1"></td>
-									</tr>
-								</tbody>
-							</table>
+										<tr>
+											<td rowspan="8">t -</td> 
+											<td rowspan="4">n -.</td> 
+											<td rowspan="2">d -..</td>
+											<td rowspan="1">b -...</td>
+										</tr>				
+										<tr>
+											<td rowspan="1">x -..-</td>
+										</tr>
+										<tr>
+											<td rowspan="2">k -.-</td> 
+											<td rowspan="1">c -.-.</td>
+										</tr>
+										<tr>
+											<td rowspan="1">y -.--</td>
+										</tr>
+										<tr>
+											<td rowspan="4">m --</td> 
+											<td rowspan="2">g --.</td>
+											<td rowspan="1">z --..</td>
+										</tr>
+										<tr>
+											<td rowspan="1">q --.-</td>
+										</tr> 
+										<tr>
+											<td rowspan="2">o ---</td>
+											<td rowspan="1"></td>
+										</tr> 
+										<tr>
+											<td rowspan="1"></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="mdl-tabs__panel" id="morse-list">
+								<span>a .-</span>
+								<span>b -...</span>
+								<span>c -.-.</span>
+								<span>d -..</span>
+								<span>e .</span>
+								<span>f ..-.</span>
+								<span>g --.</span>
+								<span>h ....</span>
+								<span>i ..</span>
+								<span>j .---</span>
+								<span>k -.-</span>
+								<span>l .-..</span>
+								<span>m --</span>
+								<span>n -.</span>
+								<span>o ---</span>
+								<span>p .--.</span>
+								<span>q --.-</span>
+								<span>r .-.</span>
+								<span>s ...</span>
+								<span>t -</span>
+								<span>u ..-</span>
+								<span>v ...-</span>
+								<span>w .--</span>
+								<span>x -..-</span>
+								<span>y -.--</span>
+								<span>z --..</span>
+							</div>
+						</div>
 					</div>
 
 					<div class="mdl-card mdl-shadow--4dp">
@@ -265,9 +301,6 @@
 									</tr>
 								</tbody>
 							</table>
-							<hr>
-							<p>Errors</p>
-							<div id="errors"></div>
 						</div>
 					</div>
 

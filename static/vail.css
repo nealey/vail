@@ -76,18 +76,25 @@ img {
 }
 
 
-.morsetree {
+#morse-tree table {
 	width: 100%;
 }
-.morsetree tr {
+#morse-tree tr {
 	height: 1.4em;
 	text-align: center;
 	font-family: monospace;
 }
-.morsetree tr,
-.morsetree td:nth-child(n+2) {
+#morse-tree tr,
+#morse-tree td:nth-child(n+2) {
 	background: #eee;
 }
-.morsetree tr:nth-child(n+2) {
+#morse-tree tr:nth-child(n+2) {
 	background: #ddd;
 }
+
+#morse-list span {
+	display: inline-block;
+	background: #eee;
+	margin: 1px;
+	padding: 0.4em;
+	width: 3em;
