@@ -355,8 +355,6 @@ class Vail {
 	error(msg) {
 		let now = new Date()
 		let el = document.querySelector("#snackbar")
-		let data = {
-		}
 		el.MaterialSnackbar.showSnackbar({
 			message: msg,
 			timeout: 2000

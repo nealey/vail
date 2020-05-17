@@ -18,13 +18,6 @@
   text-align: center;
 }
 
-.right {
-	text-align: right;
-}
-.maximized .key {
-	height: 90vh;
-}
-
 .wide {
   width: 100%;
 }
@@ -65,4 +58,24 @@ img {
 .mdl-card__supporting-text {
 	max-height: 20em;
 	overflow-y: scroll;
+}
+.mdl-card__supporting-text.long {
+	max-height: inherit;
+}
+
+
+.morsetree {
+	width: 100%;
+}
+.morsetree tr {
+	height: 1.4em;
+	text-align: center;
+	font-family: monospace;
+}
+.morsetree tr,
+.morsetree td:nth-child(n+2) {
+	background: #eee;
+}
+.morsetree tr:nth-child(n+2) {
+	background: #ddd;
 }

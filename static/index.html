@@ -15,11 +15,6 @@
 		<link rel="stylesheet" href="vail.css">
 	</head>
 	<body>
-		<div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
-			<div class="mdl-snackbar__text"></div>
-			<button class="mdl-snackbar__action" type="button"></button>
-		</div>
-		
 		<div class="mdl-layout mdl-js-layout">
 			<header class="mdl-layout__header mdl-layout__header--scroll">
 				<div class="mdl-layout__header-row">
@@ -30,6 +25,7 @@
 					<!-- Navigation -->
 					<nav class="mdl-navigation">
 						<a class="mdl-navigation__link" href="https://github.com/nealey/vail">Source Code</a>
+						<a class="mdl-navigation__link" href="https://github.com/nealey/vail-adapter">USB Adapter</a>
 						<a class="mdl-navigation__link" href="https://github.com/nealey/vail/issues/new">Bug Report</a>
 						<a class="mdl-navigation__link" href="https://morse.withgoogle.com/learn/">Learn Morse</a>
 					</nav>
@@ -40,19 +36,25 @@
 				<span class="mdl-layout-title">Repeaters</span>
 				<nav class="mdl-navigation">
 					<a class="mdl-navigation__link" href="?repeater=">General Chaos</a>
-					<a class="mdl-navigation__link" href="?repeater=1-15+WPM">1-15 WPM</a>
-					<a class="mdl-navigation__link" href="?repeater=16-20+WPM">16-20 WPM</a>
-					<a class="mdl-navigation__link" href="?repeater=21-99+WPM">21-99 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=beg">1-15 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=int">16-20 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=adv">21-99 WPM</a>
 				</nav>
 				<hr>
 				<nav class="mdl-navigation">
 					<a class="mdl-navigation__link" href="https://morse.withgoogle.com/learn/">Learn Morse Code</a>
+					<a class="mdl-navigation__link" href="https://github.com/nealey/vail-adapter">Use a physical key</a>
 				</nav>
+			</div>
+			
+			<div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+				<div class="mdl-snackbar__text"></div>
+				<button class="mdl-snackbar__action" type="button"></button>
 			</div>
 
 			<main class="mdl-layout__content">
 				<div class="flex">
-					<div class="input mdl-card mdl-shadow--4dp">
+					<div class="mdl-card mdl-shadow--4dp">
 						<div class="mdl-card__title">
 							<h2 class="mdl-card__title-text">Input</h2>
 						</div>
@@ -95,14 +97,11 @@
 									<tr>
 										<td>
 											<kbd>.</kbd> or <kbd>z</kbd>
+											<br>
+											right-click for Dah
 										</td>
 										<td>
 											<kbd>/</kbd> or <kbd>x</kbd>
-										</td>
-									</tr>
-									<tr>
-										<td colspan="2">
-											Right-click on Dit = Dah
 										</td>
 									</tr>
 								</table>
@@ -121,9 +120,6 @@
 									</tr>
 								</table>
 							</div>
-						</div>
-						<div class="mdl-card__actions right">
-							<button class="maximize" title="maximize">↕</button>
 						</div>
 					</div>
 
@@ -191,15 +187,84 @@
 									</tr>
 								</tbody>
 							</table>
+							<hr>
+							<p>Errors</p>
+							<div id="errors"></div>
 						</div>
 					</div>
 
 					<div class="mdl-card mdl-shadow--4dp">
 						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">Code Tree</h2>
+							<h2 class="mdl-card__title-text">Dichotomous Key</h2>
 						</div>
-						<div class="mdl-card__supporting-text">
-							<img src="code-tree.png">
+						<div class="mdl-card__supporting-text long">
+							<table class="morsetree">  
+								<tbody>
+									<tr> 
+										<td rowspan="8">e ·</td>
+										<td rowspan="4">i ··</td>
+										<td rowspan="2">s ···</td>
+										<td rowspan="1">h ····</td>
+									</tr>
+									<tr>
+										<td rowspan="1">v ···–</td>
+									</tr>
+									<tr>
+										<td rowspan="2">u ··–</td>
+										<td rowspan="1">f ··–·</td>
+									</tr>
+									<tr>
+										<td rowspan="1"></td>
+									</tr>
+									<tr>
+										<td rowspan="4">a ·–</td>
+										<td rowspan="2">r ·–·</td>	
+										<td rowspan="1">l ·–··</td>
+									</tr>
+									<tr> 
+										<td rowspan="1">j ·–––</td>
+									</tr> 
+									<tr>
+										<td rowspan="2">w ·––</td>
+										<td rowspan="1">p ·––·</td>
+									</tr> 
+									<tr> 
+										<td rowspan="1"></td>
+									</tr>
+
+									<tr>
+										<td rowspan="8">t –</td> 
+										<td rowspan="4">n –·</td> 
+										<td rowspan="2">d –··</td>
+										<td rowspan="1">b –···</td>
+									</tr>				
+									<tr>
+										<td rowspan="1">x –··–</td>
+									</tr>
+									<tr>
+										<td rowspan="2">k –·–</td> 
+										<td rowspan="1">c –·–·</td>
+									</tr>
+									<tr>
+										<td rowspan="1">y –·––</td>
+									</tr>
+									<tr>
+										<td rowspan="4">m ––</td> 
+										<td rowspan="2">g ––·</td>
+										<td rowspan="1">z ––··</td>
+									</tr>
+									<tr>
+										<td rowspan="1">q ––·–</td>
+									</tr> 
+									<tr>
+										<td rowspan="2">o –––</td>
+										<td rowspan="1"></td>
+									</tr> 
+									<tr>
+										<td rowspan="1"></td>
+									</tr>
+								</tbody>
+							</table>
 						</div>
 					</div>
 
@@ -322,6 +387,33 @@
 								Make sure your clock is synced with an Internet time server.
 								Accurate time is very important to how Vail works.
 							</p>
+						</div>
+					</div>
+
+					<div class="mdl-card mdl-shadow--4dp">
+						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">Future plans</h2>
+						</div>
+						<div class="mdl-card__supporting-text">
+							<ul>
+								<li>Move to a more permanent URL</li>
+								<li>Make this page less ugly</li>
+								<li>Arduino program to let you hook up an iambic paddle over USB</li>
+								<li>Document the protocol</li>
+							</ul>
+
+
+							<h3 class="mdl-card__title-text">How can I help?</h3>
+
+							<ul>
+								<li>Improve the <a href="https://github.com/nealey/vail/">source code</a></li>
+								<li>Email me and let me know you're using it</li>
+							</ul>
+
+							<p>
+								<a href="mailto:neale@woozle.org">Neale Pickett</a> kd7oqi
+							</p>
+
 						</div>
 					</div>
 				</div>

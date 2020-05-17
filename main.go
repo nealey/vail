@@ -46,7 +46,7 @@ func main() {
 	http.Handle("/chat", http.HandlerFunc(ChatHandler))
 	http.Handle("/", http.FileServer(http.Dir("static")))
 	go book.Run()
-	
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
