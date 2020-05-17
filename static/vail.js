@@ -7,6 +7,19 @@ const errorFreq = 30
 const DIT = 1
 const DAH = 3
 
+// iOS kludge
+if (! window.AudioContext) { 
+	window.AudioContext = window.webkitAudioContext 
+}
+
+function toast(msg) {
+	let el = document.querySelector("#snackbar")
+	el.MaterialSnackbar.showSnackbar({
+		message: msg,
+		timeout: 2000
+	})
+}
+
 class Iambic {
 	constructor(beginTxFunc, endTxFunc) {
 		this.beginTxFunc = beginTxFunc
@@ -534,7 +547,12 @@ class Vail {
 }
 
 function vailInit() {
-	window.app = new Vail()
+	try {
+		window.app = new Vail()
+	} catch (err) {
+		console.log(err)
+		toast(err)
+	}
 }
 
 

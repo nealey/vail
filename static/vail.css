@@ -18,6 +18,18 @@
   text-align: center;
 }
 
+.maximize {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+}
+.maximized .key {
+	height: 90vh;
+}
+.maximized {
+	width: 90vw;
+}
+
 .wide {
   width: 100%;
 }
