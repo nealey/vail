@@ -206,6 +206,10 @@ class Buzzer {
 		let acWhen = this.acTime(when)
 
 		this.ac.resume()
+        if (this.ac.state != "running") {
+            toast("Browser won't let me play sound yet. Try pressing a button first.")
+            return
+        }
 		gain.setTargetAtTime(this.txGain, acWhen, 0.001)
 	}
 
@@ -502,9 +506,6 @@ class Vail {
 				this.beginTx()
 			} else {
 				this.endTx()
-				if (this.buzzer.ac.state != "running") {
-					this.error("Browser won't let me play sound yet. Try pressing a button first.")
-				}
 			}
 		}
 	}
