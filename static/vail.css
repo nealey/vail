@@ -115,8 +115,9 @@ img {
 }
 
 #morse-list span {
+	font-family: monospace;
 	display: inline-block;
 	background: #eee;
 	margin: 1px;
 	padding: 0.4em;
-	width: 3em;
+	min-width: 4em;
