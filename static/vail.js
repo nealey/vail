@@ -513,7 +513,7 @@ class Vail {
 		} else if ((event.target.id == "dit") && (event.button == 2)) {
 			this.iambicDah(begin)
 		} else if (event.target.id == "dit") {
-			this.iambigDit(begin)
+			this.iambicDit(begin)
 		} else if (event.target.id == "key") {
 			this.straightKey(begin)
 		} else if ((event.target.id == "ck") && begin) {
