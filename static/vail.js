@@ -539,8 +539,8 @@ class Vail {
 				continue
 			}
 			currentButtons.key |= gp.buttons[0].pressed || gp.buttons[1].pressed
-			currentButtons.dit |= gp.buttons[2].pressed || gp.buttons[4].pressed
-			currentButtons.dah |= gp.buttons[3].pressed || gp.buttons[5].pressed
+			currentButtons.dit |= gp.buttons[2].pressed || gp.buttons[4].pressed || gp.buttons[6].pressed
+			currentButtons.dah |= gp.buttons[3].pressed || gp.buttons[5].pressed || gp.buttons[7].pressed
 		}
 
 		if (currentButtons.key != this.gamepadButtons.key) {
