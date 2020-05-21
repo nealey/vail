@@ -36,11 +36,11 @@ class Iambic {
 	  * @param {number} duration New interval duration, in ms
 	  */
 	SetIntervalDuration(duration) {
-        this.intervalDuration = duration
-        if (this.interval) {
+		this.intervalDuration = duration
+		if (this.interval) {
 			clearInterval(this.interval)
 			this.interval = setInterval(e => this.pulse(), duration)
-        }
+		}
 	}
 
 	// An interval has passed, call whatever the current state function is
@@ -198,29 +198,42 @@ class Buzzer {
 	/**
 	  * Begin buzzing at time
 	  *
-	  * @param {boolean} high High or low pitched tone
-	  * @param {number} when Time to begin (null=now)
+	  * @param {boolean} tx Transmit or receive tone
+	  * @param {number} when Time to begin, in ms (null=now)
 	  */
-	Buzz(high, when=null) {
-		let gain = this.gain(high)
-		let acWhen = this.acTime(when)
+	Buzz(tx, when=null) {
+		if (! tx) {
+			let recv = document.querySelector("#recv")
+			let ms = when - Date.now()
+			setTimeout(e => {
+				recv.classList.add("rx")
+			}, ms)
+		}
 
+		let gain = this.gain(tx)
+		let acWhen = this.acTime(when)
 		this.ac.resume()
-        if (this.ac.state != "running") {
-            toast("Browser won't let me play sound yet. Try pressing a button first.")
-            return
-        }
-		gain.setTargetAtTime(this.txGain, acWhen, 0.001)
+		.then(() => {
+			gain.setTargetAtTime(this.txGain, acWhen, 0.001)
+		})
 	}
 
 	/**
 	  * End buzzing at time
 	  *
-	  * @param {boolean} high High or low pitched tone
-	  * @param {number} when Time to begin (null=now)
+	  * @param {boolean} tx Transmit or receive tone
+	  * @param {number} when Time to end, in ms (null=now)
 	  */
-	Silence(high, when=null) {
-		let gain = this.gain(high)
+	Silence(tx, when=null) {
+		if (! tx) {
+			let recv = document.querySelector("#recv")
+			let ms = when - Date.now()
+			setTimeout(e => {
+				recv.classList.remove("rx")
+			}, ms)
+		}
+
+		let gain = this.gain(tx)
 		let acWhen = this.acTime(when)
 
 		gain.setTargetAtTime(0, acWhen, 0.001)
@@ -606,3 +619,5 @@ if (document.readyState === "loading") {
 } else {
 	vailInit()
 }
+
+// vim: noet sw=2 ts=2

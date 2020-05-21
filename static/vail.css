@@ -97,6 +97,23 @@ img {
 	max-height: inherit;
 }
 
+#recv {
+	width: 3em;
+	height: 2em;
+	background-color: orange;
+	position: absolute;
+	right: 1em;
+	border-radius: 30%;
+	display: none;
+}
+#recv.rx {
+	display: block;
+}
+
+.input-methods td {
+	text-align: left;
+}
+
 
 #morse-tree table {
 	width: 100%;
