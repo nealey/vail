@@ -504,11 +504,11 @@ class Vail {
 
 		let begin = event.type.endsWith("down")
 		
-		if ((event.code == "KeyZ") || (event.code == "Period")) {
+		if ((event.code == "KeyX") || (event.code == "Period")) {
 			event.preventDefault()
 			this.iambicDit(begin)
 		}
-		if ((event.code == "KeyX") || (event.code == "Slash")) {
+		if ((event.code == "KeyZ") || (event.code == "Slash")) {
 			event.preventDefault()
 			this.iambicDah(begin)
 		}
