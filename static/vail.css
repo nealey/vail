@@ -132,7 +132,8 @@ img {
 #morse-tree td:nth-child(n+2) {
 	background: #eee;
 }
-#morse-tree tr:nth-child(n+2) {
+#morse-tree tr:nth-child(n+2),
+#morse-tree td.dah {
 	background: #ddd;
 }
 
