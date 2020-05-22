@@ -34,6 +34,10 @@
   width: 100%;
 }
 
+.hidden {
+	visibility: none;
+}
+
 #errors {
     color: rgba(127, 0, 0, .54);
     max-height: 5em;
@@ -100,14 +104,15 @@ img {
 #recv {
 	width: 3em;
 	height: 2em;
-	background-color: orange;
+	line-height: 2em;
 	position: absolute;
 	right: 1em;
 	border-radius: 30%;
-	display: none;
+	text-align: center;
+	vertical-align: middle;
 }
 #recv.rx {
-	display: block;
+	background-color: orange;
 }
 
 .input-methods td {
@@ -138,3 +143,4 @@ img {
 	margin: 1px;
 	padding: 0.4em;
 	min-width: 4em;
+}

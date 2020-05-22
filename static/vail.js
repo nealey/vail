@@ -140,6 +140,12 @@ class Buzzer {
 		this.lowGain = this.create(lowFreq)
 		this.highGain = this.create(highFreq)
 		this.errorGain = this.create(errorFreq, "square")
+
+		this.ac.resume()
+		.then(() => {
+			document.querySelector("#muted").classList.add("hidden")
+		})
+
 	}
 
 	create(frequency, type="sine") {
