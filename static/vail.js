@@ -557,9 +557,16 @@ class Vail {
 			if (gp == null) {
 				continue
 			}
-			currentButtons.key |= gp.buttons[0].pressed || gp.buttons[1].pressed
-			currentButtons.dit |= gp.buttons[2].pressed || gp.buttons[4].pressed || gp.buttons[6].pressed
-			currentButtons.dah |= gp.buttons[3].pressed || gp.buttons[5].pressed || gp.buttons[7].pressed
+			for (let i in gp.buttons) {
+				let pressed = gp.buttons[i].pressed
+				if (i < 2) {
+					currentButtons.key |= pressed
+				} else if (i % 2 == 0) {
+					currentButtons.dit |= pressed
+				} else {
+					currentButtons.dah |= pressed
+				}
+			}
 		}
 
 		if (currentButtons.key != this.gamepadButtons.key) {
