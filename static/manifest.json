@@ -1,0 +1,13 @@
+{
+  "name": "Vail: Morse Code",
+  "short_name": "Vail",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fff",
+  "theme_color": "#009688",
+  "description": "Internet Morse Code client",
+  "icons": [
+    {"src": "vail.png", "sizes": "250x250"},
+    {"src": "vail.svg", "sizes": "150x150"}
+  ]
+}

@@ -618,6 +618,9 @@ class Vail {
 }
 
 function vailInit() {
+	if (navigator.serviceWorker) {
+		navigator.serviceWorker.register("sw.js")
+	}
 	try {
 		window.app = new Vail()
 	} catch (err) {
