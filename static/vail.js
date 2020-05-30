@@ -132,7 +132,7 @@ class Buzzer {
 	// in order to avoid "pops" (square wave overtones)
 	// that happen with instant changes in gain.
 
-	constructor(txGain=0.3) {
+	constructor(txGain=0.6) {
 		this.txGain = txGain
 
 		this.ac = new AudioContext()
@@ -140,6 +140,7 @@ class Buzzer {
 		this.lowGain = this.create(lowFreq)
 		this.highGain = this.create(highFreq)
 		this.errorGain = this.create(errorFreq, "square")
+		this.noiseGain = this.whiteNoise()
 
 		this.ac.resume()
 		.then(() => {
@@ -159,6 +160,33 @@ class Buzzer {
 		osc.start()
 		return gain
 	}
+	
+	whiteNoise() {
+		let bufferSize = 17 * this.ac.sampleRate
+		let noiseBuffer = this.ac.createBuffer(1, bufferSize, this.ac.sampleRate)
+		let output = noiseBuffer.getChannelData(0)
+		for (let i = 0; i < bufferSize; i++) {
+			output[i] = Math.random() * 2 - 1;
+		}
+		
+		let whiteNoise = this.ac.createBufferSource();
+		whiteNoise.buffer = noiseBuffer;
+		whiteNoise.loop = true;
+		whiteNoise.start(0);
+
+		let filter = this.ac.createBiquadFilter()
+		filter.type = "lowpass"
+		filter.frequency.value = 100
+		
+		let gain = this.ac.createGain()
+		gain.gain.value = 0.1
+		
+		whiteNoise.connect(filter)
+		filter.connect(gain)
+		gain.connect(this.ac.destination)
+		
+		return gain
+}
 
 	gain(high) {
 		if (high) {
