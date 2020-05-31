@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"time"
 	"os"
 	"log"
 	"net/http"
@@ -17,6 +19,9 @@ func (c Client) Handle(ws *websocket.Conn) {
 	ws.MaxPayloadBytes = 500
 	book.Join(c.repeaterName, ws)
 	defer book.Part(c.repeaterName, ws)
+	
+	// Tell the client what time we think it is
+	fmt.Fprintf(ws, "[%d]", time.Now().UnixNano() / time.Millisecond.Nanoseconds())
 
 	for {
 		buf := make([]byte, ws.MaxPayloadBytes)

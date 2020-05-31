@@ -291,6 +291,7 @@ class Vail {
 		this.sent = []
 		this.lagTimes = [0]
 		this.rxDurations = [0]
+		this.clockOffset = null // How badly our clock is off of the server's
 		this.rxDelay = 0 // Milliseconds to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 
@@ -477,6 +478,16 @@ class Vail {
 		}
 		let beginTxTime = msg[0]
 		let durations = msg.slice(1)
+		
+		// Server is telling us the current time
+		if (durations.length == 0) {
+			let offset = now - beginTxTime
+			console.log("Our clock ahead of server by", offset, "ms")
+			if (this.clockOffset === null) {
+				this.clockOffset = offset
+			}
+			return
+		}
 
 		let sent = this.sent.filter(e => e != jmsg)
 		if (sent.length < this.sent.length) {

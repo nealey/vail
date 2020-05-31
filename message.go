@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"time"
 )
 
 // VailMessage is a single Vail message.
@@ -10,12 +11,29 @@ type Message struct {
 	// Relative time in ms of this message.
 	// These timestamps need to be consistent, but the offset can be anything.
 	// ECMAScript `performance.now()` is ideal.
-	Timestamp uint64
+	Timestamp int64
 	
 	// Message timing in ms.
 	// Timings alternate between tone and silence.
 	// For example, `A` could be sent as [80, 80, 240]
 	Duration []uint8
+}
+
+func NewMessage(ts time.Time, durations []time.Duration) Message {
+	msg := Message{
+		Timestamp: ts.UnixNano() / time.Millisecond.Nanoseconds(),
+		Duration: make([]uint8, len(durations)),
+	}
+	for i, dns := range durations {
+		ms := dns.Milliseconds()
+		if (ms > 255) {
+			ms = 255
+		} else if (ms < 0) {
+			ms = 0
+		}
+		msg.Duration[i] = uint8(ms)
+	}
+	return msg
 }
 
 // Marshaling presumes something else is keeping track of lengths

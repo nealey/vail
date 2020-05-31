@@ -7,18 +7,18 @@ import (
 
 type Book struct {
 	entries map[string]*Repeater
-	events chan bookEvent
+	events  chan bookEvent
 }
-
 
 func NewBook() Book {
 	return Book{
 		entries: make(map[string]*Repeater),
-		events: make(chan bookEvent, 5),
+		events:  make(chan bookEvent, 5),
 	}
 }
 
 type bookEventType int
+
 const (
 	joinEvent = bookEventType(iota)
 	partEvent
@@ -27,32 +27,32 @@ const (
 
 type bookEvent struct {
 	eventType bookEventType
-	name string
-	w io.Writer
-	p []byte
+	name      string
+	w         io.Writer
+	p         []byte
 }
 
 func (b Book) Join(name string, w io.Writer) {
 	b.events <- bookEvent{
 		eventType: joinEvent,
-		name: name,
-		w: w,
+		name:      name,
+		w:         w,
 	}
 }
 
 func (b Book) Part(name string, w io.Writer) {
 	b.events <- bookEvent{
 		eventType: partEvent,
-		name: name,
-		w: w,
+		name:      name,
+		w:         w,
 	}
 }
 
 func (b Book) Send(name string, p []byte) {
 	b.events <- bookEvent{
 		eventType: sendEvent,
-		name: name,
-		p: p,
+		name:      name,
+		p:         p,
 	}
 }
 
@@ -68,13 +68,13 @@ func (b Book) loop() {
 
 	switch event.eventType {
 	case joinEvent:
-		if ! ok {
+		if !ok {
 			repeater = NewRepeater()
 			b.entries[event.name] = repeater
 		}
 		repeater.Join(event.w)
 	case partEvent:
-		if ! ok {
+		if !ok {
 			log.Println("WARN: Parting an empty channel:", event.name)
 			break
 		}
@@ -83,7 +83,7 @@ func (b Book) loop() {
 			delete(b.entries, event.name)
 		}
 	case sendEvent:
-		if ! ok {
+		if !ok {
 			log.Println("WARN: Sending to an empty channel:", event.name)
 			break
 		}

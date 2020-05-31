@@ -14,14 +14,14 @@ func TestBook(t *testing.T) {
 	if len(b.entries) != 1 {
 		t.Error("Wrong number of entries")
 	}
-	
+
 	// Send to an empty channel
 	b.Send("merf", []byte("goober"))
 	b.loop()
 	if buf1.String() != "buf1" {
 		t.Error("Sending to empty channel sent to non-empty channel")
 	}
-	
+
 	// Send to a non-empty channel!
 	b.Send("moo", []byte("goober"))
 	b.loop()
@@ -43,11 +43,11 @@ func TestBook(t *testing.T) {
 	if buf2.String() != "buf2snerk" {
 		t.Error("Send to 2-member channel busted", buf2)
 	}
-	
+
 	// Part a client
 	b.Part("moo", buf1)
 	b.loop()
-	
+
 	b.Send("moo", []byte("peanut"))
 	b.loop()
 	if buf1.String() != "buf1goobersnerk" {

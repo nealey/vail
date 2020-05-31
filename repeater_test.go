@@ -17,7 +17,7 @@ func TestRepeater(t *testing.T) {
 	if buf1.String() != "buf1moo" {
 		t.Error("Client 1 not repeating", buf1)
 	}
-	
+
 	buf2 := bytes.NewBufferString("buf2")
 	r.Join(buf2)
 	r.Send([]byte("bar"))
@@ -27,7 +27,7 @@ func TestRepeater(t *testing.T) {
 	if buf2.String() != "buf2bar" {
 		t.Error("Client 2 not repeating", buf2)
 	}
-	
+
 	r.Part(buf1)
 	r.Send([]byte("baz"))
 	if buf1.String() != "buf1moobar" {
