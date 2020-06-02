@@ -291,7 +291,7 @@ class Vail {
 		this.sent = []
 		this.lagTimes = [0]
 		this.rxDurations = [0]
-		this.clockOffset = null // How badly our clock is off of the server's
+		this.clockOffset = 0 // How badly our clock is off of the server's
 		this.rxDelay = 0 // Milliseconds to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 
@@ -440,6 +440,7 @@ class Vail {
 		this.updateReading("#lag-value", avgLag.toFixed())
 		this.updateReading("#longest-rx-value", longestRx)
 		this.updateReading("#suggested-delay-value", suggestedDelay.toFixed())
+		this.updateReading("#clock-off-value", this.clockOffset)
 	}
 
 	addLagReading(duration) {
@@ -459,7 +460,7 @@ class Vail {
 	}
 
 	wsSend(time, duration) {
-		let msg = [time, duration]
+		let msg = [time + this.clockOffset, duration]
 		let jmsg = JSON.stringify(msg)
 		this.socket.send(jmsg)
 		this.sent.push(jmsg)
@@ -482,9 +483,9 @@ class Vail {
 		// Server is telling us the current time
 		if (durations.length == 0) {
 			let offset = now - beginTxTime
-			console.log("Our clock ahead of server by", offset, "ms")
-			if (this.clockOffset === null) {
+			if (this.clockOffset == 0) {
 				this.clockOffset = offset
+				this.updateReadings()
 			}
 			return
 		}

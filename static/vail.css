@@ -101,6 +101,11 @@ img {
 	max-height: inherit;
 }
 
+#repeater {
+	font-style: italic;
+	margin-right: 0.3em;
+}
+
 #recv {
 	width: 3em;
 	height: 2em;

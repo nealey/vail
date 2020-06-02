@@ -59,7 +59,10 @@
 				<div class="flex">
 					<div class="mdl-card mdl-shadow--4dp input-methods">
 						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">Input</h2>
+							<h2 class="mdl-card__title-text">
+								<span id="repeater"></span>
+								Repeater
+							</h2>
 							<div id="recv">
 								<!-- This div appears as a little light that turns on when someone's sending -->
 								<i class="material-icons" id="muted">volume_off</i>
@@ -370,10 +373,10 @@
 									</tr>
 									<tr>
 										<td>
-											Repeater:
+											Your clock is off by:
 										</td>
 										<td>
-											<span id="repeater"></span>
+											<output id="clock-off-value">??</output>ms
 										</td>
 									</tr>
 								</tbody>
