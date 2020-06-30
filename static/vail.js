@@ -294,6 +294,7 @@ class Vail {
 		this.clockOffset = 0 // How badly our clock is off of the server's
 		this.rxDelay = 0 // Milliseconds to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
+		this.debug = localStorage.debug
 
 		this.openSocket()
 
@@ -460,7 +461,7 @@ class Vail {
 	}
 
 	wsSend(time, duration) {
-		let msg = [time + this.clockOffset, duration]
+		let msg = [time - this.clockOffset, duration]
 		let jmsg = JSON.stringify(msg)
 		this.socket.send(jmsg)
 		this.sent.push(jmsg)
@@ -480,16 +481,10 @@ class Vail {
 		let beginTxTime = msg[0]
 		let durations = msg.slice(1)
 		
-		// Server is telling us the current time
-		if (durations.length == 0) {
-			let offset = now - beginTxTime
-			if (this.clockOffset == 0) {
-				this.clockOffset = offset
-				this.updateReadings()
-			}
-			return
+		if (this.debug) {
+			console.log("recv", beginTxTime, durations)
 		}
-
+		
 		let sent = this.sent.filter(e => e != jmsg)
 		if (sent.length < this.sent.length) {
 			// We're getting our own message back, which tells us our lag.
@@ -500,9 +495,25 @@ class Vail {
 			return
 		}
 
+		// Server is telling us the current time
+		if (durations.length == 0) {
+			let offset = now - beginTxTime
+			if (this.clockOffset == 0) {
+				this.clockOffset = offset
+				this.updateReadings()
+			}
+			return
+		}
 
+		// Why is this happening?
+		if (beginTxTime == 0) {
+			return
+		}
+		
+		// Add rxDelay
 		let adjustedTxTime = beginTxTime+this.rxDelay
 		if (adjustedTxTime < now) {
+			console.log("adjustedTxTime: ", adjustedTxTime, " now: ", now)
 			this.error("Packet requested playback " + (now - adjustedTxTime) + "ms in the past. Increase receive delay!")
 			return
 		}
