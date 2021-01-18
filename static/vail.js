@@ -8,8 +8,8 @@ const DIT = 1
 const DAH = 3
 
 // iOS kludge
-if (! window.AudioContext) { 
-	window.AudioContext = window.webkitAudioContext 
+if (!window.AudioContext) {
+	window.AudioContext = window.webkitAudioContext
 }
 
 function toast(msg) {
@@ -58,7 +58,7 @@ class Iambic {
 			this.interval = null
 		}
 	}
-	
+
 	stateDit() {
 		// Send a dit
 		this.beginTxFunc()
@@ -100,7 +100,7 @@ class Iambic {
 		}
 		this.state()
 	}
-	
+
 
 	/**
 	  * Edge trigger on key press or release
@@ -114,9 +114,9 @@ class Iambic {
 		} else if (key == DAH) {
 			this.dahDown = down
 		}
-				
+
 		// Not pulsing yet? Start right away!
-		if (! this.interval) {
+		if (!this.interval) {
 			this.interval = setInterval(e => this.pulse(), this.intervalDuration)
 			this.pulse()
 		}
@@ -132,7 +132,7 @@ class Buzzer {
 	// in order to avoid "pops" (square wave overtones)
 	// that happen with instant changes in gain.
 
-	constructor(txGain=0.6) {
+	constructor(txGain = 0.6) {
 		this.txGain = txGain
 
 		this.ac = new AudioContext()
@@ -143,13 +143,13 @@ class Buzzer {
 		this.noiseGain = this.whiteNoise()
 
 		this.ac.resume()
-		.then(() => {
-			document.querySelector("#muted").classList.add("hidden")
-		})
+			.then(() => {
+				document.querySelector("#muted").classList.add("hidden")
+			})
 
 	}
 
-	create(frequency, type="sine") {
+	create(frequency, type = "sine") {
 		let gain = this.ac.createGain()
 		gain.connect(this.ac.destination)
 		gain.gain.value = 0
@@ -160,7 +160,7 @@ class Buzzer {
 		osc.start()
 		return gain
 	}
-	
+
 	whiteNoise() {
 		let bufferSize = 17 * this.ac.sampleRate
 		let noiseBuffer = this.ac.createBuffer(1, bufferSize, this.ac.sampleRate)
@@ -168,7 +168,7 @@ class Buzzer {
 		for (let i = 0; i < bufferSize; i++) {
 			output[i] = Math.random() * 2 - 1;
 		}
-		
+
 		let whiteNoise = this.ac.createBufferSource();
 		whiteNoise.buffer = noiseBuffer;
 		whiteNoise.loop = true;
@@ -177,16 +177,16 @@ class Buzzer {
 		let filter = this.ac.createBiquadFilter()
 		filter.type = "lowpass"
 		filter.frequency.value = 100
-		
+
 		let gain = this.ac.createGain()
 		gain.gain.value = 0.1
-		
+
 		whiteNoise.connect(filter)
 		filter.connect(gain)
 		gain.connect(this.ac.destination)
-		
+
 		return gain
-}
+	}
 
 	gain(high) {
 		if (high) {
@@ -203,11 +203,11 @@ class Buzzer {
 	  * @return {number} AudioContext offset time
 	  */
 	acTime(when) {
-		if (! when) {
+		if (!when) {
 			return this.ac.currentTime
 		}
 
-		let acOffset = Date.now() - this.ac.currentTime*1000
+		let acOffset = Date.now() - this.ac.currentTime * 1000
 		let acTime = (when - acOffset) / 1000
 		return acTime
 	}
@@ -235,8 +235,8 @@ class Buzzer {
 	  * @param {boolean} tx Transmit or receive tone
 	  * @param {number} when Time to begin, in ms (null=now)
 	  */
-	Buzz(tx, when=null) {
-		if (! tx) {
+	Buzz(tx, when = null) {
+		if (!tx) {
 			let recv = document.querySelector("#recv")
 			let ms = when - Date.now()
 			setTimeout(e => {
@@ -247,9 +247,9 @@ class Buzzer {
 		let gain = this.gain(tx)
 		let acWhen = this.acTime(when)
 		this.ac.resume()
-		.then(() => {
-			gain.setTargetAtTime(this.txGain, acWhen, 0.001)
-		})
+			.then(() => {
+				gain.setTargetAtTime(this.txGain, acWhen, 0.001)
+			})
 	}
 
 	/**
@@ -258,8 +258,8 @@ class Buzzer {
 	  * @param {boolean} tx Transmit or receive tone
 	  * @param {number} when Time to end, in ms (null=now)
 	  */
-	Silence(tx, when=null) {
-		if (! tx) {
+	Silence(tx, when = null) {
+		if (!tx) {
 			let recv = document.querySelector("#recv")
 			let ms = when - Date.now()
 			setTimeout(e => {
@@ -282,7 +282,7 @@ class Buzzer {
 	  */
 	BuzzDuration(high, when, duration) {
 		this.Buzz(high, when)
-		this.Silence(high, when+duration)
+		this.Silence(high, when + duration)
 	}
 }
 
@@ -300,7 +300,7 @@ class Vail {
 
 		// Listen to HTML buttons
 		for (let e of document.querySelectorAll("button.key")) {
-			e.addEventListener("contextmenu", e => {e.preventDefault(); return false})
+			e.addEventListener("contextmenu", e => { e.preventDefault(); return false })
 			e.addEventListener("touchstart", e => this.keyButton(e))
 			e.addEventListener("touchend", e => this.keyButton(e))
 			e.addEventListener("mousedown", e => this.keyButton(e))
@@ -320,22 +320,22 @@ class Vail {
 
 		// Listen for slider values
 		this.inputInit("#iambic-duration", e => this.iambic.SetIntervalDuration(e.target.value))
-		this.inputInit("#rx-delay", e => {this.rxDelay = Number(e.target.value)})
+		this.inputInit("#rx-delay", e => { this.rxDelay = Number(e.target.value) })
 
 		// Show what repeater we're on
 		let repeater = (new URL(location)).searchParams.get("repeater") || "General Chaos"
 		document.querySelector("#repeater").textContent = repeater
-		
+
 		// Request MIDI access
 		if (navigator.requestMIDIAccess) {
 			navigator.requestMIDIAccess()
-			.then(a => this.midiInit(a))
+				.then(a => this.midiInit(a))
 		}
-		
+
 		// Set up for gamepad input
 		window.addEventListener("gamepadconnected", e => this.gamepadConnected(e))
 	}
-	
+
 	openSocket() {
 		// Set up WebSocket
 		let wsUrl = new URL(window.location)
@@ -362,23 +362,23 @@ class Vail {
 		})
 		element.dispatchEvent(new Event("input"))
 	}
-	
+
 	midiInit(access) {
 		this.midiAccess = access
 		for (let input of this.midiAccess.inputs.values()) {
 			input.addEventListener("midimessage", e => this.midiMessage(e))
 		}
 		this.midiAccess.addEventListener("statechange", e => this.midiStateChange(e))
-  	}
-	
+	}
+
 	midiStateChange(event) {
 		// XXX: it's not entirely clear how to handle new devices showing up.
 		// XXX: possibly we go through this.midiAccess.inputs and somehow only listen on new things
 	}
-	
+
 	midiMessage(event) {
 		let data = Array.from(event.data)
-		
+
 		let begin
 		let cmd = data[0] >> 4
 		let chan = data[0] & 0xf
@@ -392,7 +392,7 @@ class Vail {
 			default:
 				return
 		}
-		
+
 		switch (data[1] % 12) {
 			case 0: // C
 				this.straightKey(begin)
@@ -405,9 +405,9 @@ class Vail {
 				break
 			default:
 				return
-		}			
+		}
 	}
-	
+
 	error(msg) {
 		toast(msg)
 		this.buzzer.ErrorTone()
@@ -434,8 +434,8 @@ class Vail {
 	}
 
 	updateReadings() {
-		let avgLag = this.lagTimes.reduce((a,b) => (a+b)) / this.lagTimes.length
-		let longestRx = this.rxDurations.reduce((a,b) => Math.max(a,b))
+		let avgLag = this.lagTimes.reduce((a, b) => (a + b)) / this.lagTimes.length
+		let longestRx = this.rxDurations.reduce((a, b) => Math.max(a, b))
 		let suggestedDelay = (avgLag + longestRx) * 1.2
 
 		this.updateReading("#lag-value", avgLag.toFixed())
@@ -474,22 +474,22 @@ class Vail {
 		try {
 			msg = JSON.parse(jmsg)
 		}
-		catch(err) {
+		catch (err) {
 			console.log(err, msg)
 			return
 		}
 		let beginTxTime = msg[0]
 		let durations = msg.slice(1)
-		
+
 		if (this.debug) {
 			console.log("recv", beginTxTime, durations)
 		}
-		
+
 		let sent = this.sent.filter(e => e != jmsg)
 		if (sent.length < this.sent.length) {
 			// We're getting our own message back, which tells us our lag.
 			// We shouldn't emit a tone, though.
-			let totalDuration = durations.reduce((a,b) => a+b)
+			let totalDuration = durations.reduce((a, b) => a + b)
 			this.sent = sent
 			this.addLagReading(now - beginTxTime - totalDuration)
 			return
@@ -509,9 +509,9 @@ class Vail {
 		if (beginTxTime == 0) {
 			return
 		}
-		
+
 		// Add rxDelay
-		let adjustedTxTime = beginTxTime+this.rxDelay
+		let adjustedTxTime = beginTxTime + this.rxDelay
 		if (adjustedTxTime < now) {
 			console.log("adjustedTxTime: ", adjustedTxTime, " now: ", now)
 			this.error("Packet requested playback " + (now - adjustedTxTime) + "ms in the past. Increase receive delay!")
@@ -546,7 +546,7 @@ class Vail {
 	iambicDah(begin) {
 		this.iambic.Key(begin, DAH)
 	}
-	
+
 	keyboard(event) {
 		if (event.repeat) {
 			// Ignore key repeats generated by the OS, we do this ourselves
@@ -554,20 +554,28 @@ class Vail {
 		}
 
 		let begin = event.type.endsWith("down")
-		
-		if ((event.code == "KeyX") || (event.code == "Period")) {
+
+		if ((event.code == "KeyX") ||
+			(event.code == "Period") ||
+			(event.code == "ControlLeft") ||
+			(event.code == "BracketLeft") ||
+			(event.key == "[")) {
 			event.preventDefault()
 			this.iambicDit(begin)
 		}
-		if ((event.code == "KeyZ") || (event.code == "Slash")) {
+		if ((event.code == "KeyZ") ||
+			(event.code == "Slash") ||
+			(event.code == "ControlRight") ||
+			(event.code == "BracketRight") ||
+			(event.key == "]")) {
 			event.preventDefault()
 			this.iambicDah(begin)
 		}
-		if ((event.code == "KeyC") || 
-				(event.code == "Comma") || 
-				(event.key == "Shift") || 
-				(event.key == "Enter") ||
-				(event.key == "NumpadEnter")) {
+		if ((event.code == "KeyC") ||
+			(event.code == "Comma") ||
+			(event.key == "Shift") ||
+			(event.key == "Enter") ||
+			(event.key == "NumpadEnter")) {
 			event.preventDefault()
 			this.straightKey(begin)
 		}
@@ -596,12 +604,12 @@ class Vail {
 		// Polling could be computationally expensive,
 		// especially on devices with a power budget, like phones.
 		// To be considerate, we only start polling if a gamepad appears.
-		if (! this.gamepadButtons) {
+		if (!this.gamepadButtons) {
 			this.gamepadButtons = {}
 			this.gamepadPoll(event.timeStamp)
 		}
 	}
-	
+
 	gamepadPoll(timestamp) {
 		let currentButtons = {}
 		for (let gp of navigator.getGamepads()) {
@@ -654,9 +662,9 @@ class Vail {
 
 	maximize(e) {
 		let element = e.target
-		while (! element.classList.contains("mdl-card")) {
+		while (!element.classList.contains("mdl-card")) {
 			element = element.parentElement
-			if (! element) {
+			if (!element) {
 				console.log("Maximize button: couldn't find parent card")
 				return
 			}
@@ -664,7 +672,7 @@ class Vail {
 		element.classList.toggle("maximized")
 		console.log(element)
 	}
-	
+
 
 }
 
