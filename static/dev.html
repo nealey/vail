@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>⚠️ Vail-Dev</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<!-- Material Design Lite -->
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+		<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.brown-cyan.min.css">
+		<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+		<!-- Vail stuff -->
+		<link rel="manifest" href="manifest.json">
+		<link rel="icon" href="vail.png" sizes="256x256" type="image/png">
+		<link rel="icon" href="vail.svg" sizes="any" type="image/svg+xml">
+		<script src="dev.js"></script>
+		<link rel="stylesheet" href="vail.css">
+	</head>
+	<body>
+		<div class="mdl-layout mdl-js-layout">
+			<header class="mdl-layout__header mdl-layout__header--scroll">
+				<div class="mdl-layout__header-row">
+					<!-- Title -->
+					<span class="mdl-layout-title">⚠️ Vail - Development ⚠️</span>
+					<!-- Add spacer, to align navigation to the right -->
+					<div class="mdl-layout-spacer"></div>
+					<!-- Navigation -->
+					<nav class="mdl-navigation">
+						<a class="mdl-navigation__link" href="https://github.com/nealey/vail">Source Code</a>
+						<a class="mdl-navigation__link" href="https://github.com/nealey/vail/issues/new">Bug Report</a>
+						<a class="mdl-navigation__link" href="https://github.com/nealey/vail-adapter">USB Adapter</a>
+						<a class="mdl-navigation__link" href="https://morse.withgoogle.com/learn/">Learn Morse</a>
+					</nav>
+				</div>
+			</header>
+
+			<div class="mdl-layout__drawer">
+				<span class="mdl-layout-title">Repeaters</span>
+				<nav class="mdl-navigation">
+					<a class="mdl-navigation__link" href="?repeater=">General Chaos</a>
+					<a class="mdl-navigation__link" href="?repeater=1-15+WPM">1-15 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=16-20+WPM">16-20 WPM</a>
+					<a class="mdl-navigation__link" href="?repeater=21-99+WPM">21-99 WPM</a>
+				</nav>
+				<hr>
+				<nav class="mdl-navigation">
+					<a class="mdl-navigation__link" href="https://morse.withgoogle.com/learn/">Learn Morse Code</a>
+					<a class="mdl-navigation__link" href="https://github.com/nealey/vail-adapter">Use a physical key</a>
+				</nav>
+			</div>
+			
+			<div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+				<div class="mdl-snackbar__text"></div>
+				<button class="mdl-snackbar__action" type="button"></button>
+			</div>
+
+			<main class="mdl-layout__content">
+				<div class="flex">
+					<div class="mdl-card mdl-shadow--4dp input-methods">
+						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">
+								<span id="repeater"></span>
+								Repeater
+							</h2>
+							<div id="recv">
+								<!-- This div appears as a little light that turns on when someone's sending -->
+								<i class="material-icons" id="muted">volume_off</i>
+							</div>
+						</div>
+						<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+							<div class="mdl-tabs__tab-bar">
+								<a href="#straight" class="mdl-tabs__tab is-active">Straight Key</a>
+								<a href="#iambic" class="mdl-tabs__tab">Iambic</a>
+								<a href="#tools" class="mdl-tabs__tab">Tools</a>
+							</div>
+							<div class="mdl-tabs__panel is-active" id="straight">
+								<table class="center wide">
+									<tr>
+										<td colspan="2">
+											<button id="key" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+												Key
+											</button>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<i class="material-icons" role="presentation">keyboard</i>
+										</td>
+										<td>
+											<kbd>c</kbd> 
+											<kbd>,</kbd> 
+											<kbd>Enter</kbd>
+											<kbd>⇧ Shift</kbd> 
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<i class="material-icons" role="presentation">gamepad</i>
+										</td>
+										<td>
+											<kbd class="gamepad a" title="Gamepad A">A</kbd> 
+											<kbd class="gamepad b" title="Gamepad B">B</kbd>
+										</td>
+									</tr>
+								</table>
+							</div>
+							<div class="mdl-tabs__panel" id="iambic">
+								<table class="center wide">
+									<tr>
+										<td colspan="2">
+											<button id="dit" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+												Dit
+											</button>
+										</td>
+										<td colspan="2">
+											<button id="dah" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+												Dah
+											</button>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<i class="material-icons" role="presentation">keyboard</i>
+										</td>
+										<td>
+											<kbd>.</kbd>
+											<kbd>x</kbd>
+										</td>
+										<td>
+											<i class="material-icons" role="presentation">keyboard</i>
+										</td>
+										<td>
+											<kbd>/</kbd>
+											<kbd>z</kbd>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<i class="material-icons" role="presentation">gamepad</i>
+										</td>
+										<td>
+											<kbd class="gamepad x" title="Gamepad X">X</kbd> 
+											<kbd class="gamepad" title="Gamepad LB">LB</kbd>
+										</td>
+										<td>
+											<i class="material-icons" role="presentation">gamepad</i>
+										</td>
+										<td>
+											<kbd class="gamepad y" title="Gamepad Y">Y</kbd>
+											<kbd class="gamepad" title="Gamepad RB">RB</kbd>
+										</td>
+									</tr>
+									<tr>
+										<td colspan="4" class="mdl-card__supporting-text" style="text-align: center;">
+											Second mouse button: Dah
+										</td>
+									</tr>
+								</table>
+							</div>
+							<div class="mdl-tabs__panel" id="tools">
+								<table class="center wide">
+									<tr>
+										<td>
+											<button id="ck" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+												CK
+											</button>
+										</td>
+									</tr>
+									<tr>
+										<td class="mdl-card__supporting-text">
+											<p>
+											  Check (CK) round-trip times and audio functionality
+												by sending "CK" to the repeater and playing the returned signal.
+											</p>
+										</td>
+									</tr>
+								</table>
+							</div>
+							<div class="mdl-card__actions">
+								<button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored maximize" title="maximize">
+									<i class="material-icons mdl-color-text--white" role="presentation">aspect_ratio</i>
+								</button>
+							</div>
+						</div>
+					</div>
+
+					<div class="mdl-card mdl-shadow--4dp">
+						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">Alphabet</h2>
+						</div>
+						<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+							<div class="mdl-tabs__tab-bar">
+								<a href="#morse-tree" class="mdl-tabs__tab is-active">Dichotomous Key</a>
+								<a href="#morse-list" class="mdl-tabs__tab">List</a>
+							</div>
+							<div class="mdl-tabs__panel mdl-card__supporting-text long is-active" id="morse-tree">
+								<table>
+									<tbody>
+										<tr> 
+											<td rowspan="8">E .</td>
+											<td rowspan="4">I ..</td>
+											<td rowspan="2">S ...</td>
+											<td rowspan="1">H ....</td>
+											<td class="dah">4 ....-</td>
+										</tr>
+										<tr>
+											<td rowspan="1">V ...-</td>
+											<td class="dah">3 ...--</td>
+										</tr>
+										<tr>
+											<td rowspan="2">U ..-</td>
+											<td rowspan="1">F ..-.</td>
+										</tr>
+										<tr>
+											<td rowspan="1"></td>
+											<td class="dah">2 ..---</td>
+										</tr>
+										<tr>
+											<td rowspan="4">A .-</td>
+											<td rowspan="2">R .-.</td>	
+											<td rowspan="1">L .-..</td>
+										</tr>
+										<tr> 
+											<td rowspan="1"></td>
+										</tr> 
+										<tr>
+											<td rowspan="2">W .--</td>
+											<td rowspan="1">P .--.</td>
+										</tr> 
+										<tr> 
+											<td rowspan="1">J .---</td>
+											<td class="dah">1 .----</td>
+										</tr>
+
+										<tr>
+											<td rowspan="8">T -</td> 
+											<td rowspan="4">N -.</td> 
+											<td rowspan="2">D -..</td>
+											<td rowspan="1">B -...</td>
+											<td>6 -....</td>
+										</tr>				
+										<tr>
+											<td rowspan="1">X -..-</td>
+										</tr>
+										<tr>
+											<td rowspan="2">K -.-</td> 
+											<td rowspan="1">C -.-.</td>
+										</tr>
+										<tr>
+											<td rowspan="1">Y -.--</td>
+										</tr>
+										<tr>
+											<td rowspan="4">M --</td> 
+											<td rowspan="2">G --.</td>
+											<td rowspan="1">Z --..</td>
+											<td>7 --...</td>
+										</tr>
+										<tr>
+											<td rowspan="1">Q --.-</td>
+										</tr> 
+										<tr>
+											<td rowspan="2">O ---</td>
+											<td rowspan="1"></td>
+											<td>8 ---..</td>
+										</tr> 
+										<tr>
+											<td rowspan="1"></td>
+											<td>9 ----.</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="mdl-tabs__panel mdl-card__supporting-text long" id="morse-list">
+								<span>A .-</span>
+								<span>B -...</span>
+								<span>C -.-.</span>
+								<span>D -..</span>
+								<span>E .</span>
+								<span>F ..-.</span>
+								<span>G --.</span>
+								<span>H ....</span>
+								<span>I ..</span>
+								<span>J .---</span>
+								<span>K -.-</span>
+								<span>L .-..</span>
+								<span>M --</span>
+								<span>N -.</span>
+								<span>O ---</span>
+								<span>P .--.</span>
+								<span>Q --.-</span>
+								<span>R .-.</span>
+								<span>S ...</span>
+								<span>T -</span>
+								<span>U ..-</span>
+								<span>V ...-</span>
+								<span>W .--</span>
+								<span>X -..-</span>
+								<span>Y -.--</span>
+								<span>Z --..</span>
+								<br>
+								<span>0 -----</span>
+								<span>1 .----</span>
+								<span>2 ..---</span>
+								<span>3 ...--</span>
+								<span>4 ....-</span>
+								<span>5 .....</span>
+								<span>6 -....</span>
+								<span>7 --...</span>
+								<span>8 ---..</span>
+								<span>9 ----.</span>
+								<br>
+								<span>Over .-.</span>
+								<span>Correction ........</span>
+								<span>? / Say Again ..--..</span>
+							</div>
+						</div>
+					</div>
+
+					<div class="mdl-card mdl-shadow--4dp">
+						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">Knobs</h2>
+						</div>
+						<div class="mdl-card__supporting-text">
+							<p>
+								Dit length (iambic):
+								<output id="iambic-duration-value"></output>ms
+								<input
+									id="iambic-duration"
+									class="mdl-slider mdl-js-slider"
+									type="range"
+									min="40"
+									max="255"
+									value="100">
+							</p>
+							<p>
+								Recieve delay:
+								<output id="rx-delay-value"></output>ms
+								<input
+									id="rx-delay"
+									class="mdl-slider mdl-js-slider"
+									type="range"
+									min="0"
+									max="9999"
+									value="4000">
+							</p>
+							<hr>
+							<table>
+								<tbody>
+									<tr>
+										<td>
+											Suggested receive delay:
+										</td>
+										<td>
+											<output id="suggested-delay-value">0</output>ms
+										</td>
+									</tr>
+									<tr>
+										<td>
+											Average round-trip time:
+										</td>
+										<td>
+											<output id="lag-value">0</output>ms
+										</td>
+									</tr>
+									<tr>
+										<td>
+											Longest recent transmission:
+										</td>
+										<td>
+											<output id="longest-rx-value">0</output>ms
+										</td>
+									</tr>
+									<tr>
+										<td>
+											Your clock is off by:
+										</td>
+										<td>
+											<output id="clock-off-value">??</output>ms
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<div class="mdl-card mdl-shadow--4dp">
+						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">Vail</h2>
+						</div>
+						<div class="mdl-card__supporting-text">
+							<p>
+								This is a CW repeater,
+								named after Alfred Vail,
+								who may or may not have invented what's called "Morse code",
+								but clearly had some role in it.
+							</p>
+
+							<p>
+								Just like a radio repeater,
+								anybody can connect and start transmitting stuff,
+								and this will broadcast it to everyone connected.
+							</p>
+
+							<h3 class="mdl-card__title-text">Why Does This Exist?</h3>
+
+							<p>
+								I need a place to practice CW with actual human beings,
+								and I want it to be as close as possible to what I'd experience on a radio.
+								Also, I don't want to make people buy a bunch of radio hardware.
+								Nothing else like this exists on the Internet, as far as I can tell.
+							</p>
+						</div>
+					</div>
+
+					<div class="mdl-card mdl-shadow--4dp">
+						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">How It Works</h2>
+						</div>
+						<div class="mdl-card__supporting-text">
+
+							<p>
+								The Internet isn't exactly like radio waves:
+								it still goes at near the speed of light,
+								but there are multiple hops between endpoints,
+								which buffer up transmissions, and multiplex them onto a single uplink connection.
+								These repeaters (routers)
+								are also allowed to just drop things if they need to.
+								It's the responsibility of the communicating parties
+								to work out whether something needs to be retransmitted.
+								Because of this,
+								there's no telling how long it will take for a transmission to get to a destination.
+							</p>
+
+							<p>
+								Each Vail transmission (packet) consists of:
+							</p>
+
+							<ul>
+								<li>timestamp (milliseconds since 1 Jan 1970, 00:00:00 in Reykjavík)</li>
+								<li>transmission duration (milliseconds)</li>
+							</ul>
+
+							<p>
+								The repeater does nothing but broadcast everything it gets
+								to every connected Vail client,
+								including the one that sent the packet.
+								When your client gets back the exact same thing it sent,
+								it compares the current time to the time in the packet.
+								This is the <i>round-trip time</i>:
+								the time it takes for a packet to get from your computer to the repeater and back.
+							</p>
+
+							<p>
+								When the client gets a packet it didn't send,
+								it adds the <i>receive delay</i> to the timestamp,
+								and schedules to play the tones and silences in the packet
+								at that time.
+							</p>
+
+							<p>
+								By adding the maximum round-trip time to the <i>longest recent transmission</i>
+								(the length of a dah, hopefully),
+								your client can make a guess about how much time needs to be added to a received timestamp,
+								in order to have it play back in the future at the time it comes in.
+								This is just a guess.
+								If you're communicating with somebody with a higher round-trip time than you have,
+								you'll need to raise your receive delay to account for it.
+							</p>
+						</div>
+					</div>
+
+					<div class="mdl-card mdl-shadow--4dp">
+						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">Why do I hear a low tone?</h2>
+						</div>
+						<div class="mdl-card__supporting-text">
+							<p>
+								This is the "drop tone", and will be accompanied by an error.
+							</p>
+
+							<p>
+								This means the packet arrived so late, it can't be played in time.
+								In technical terms: the timestamp of the packet plus the receive delay
+								is less than the current time.
+								It can't be scheduled to play, because we can't go back in time.
+							</p>
+
+							<p>
+								This could be happening for three reasons:
+							</p>
+
+							<ol>
+								<li>You (the person hearing the drop tone) need a larger receive delay</li>
+								<li>The receiving computer's clock is in the future (running fast)</li>
+								<li>The sending computer's clock is in the past (running slow)</li>
+							</ol>
+
+							<p>
+								Make sure your clock is synced with an Internet time server.
+								Accurate time is very important to how Vail works.
+							</p>
+						</div>
+					</div>
+
+					<div class="mdl-card mdl-shadow--4dp">
+						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">How can I help?</h2>
+						</div>
+						<div class="mdl-card__supporting-text">
+							<ul>
+								<li>Improve the <a href="https://github.com/nealey/vail/">source code</a></li>
+								<li>Email me and let me know you're using it</li>
+							</ul>
+
+							<p>
+								<a href="mailto:neale@woozle.org">Neale Pickett</a> kd7oqi
+							</p>
+
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+	</body>
+</html>
+<!-- vim: set noet ts=2 sw=2 : -->
