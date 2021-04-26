@@ -15,7 +15,6 @@
 		<link rel="icon" href="vail.png" sizes="256x256" type="image/png">
 		<link rel="icon" href="vail.svg" sizes="any" type="image/svg+xml">
 		<script type="module" src="vail.mjs"></script>
-		<script type="module" src="fortune.mjs"></script>
 		<link rel="stylesheet" href="vail.css">
 	</head>
 	<body>
@@ -176,15 +175,22 @@
 									<tr class="mdl-card__supporting-text">
 										<td>
 											<p>
-											  Check (CK) round-trip times and audio functionality
-												by sending "CK" to the repeater and playing the returned signal.
+												Send <code>CK</code> (check) to the repeater, and play when it comes back.
 											</p>
 										</td>
 										<td>
 											<p>
-												Fetch a fortune and play it locally.
-												This can help practice copying (hearing) Morse code,
-												without having to involve another person.
+												Spacing: ×<output id="handicap-value"></output>
+												<input
+													id="handicap"
+													class="mdl-slider mdl-js-slider"
+													type="range"
+													min="1"
+													max="8"
+													value="4">
+											</p>
+											<p>
+												Have vail tell your fortune, in English. Local only: not transmitted.
 											</p>
 										</td>
 									</tr>
@@ -323,7 +329,8 @@
 								<span>8 ---..</span>
 								<span>9 ----.</span>
 								<br>
-								<span>Over .-.</span>
+								<span>End of transmission .-.-.</span>
+								<span>Over -.-</span>
 								<span>Correction ........</span>
 								<span>? / Say Again ..--..</span>
 							</div>

@@ -107,10 +107,11 @@ class Iambic {
 	 * @param {TxControl} endTxFunc Function to end transmitting
 	 * @param {number} intervalDuration Dit duration (milliseconds)
 	 */
-	constructor(beginTxFunc, endTxFunc, intervalDuration=100) {
+	constructor(beginTxFunc, endTxFunc, {intervalDuration=100, pauseMultiplier=1}={}) {
 		this.beginTxFunc = beginTxFunc
 		this.endTxFunc = endTxFunc
 		this.intervalDuration = intervalDuration
+		this.pauseMultiplier = pauseMultiplier
 		this.ditDown = false
 		this.dahDown = false
 		this.last = null
@@ -133,7 +134,11 @@ class Iambic {
 
 		let next = this.queue.shift()
 		if (next < 0) {
-			next = next * -1
+			next *= -1
+			if (next > 1) {
+				// Don't adjust spacing within a letter
+				next *= this.pauseMultiplier
+			}
 			this.endTxFunc()
 		} else {
 			this.last = next
@@ -167,12 +172,30 @@ class Iambic {
 	}
 
 	/**
+	 * Return true if we are currently playing out something
+	 */
+	Busy() {
+		return this.pulseTimer
+	}
+	/**
 	  * Set a new dit interval (transmission rate)
 	  *
 	  * @param {number} duration Dit duration (milliseconds)
 	  */
 	SetIntervalDuration(duration) {
 		this.intervalDuration = duration
+	}
+
+	/**
+	 * Set a new pause multiplier.
+	 * 
+	 * This slows down the inter-letter and inter-word pauses,
+	 * which can aid in learning.
+	 * 
+	 * @param {number} multiplier Pause multiplier
+	 */
+	SetPauseMultiplier(multiplier) {
+		this.pauseMultiplier = multiplier
 	}
 
 	/**
@@ -204,12 +227,12 @@ class Iambic {
         }
     }
 
-    EnqueueAsciiString(s) {
+    EnqueueAsciiString(s, {pauseLetter = PAUSE_LETTER, pauseWord = PAUSE_WORD} = {}) {
         for (let c of s.toLowerCase()) {
             let m = MorseMap[c]
             if (m) {
                 this.EnqueueMorseString(m)
-                this.Enqueue(PAUSE_LETTER)
+                this.Enqueue(pauseLetter)
                 continue
             }
 
@@ -217,7 +240,7 @@ class Iambic {
                 case " ":
 				case "\n":
 				case "\t":
-                    this.Enqueue(PAUSE_WORD)
+                    this.Enqueue(pauseWord)
                     break
                 default:
                     console.warn("Unable to encode '" + c + "'!")

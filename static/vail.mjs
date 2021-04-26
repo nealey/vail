@@ -1,4 +1,6 @@
 import * as Morse from "./morse.mjs"
+import {getFortune} from "./fortunes.mjs"
+import { toast } from "./morse.mjs"
 
 class Vail {
 	constructor() {
@@ -29,12 +31,22 @@ class Vail {
 		document.addEventListener("keyup", e => this.keyboard(e))
 
 		// Make helpers
-		this.iambic = new Morse.Iambic(() => this.beginTx(), () => this.endTx())
 		this.buzzer = new Morse.Buzzer()
+		this.iambic = new Morse.Iambic(() => this.beginTx(), () => this.endTx())
+		this.fortuneBuzzer = new Morse.Buzzer({highFreq: 440})
+		this.fortuneIambic = new Morse.Iambic(() => this.fortuneBuzzer.Buzz(true), () => this.fortuneBuzzer.Silence(true))
 
 		// Listen for slider values
-		this.inputInit("#iambic-duration", e => this.iambic.SetIntervalDuration(e.target.value))
-		this.inputInit("#rx-delay", e => { this.rxDelay = Number(e.target.value) })
+		this.inputInit("#iambic-duration", e => {
+			this.iambic.SetIntervalDuration(e.target.value)
+			this.fortuneIambic.SetIntervalDuration(e.target.value)
+		})
+		this.inputInit("#rx-delay", e => { 
+			this.rxDelay = Number(e.target.value) 
+		})
+		this.inputInit("#handicap", e => {
+			this.fortuneIambic.SetPauseMultiplier(e.target.value)
+		})
 
 		// Show what repeater we're on
 		let repeater = (new URL(location)).searchParams.get("repeater") || "General Chaos"
@@ -309,6 +321,8 @@ class Vail {
 			this.straightKey(begin)
 		} else if ((event.target.id == "ck") && begin) {
 			this.Test()
+		} else if ((event.target.id == "fortune") && begin) {
+			this.PlayFortune()
 		}
 	}
 
@@ -372,6 +386,19 @@ class Vail {
 		this.wsSend(Date.now(), 0) // Get round-trip time
 		this.socket.send(JSON.stringify(msg))
 	}
+
+	/**
+	 * Play a randomly-chosen fortune
+	 && begin */
+	PlayFortune() {
+		if (this.fortuneIambic.Busy()) {
+			toast("I am already telling your fortune!")
+		} else {
+			let fortune = getFortune()
+			this.fortuneIambic.EnqueueAsciiString(`${fortune}\x04`)
+		}
+	}
+
 
 	maximize(e) {
 		let element = e.target
