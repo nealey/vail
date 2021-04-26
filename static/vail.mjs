@@ -1,290 +1,4 @@
-// jshint asi:true
-
-const lowFreq = 660
-const highFreq = lowFreq * 6 / 5 // Perfect minor third
-const errorFreq = 30
-
-const DIT = 1
-const DAH = 3
-
-// iOS kludge
-if (!window.AudioContext) {
-	window.AudioContext = window.webkitAudioContext
-}
-
-function toast(msg) {
-	let el = document.querySelector("#snackbar")
-	el.MaterialSnackbar.showSnackbar({
-		message: msg,
-		timeout: 2000
-	})
-}
-
-class Iambic {
-	constructor(beginTxFunc, endTxFunc) {
-		this.beginTxFunc = beginTxFunc
-		this.endTxFunc = endTxFunc
-		this.intervalDuration = null
-		this.state = this.stateBegin
-		this.ditDown = false
-		this.dahDown = false
-	}
-
-	/**
-	  * Set a new interval (transmission rate)
-	  *
-	  * @param {number} duration New interval duration, in ms
-	  */
-	SetIntervalDuration(duration) {
-		this.intervalDuration = duration
-		if (this.interval) {
-			clearInterval(this.interval)
-			this.interval = setInterval(e => this.pulse(), duration)
-		}
-	}
-
-	// An interval has passed, call whatever the current state function is
-	pulse(event) {
-		this.state()
-	}
-
-	stateBegin() {
-		if (this.ditDown) {
-			this.stateDit()
-		} else if (this.dahDown) {
-			this.stateDah()
-		} else {
-			clearInterval(this.interval)
-			this.interval = null
-		}
-	}
-
-	stateDit() {
-		// Send a dit
-		this.beginTxFunc()
-		this.state = this.stateDitEnd
-	}
-	stateDitEnd() {
-		this.endTxFunc()
-		this.state = this.stateDitNext
-	}
-	stateDitNext() {
-		if (this.dahDown) {
-			this.state = this.stateDah
-		} else {
-			this.state = this.stateBegin
-		}
-		this.state()
-	}
-
-	stateDah() {
-		// Send a dah
-		this.beginTxFunc()
-		this.state = this.stateDah2
-	}
-	stateDah2() {
-		this.state = this.stateDah3
-	}
-	stateDah3() {
-		this.state = this.stateDahEnd
-	}
-	stateDahEnd() {
-		this.endTxFunc()
-		this.state = this.stateDahNext
-	}
-	stateDahNext() {
-		if (this.ditDown) {
-			this.state = this.stateDit
-		} else {
-			this.state = this.stateBegin
-		}
-		this.state()
-	}
-
-
-	/**
-	  * Edge trigger on key press or release
-	  *
-	  * @param {boolean} down True if key was pressed, false if released
-	  * @param {number} key DIT or DAH
-	  */
-	Key(down, key) {
-		if (key == DIT) {
-			this.ditDown = down
-		} else if (key == DAH) {
-			this.dahDown = down
-		}
-
-		// Not pulsing yet? Start right away!
-		if (!this.interval) {
-			this.interval = setInterval(e => this.pulse(), this.intervalDuration)
-			this.pulse()
-		}
-	}
-}
-
-class Buzzer {
-	// Buzzers keep two oscillators: one high and one low.
-	// They generate a continuous waveform,
-	// and we change the gain to turn the pitches off and on.
-	//
-	// This also implements a very quick ramp-up and ramp-down in gain,
-	// in order to avoid "pops" (square wave overtones)
-	// that happen with instant changes in gain.
-
-	constructor(txGain = 0.6) {
-		this.txGain = txGain
-
-		this.ac = new AudioContext()
-
-		this.lowGain = this.create(lowFreq)
-		this.highGain = this.create(highFreq)
-		this.errorGain = this.create(errorFreq, "square")
-		this.noiseGain = this.whiteNoise()
-
-		this.ac.resume()
-			.then(() => {
-				document.querySelector("#muted").classList.add("hidden")
-			})
-
-	}
-
-	create(frequency, type = "sine") {
-		let gain = this.ac.createGain()
-		gain.connect(this.ac.destination)
-		gain.gain.value = 0
-		let osc = this.ac.createOscillator()
-		osc.type = type
-		osc.connect(gain)
-		osc.frequency.value = frequency
-		osc.start()
-		return gain
-	}
-
-	whiteNoise() {
-		let bufferSize = 17 * this.ac.sampleRate
-		let noiseBuffer = this.ac.createBuffer(1, bufferSize, this.ac.sampleRate)
-		let output = noiseBuffer.getChannelData(0)
-		for (let i = 0; i < bufferSize; i++) {
-			output[i] = Math.random() * 2 - 1;
-		}
-
-		let whiteNoise = this.ac.createBufferSource();
-		whiteNoise.buffer = noiseBuffer;
-		whiteNoise.loop = true;
-		whiteNoise.start(0);
-
-		let filter = this.ac.createBiquadFilter()
-		filter.type = "lowpass"
-		filter.frequency.value = 100
-
-		let gain = this.ac.createGain()
-		gain.gain.value = 0.1
-
-		whiteNoise.connect(filter)
-		filter.connect(gain)
-		gain.connect(this.ac.destination)
-
-		return gain
-	}
-
-	gain(high) {
-		if (high) {
-			return this.highGain.gain
-		} else {
-			return this.lowGain.gain
-		}
-	}
-
-	/**
-	  * Convert clock time to AudioContext time
-	  *
-	  * @param {number} when Clock time in ms
-	  * @return {number} AudioContext offset time
-	  */
-	acTime(when) {
-		if (!when) {
-			return this.ac.currentTime
-		}
-
-		let acOffset = Date.now() - this.ac.currentTime * 1000
-		let acTime = (when - acOffset) / 1000
-		return acTime
-	}
-
-	/**
-	  * Set gain
-	  *
-	  * @param {number} gain Value (0-1)
-	  */
-	SetGain(gain) {
-		this.txGain = gain
-	}
-
-	/**
-	  * Play an error tone
-	  */
-	ErrorTone() {
-		this.errorGain.gain.setTargetAtTime(this.txGain * 0.5, this.ac.currentTime, 0.001)
-		this.errorGain.gain.setTargetAtTime(0, this.ac.currentTime + 0.2, 0.001)
-	}
-
-	/**
-	  * Begin buzzing at time
-	  *
-	  * @param {boolean} tx Transmit or receive tone
-	  * @param {number} when Time to begin, in ms (null=now)
-	  */
-	Buzz(tx, when = null) {
-		if (!tx) {
-			let recv = document.querySelector("#recv")
-			let ms = when - Date.now()
-			setTimeout(e => {
-				recv.classList.add("rx")
-			}, ms)
-		}
-
-		let gain = this.gain(tx)
-		let acWhen = this.acTime(when)
-		this.ac.resume()
-			.then(() => {
-				gain.setTargetAtTime(this.txGain, acWhen, 0.001)
-			})
-	}
-
-	/**
-	  * End buzzing at time
-	  *
-	  * @param {boolean} tx Transmit or receive tone
-	  * @param {number} when Time to end, in ms (null=now)
-	  */
-	Silence(tx, when = null) {
-		if (!tx) {
-			let recv = document.querySelector("#recv")
-			let ms = when - Date.now()
-			setTimeout(e => {
-				recv.classList.remove("rx")
-			}, ms)
-		}
-
-		let gain = this.gain(tx)
-		let acWhen = this.acTime(when)
-
-		gain.setTargetAtTime(0, acWhen, 0.001)
-	}
-
-	/**
-	  * Buzz for a duration at time
-	  *
-	  * @param {boolean} high High or low pitched tone
-	  * @param {number} when Time to begin (ms since 1970-01-01Z, null=now)
-	  * @param {number} duration Duration of buzz (ms)
-	  */
-	BuzzDuration(high, when, duration) {
-		this.Buzz(high, when)
-		this.Silence(high, when + duration)
-	}
-}
+import * as Morse from "./morse.mjs"
 
 class Vail {
 	constructor() {
@@ -315,8 +29,8 @@ class Vail {
 		document.addEventListener("keyup", e => this.keyboard(e))
 
 		// Make helpers
-		this.iambic = new Iambic(() => this.beginTx(), () => this.endTx())
-		this.buzzer = new Buzzer()
+		this.iambic = new Morse.Iambic(() => this.beginTx(), () => this.endTx())
+		this.buzzer = new Morse.Buzzer()
 
 		// Listen for slider values
 		this.inputInit("#iambic-duration", e => this.iambic.SetIntervalDuration(e.target.value))
@@ -338,9 +52,8 @@ class Vail {
 
 	openSocket() {
 		// Set up WebSocket
-		let wsUrl = new URL(window.location)
+		let wsUrl = new URL("chat", window.location)
 		wsUrl.protocol = wsUrl.protocol.replace("http", "ws")
-		wsUrl.pathname += "chat"
 		this.socket = new WebSocket(wsUrl)
 		this.socket.addEventListener("message", e => this.wsMessage(e))
 		this.socket.addEventListener("close", e => this.openSocket())
@@ -398,10 +111,10 @@ class Vail {
 				this.straightKey(begin)
 				break
 			case 1: // C#
-				this.iambic.Key(begin, DIT)
+				this.iambic.Key(Morse.DIT, begin)
 				break
 			case 2: // D
-				this.iambic.Key(begin, DAH)
+				this.iambic.Key(Morse.DAH, begin)
 				break
 			default:
 				return
@@ -409,7 +122,7 @@ class Vail {
 	}
 
 	error(msg) {
-		toast(msg)
+		Morse.toast(msg)
 		this.buzzer.ErrorTone()
 	}
 
@@ -540,11 +253,11 @@ class Vail {
 	}
 
 	iambicDit(begin) {
-		this.iambic.Key(begin, DIT)
+		this.iambic.Key(Morse.DIT, begin)
 	}
 
 	iambicDah(begin) {
-		this.iambic.Key(begin, DAH)
+		this.iambic.Key(Morse.DAH, begin)
 	}
 
 	keyboard(event) {
@@ -684,7 +397,7 @@ function vailInit() {
 		window.app = new Vail()
 	} catch (err) {
 		console.log(err)
-		toast(err)
+		Morse.toast(err)
 	}
 }
 

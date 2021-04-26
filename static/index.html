@@ -14,7 +14,8 @@
 		<link rel="manifest" href="manifest.json">
 		<link rel="icon" href="vail.png" sizes="256x256" type="image/png">
 		<link rel="icon" href="vail.svg" sizes="any" type="image/svg+xml">
-		<script src="vail.js"></script>
+		<script type="module" src="vail.mjs"></script>
+		<script type="module" src="fortune.mjs"></script>
 		<link rel="stylesheet" href="vail.css">
 	</head>
 	<body>
@@ -99,8 +100,8 @@
 											<i class="material-icons" role="presentation">gamepad</i>
 										</td>
 										<td>
-											<kbd class="gamepad a" title="Gamepad A">A</kbd> 
-											<kbd class="gamepad b" title="Gamepad B">B</kbd>
+											<img class="gamepad b0" title="Gamepad Bottom Button" src="b0.svg" alt="Bottom button">
+											<img class="gamepad b1" title="Gamepad Right Button" src="b1.svg" alt="Right button">
 										</td>
 									</tr>
 								</table>
@@ -140,15 +141,15 @@
 											<i class="material-icons" role="presentation">gamepad</i>
 										</td>
 										<td>
-											<kbd class="gamepad x" title="Gamepad X">X</kbd> 
-											<kbd class="gamepad" title="Gamepad LB">LB</kbd>
+											<img class="gamepad b2" title="Gamepad Left Button" src="b2.svg" alt="Left Button">
+											<kbd class="gamepad" title="Gamepad Left Shoulder Button">LB</kbd>
 										</td>
 										<td>
 											<i class="material-icons" role="presentation">gamepad</i>
 										</td>
 										<td>
-											<kbd class="gamepad y" title="Gamepad Y">Y</kbd>
-											<kbd class="gamepad" title="Gamepad RB">RB</kbd>
+											<img class="gamepad b3" title="Gamepad Top Button" src="b3.svg" alt="Top Button">
+											<kbd class="gamepad" title="Gamepad Right Shoulder Button">RB</kbd>
 										</td>
 									</tr>
 									<tr>
@@ -166,12 +167,24 @@
 												CK
 											</button>
 										</td>
+										<td>
+											<button id="fortune" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+												Fortune
+											</button>
+										</td>
 									</tr>
-									<tr>
-										<td class="mdl-card__supporting-text">
+									<tr class="mdl-card__supporting-text">
+										<td>
 											<p>
 											  Check (CK) round-trip times and audio functionality
 												by sending "CK" to the repeater and playing the returned signal.
+											</p>
+										</td>
+										<td>
+											<p>
+												Fetch a fortune and play it locally.
+												This can help practice copying (hearing) Morse code,
+												without having to involve another person.
 											</p>
 										</td>
 									</tr>

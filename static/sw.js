@@ -1,7 +1,5 @@
 // jshint asi:true
 
-console.log("moo")
-
 self.addEventListener("install", install)
 function install(event) {
 	console.log(event)
