@@ -14,7 +14,8 @@
 		<link rel="manifest" href="manifest.json">
 		<link rel="icon" href="vail.png" sizes="256x256" type="image/png">
 		<link rel="icon" href="vail.svg" sizes="any" type="image/svg+xml">
-		<script src="dev.js"></script>
+		<script type="module" src="dev.mjs"></script>
+		<script type="module" src="fortune.mjs"></script>
 		<link rel="stylesheet" href="vail.css">
 	</head>
 	<body>
@@ -166,12 +167,24 @@
 												CK
 											</button>
 										</td>
+										<td>
+											<button id="fortune" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+												Fortune
+											</button>
+										</td>
 									</tr>
-									<tr>
-										<td class="mdl-card__supporting-text">
+									<tr class="mdl-card__supporting-text">
+										<td>
 											<p>
 											  Check (CK) round-trip times and audio functionality
 												by sending "CK" to the repeater and playing the returned signal.
+											</p>
+										</td>
+										<td>
+											<p>
+												Fetch a fortune and play it locally.
+												This can help practice copying (hearing) Morse code,
+												without having to involve another person.
 											</p>
 										</td>
 									</tr>
