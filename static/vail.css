@@ -59,10 +59,11 @@ kbd {
     border-radius: 3px;
     font-size: 9pt;
     padding: .1em .6em;
-    cursor: default;
+	cursor: default;
+	vertical-align: top;
 }
 
-.gamepad {
+kbd.gamepad {
 	color: white;
 	font-weight: bold;
 	background-color: #444;
@@ -70,17 +71,9 @@ kbd {
 	height: 10px;
 	width: 10px;
 }
-.gamepad.a {
-	color: #8f8;
-}
-.gamepad.b {
-	color: #f88;
-}
-.gamepad.x {
-	color: #88f;
-}
-.gamepad.y {
-	color: #ff8;
+img.gamepad {
+	height: 1.5em;
+	vertical-align: baseline;
 }
 
 code {

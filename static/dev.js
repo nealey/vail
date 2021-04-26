@@ -8,40 +8,6 @@ const PAUSE = -1
 const DIT = 1
 const DAH = 3
 
-/**
- * Return button labels and colors for the first 4 buttons of the provided gamepad.
- * 
- * @param {Gamepad} gamepad Gamepad you want to know about
- */
-function getButtonLabels(gamepad) {
-	if (gamepad.id.includes("057e") || // Nintendo
-		gamepad.id.includes("2dc8") || // 8bitdo
-		false) { 
-		return [
-			{"label": "B", "color": "yellow"},
-			{"label": "A", "color": "red"},
-			{"label": "Y", "color": "green"},
-			{"label": "X", "color": "blue"},
-		]
-	}
-	if (gamepad.id.includes("054c") || // Sony
-		false) {
-		return [
-			{"label": "🞩", "color": "blue"},
-			{"label": "◯", "color": "red"},
-			{"label": "□", "color": "yellow"},
-			{"label": "△", "color": "pink"},
-		]
-	}
-	// Default: xbox, logitech, and more
-	return [
-		{"label": "A", "color": "green"},
-		{"label": "B", "color": "red"},
-		{"label": "X", "color": "blue"},
-		{"label": "Y", "color": "yellow"},
-	]
-}
-
 // iOS kludge
 if (!window.AudioContext) {
 	window.AudioContext = window.webkitAudioContext
@@ -81,16 +47,19 @@ class Iambic {
 		this.beginTxFunc = beginTxFunc
 		this.endTxFunc = endTxFunc
 		this.intervalDuration = intervalDuration
-		this.typematic = null
+		this.ditDown = false
+		this.dahDown = false
+		this.last = null
 		this.queue = []
 		this.pulseTimer = null
 	}
 
 	pulse() {
 		if (this.queue.length == 0) {
-			if (this.typematic) {
+			let next = this.typematic()
+			if (next) {
 				// Barkeep! Another round!
-				this.Enqueue(this.typematic)
+				this.Enqueue(next)
 			} else {
 				// Nothing left on the queue, stop the machine
 				this.pulseTimer = null
@@ -98,14 +67,15 @@ class Iambic {
 			}
 		}
 
-		let duration = this.queue.shift() * this.intervalDuration
-		if (duration < 0) {
-			duration = duration * -1
+		let next = this.queue.shift()
+		if (next < 0) {
+			next = next * -1
 			this.endTxFunc()
 		} else {
+			this.last = next
 			this.beginTxFunc()
 		}
-		this.pulseTimer = setTimeout(() => this.pulse(), duration)
+		this.pulseTimer = setTimeout(() => this.pulse(), next * this.intervalDuration)
 	}
 
 	maybePulse() {
@@ -113,6 +83,23 @@ class Iambic {
 		if (!this.pulseTimer) {
 			this.pulse()
 		}
+	}
+
+	typematic() {
+		if (this.ditDown && this.dahDown) {
+			if (this.last == DIT) {
+				this.last = DAH
+			} else {
+				this.last = DIT
+			}
+		} else if (this.ditDown) {
+			this.last = DIT
+		} else if (this.dahDown) {
+			this.last = DAH
+		} else {
+			this.last = null
+		}
+		return this.last
 	}
 
 	/**
@@ -142,11 +129,14 @@ class Iambic {
 	  * @param {boolean} down True if key was pressed, false if released
 	  */
 	Key(key, down) {
+		if (key == DIT) {
+			this.ditDown = down
+		} else if (key == DAH) {
+			this.dahDown = down
+		}
+
 		if (down) {
 			this.Enqueue(key)
-			this.typematic = key
-		} else {
-			this.typematic = null
 		}
 	}
 }
@@ -639,44 +629,31 @@ class Vail {
 
 	gamepadPoll(timestamp) {
 		let currentButtons = {}
-		let currentGamepad = null
 		for (let gp of navigator.getGamepads()) {
 			if (gp == null) {
 				continue
 			}
-
-			let b = gp.buttons
-
-			let key = b[0].pressed || b[1].pressed
-			let dit = b[2].pressed || b[4].pressed || b[6].pressed || b[8].pressed || b[10].pressed || b[14].pressed
-			let dah = b[3].pressed || b[5].pressed || b[7].pressed || b[9].pressed || b[11].pressed || b[15].pressed
-
-			if (key || dit || dah) {
-				currentGamepad = gp
+			for (let i in gp.buttons) {
+				let pressed = gp.buttons[i].pressed
+				if (i < 2) {
+					currentButtons.key |= pressed
+				} else if (i % 2 == 0) {
+					currentButtons.dit |= pressed
+				} else {
+					currentButtons.dah |= pressed
+				}
 			}
-			this.currentButtons.key |= key
-			this.currentButtons.dit |= dit
-			this.currentButtons.dah |= dah
 		}
 
-		if (currentButtons != this.gamepadButtons) {
-			let labels = getButtonLabels(currentGamepad)
-
-			for (let but = 0; but < 4; but++) {
-				let e = document.querySelector(".gamepad.b" + but)
-				e.textContent = labels[but].label
-				e.
-			}
-			document.querySelector(".gamepad.b0").
-			if (currentButtons.key != this.gamepadButtons.key) {
-				this.straightKey(currentButtons.key)
-			}
-			if (currentButtons.dit != this.gamepadButtons.dit) {
-				this.iambicDit(currentButtons.dit)
-			}
-			if (currentButtons.dah != this.gamepadButtons.dah) {
-				this.iambicDah(currentButtons.dah)
-			}
+		if (currentButtons.key != this.gamepadButtons.key) {
+			this.straightKey(currentButtons.key)
+		}
+		if (currentButtons.dit != this.gamepadButtons.dit) {
+			this.iambicDit(currentButtons.dit)
+		}
+		if (currentButtons.dah != this.gamepadButtons.dah) {
+			this.iambicDah(currentButtons.dah)
+		}
 		this.gamepadButtons = currentButtons
 
 		requestAnimationFrame(e => this.gamepadPoll(e))
