@@ -57,7 +57,7 @@ class Vail {
 		}
 
 		// Fill in the name of our repeater
-		let repeater = decodeURI(window.location.hash.split("#")[1] || "General Chaos")
+		let repeater = decodeURI(window.location.hash.split("#")[1] || "")
 		let repeaterElement = document.querySelector("#repeater")
 		repeaterElement.addEventListener("change", e => this.setRepeater(e.target.value.trim()))
 		repeaterElement.value = unescape(repeater)
@@ -74,6 +74,9 @@ class Vail {
 	}
 
 	setRepeater(name) {
+		if (!name || (name == "")) {
+			name = "General Chaos"
+		}
 		this.repeaterName = name
 
 		// Set window URL
@@ -84,6 +87,8 @@ class Vail {
 		if (hash != window.location.hash) {
 			window.location.hash = hash
 		}
+		document.querySelector("#repeater").value = name
+		toast(`Now using repeater: ${name}`)
 
 		let wsUrl = new URL("chat", window.location)
 		wsUrl.protocol = wsUrl.protocol.replace("http", "ws")
