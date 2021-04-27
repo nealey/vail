@@ -94,18 +94,14 @@ img {
 	max-height: inherit;
 }
 
-#repeater {
-	font-style: italic;
-	margin-right: 0.3em;
-}
-
 #recv {
-	width: 3em;
-	height: 2em;
-	line-height: 2em;
+	width: 2em;
+	height: 1em;
+	line-height: 1em;
 	position: absolute;
+	top: 0.5em;
 	right: 1em;
-	border-radius: 30%;
+	border-radius: 0.3em;
 	text-align: center;
 	vertical-align: middle;
 }

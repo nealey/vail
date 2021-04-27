@@ -44,7 +44,7 @@
 					<a class="mdl-navigation__link" href="?repeater=21-99+WPM">21-99 WPM</a>
 				</nav>
 				<hr>
-				<nav class="mdl-navigation">
+				<nav class="mdl-navigation">					
 					<a class="mdl-navigation__link" href="https://morse.withgoogle.com/learn/">Learn Morse Code</a>
 					<a class="mdl-navigation__link" href="https://github.com/nealey/vail-adapter">Use a physical key</a>
 				</nav>
@@ -58,15 +58,23 @@
 			<main class="mdl-layout__content">
 				<div class="flex">
 					<div class="mdl-card mdl-shadow--4dp input-methods">
+						<div id="recv">
+							<!-- This div appears as a little light that turns on when someone's sending -->
+							<i class="material-icons" id="muted">volume_off</i>
+						</div>
 						<div class="mdl-card__title">
 							<h2 class="mdl-card__title-text">
-								<span id="repeater"></span>
-								Repeater
+								<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+									<input class="mdl-textfield__input" type="text" id="repeater" list="repeater-list">
+									<datalist id="repeater-list">
+										<option>General Chaos</option>
+										<option>1-15 WPM</option>
+										<option>16-20 WPM</option>
+										<option>21+ WPM</option>
+									</datalist>
+									<label class="mdl-textfield__label" for="repeater">Repeater</label>
+								</div>
 							</h2>
-							<div id="recv">
-								<!-- This div appears as a little light that turns on when someone's sending -->
-								<i class="material-icons" id="muted">volume_off</i>
-							</div>
 						</div>
 						<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
 							<div class="mdl-tabs__tab-bar">
@@ -91,7 +99,6 @@
 											<kbd>c</kbd> 
 											<kbd>,</kbd> 
 											<kbd>Enter</kbd>
-											<kbd>⇧ Shift</kbd> 
 										</td>
 									</tr>
 									<tr>
@@ -354,7 +361,7 @@
 									value="100">
 							</p>
 							<p>
-								Recieve delay:
+								Receive delay:
 								<output id="rx-delay-value"></output>ms
 								<input
 									id="rx-delay"
@@ -406,139 +413,123 @@
 
 					<div class="mdl-card mdl-shadow--4dp">
 						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">Vail</h2>
+							<h2 class="mdl-card__title-text">Documentation</h2>
 						</div>
-						<div class="mdl-card__supporting-text">
-							<p>
-								This is a CW repeater,
-								named after Alfred Vail,
-								who may or may not have invented what's called "Morse code",
-								but clearly had some role in it.
-							</p>
+						<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+							<div class="mdl-tabs__tab-bar">
+								<a href="#doc-about" class="mdl-tabs__tab is-active">About</a>
+								<a href="#doc-faq" class="mdl-tabs__tab">FAQ</a>
+								<a href="#doc-geek" class="mdl-tabs__tab">Geek Stuff</a>
+							</div>
+							<div class="mdl-tabs__panel mdl-card__supporting-text long is-active" id="doc-about">
+								<p>
+									This is a CW repeater,
+									named after Alfred Vail,
+									who may or may not have invented what's called "Morse code",
+									but clearly had some role in it.
+								</p>
 
-							<p>
-								Just like a radio repeater,
-								anybody can connect and start transmitting stuff,
-								and this will broadcast it to everyone connected.
-							</p>
+								<p>
+									Just like a radio repeater,
+									anybody can connect and start transmitting stuff,
+									and this will broadcast it to everyone connected.
+								</p>
+							</div>
 
-							<h3 class="mdl-card__title-text">Why Does This Exist?</h3>
+							<div class="mdl-tabs__panel mdl-card__supporting-text long" id="doc-faq">
+								<h3 class="mdl-card__title-text">Why Does This Exist?</h3>
+								<p>
+									I needed a place to practice CW with actual human beings,
+									and I wanted it to be as close as possible to what I'd experience on a radio.
+									I also didn't have a lot of money to spend on equipment, but I did have a computer, phone, and gamepad.
+									Nothing else like this exists on the Internet, as far as I can tell.
+								</p>
+								
+								<h3 class="mdl-card__title-text">Why do I hear a low tone?</h3>
+								<p>
+									This is the "drop tone", and will be accompanied by an error.
+								</p>								
+								<p>
+									This means the packet arrived so late, it can't be played in time.
+									In technical terms: the timestamp of the packet plus the receive delay
+									is less than the current time.
+									It can't be scheduled to play, because we can't go back in time.
+								</p>
+								<p>
+									This could be happening for three reasons:
+								</p>
+								<ol>
+									<li>You (the person hearing the drop tone) need a larger receive delay</li>
+									<li>The receiving computer's clock is in the future (running fast)</li>
+									<li>The sending computer's clock is in the past (running slow)</li>
+								</ol>
+								<p>
+									Make sure your clock is synced with an Internet time server.
+									Accurate time is very important to how Vail works.
+								</p>
 
-							<p>
-								I need a place to practice CW with actual human beings,
-								and I want it to be as close as possible to what I'd experience on a radio.
-								Also, I don't want to make people buy a bunch of radio hardware.
-								Nothing else like this exists on the Internet, as far as I can tell.
-							</p>
-						</div>
-					</div>
+								<h3 class="mdl-card__title-text">How can I help?</h3>
+								<ul>
+									<li>Improve the <a href="https://github.com/nealey/vail/">source code</a></li>
+									<li>Email me and let me know you're using it</li>
+									<li>Vail costs me 50¢ a year to run: you could buy me a cup of coffee every 5 years or so to offset the expense</li>
+								</ul>
 
-					<div class="mdl-card mdl-shadow--4dp">
-						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">How It Works</h2>
-						</div>
-						<div class="mdl-card__supporting-text">
+								<h3 class="mdl-card__title-text">Who made this?</h3>		
+								<p>
+									<a href="mailto:neale@woozle.org">Neale Pickett</a> kd7oqi
+								</p>
+							</div>
+								
 
-							<p>
-								The Internet isn't exactly like radio waves:
-								it still goes at near the speed of light,
-								but there are multiple hops between endpoints,
-								which buffer up transmissions, and multiplex them onto a single uplink connection.
-								These repeaters (routers)
-								are also allowed to just drop things if they need to.
-								It's the responsibility of the communicating parties
-								to work out whether something needs to be retransmitted.
-								Because of this,
-								there's no telling how long it will take for a transmission to get to a destination.
-							</p>
-
-							<p>
-								Each Vail transmission (packet) consists of:
-							</p>
-
-							<ul>
-								<li>timestamp (milliseconds since 1 Jan 1970, 00:00:00 in Reykjavík)</li>
-								<li>transmission duration (milliseconds)</li>
-							</ul>
-
-							<p>
-								The repeater does nothing but broadcast everything it gets
-								to every connected Vail client,
-								including the one that sent the packet.
-								When your client gets back the exact same thing it sent,
-								it compares the current time to the time in the packet.
-								This is the <i>round-trip time</i>:
-								the time it takes for a packet to get from your computer to the repeater and back.
-							</p>
-
-							<p>
-								When the client gets a packet it didn't send,
-								it adds the <i>receive delay</i> to the timestamp,
-								and schedules to play the tones and silences in the packet
-								at that time.
-							</p>
-
-							<p>
-								By adding the maximum round-trip time to the <i>longest recent transmission</i>
-								(the length of a dah, hopefully),
-								your client can make a guess about how much time needs to be added to a received timestamp,
-								in order to have it play back in the future at the time it comes in.
-								This is just a guess.
-								If you're communicating with somebody with a higher round-trip time than you have,
-								you'll need to raise your receive delay to account for it.
-							</p>
-						</div>
-					</div>
-
-					<div class="mdl-card mdl-shadow--4dp">
-						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">Why do I hear a low tone?</h2>
-						</div>
-						<div class="mdl-card__supporting-text">
-							<p>
-								This is the "drop tone", and will be accompanied by an error.
-							</p>
-
-							<p>
-								This means the packet arrived so late, it can't be played in time.
-								In technical terms: the timestamp of the packet plus the receive delay
-								is less than the current time.
-								It can't be scheduled to play, because we can't go back in time.
-							</p>
-
-							<p>
-								This could be happening for three reasons:
-							</p>
-
-							<ol>
-								<li>You (the person hearing the drop tone) need a larger receive delay</li>
-								<li>The receiving computer's clock is in the future (running fast)</li>
-								<li>The sending computer's clock is in the past (running slow)</li>
-							</ol>
-
-							<p>
-								Make sure your clock is synced with an Internet time server.
-								Accurate time is very important to how Vail works.
-							</p>
-						</div>
-					</div>
-
-					<div class="mdl-card mdl-shadow--4dp">
-						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">How can I help?</h2>
-						</div>
-						<div class="mdl-card__supporting-text">
-							<ul>
-								<li>Improve the <a href="https://github.com/nealey/vail/">source code</a></li>
-								<li>Email me and let me know you're using it</li>
-							</ul>
-
-							<p>
-								<a href="mailto:neale@woozle.org">Neale Pickett</a> kd7oqi
-							</p>
-
+							<div class="mdl-tabs__panel mdl-card__supporting-text long" id="doc-geek">
+								<p>
+									The Internet isn't exactly like radio waves:
+									it still goes at near the speed of light,
+									but there are multiple hops between endpoints,
+									which buffer up transmissions, and multiplex them onto a single uplink connection.
+									These repeaters (routers)
+									are also allowed to just drop things if they need to.
+									It's the responsibility of the communicating parties
+									to work out whether something needs to be retransmitted.
+									Because of this,
+									there's no telling how long it will take for a transmission to get to a destination.
+								</p>
+								<p>
+									Each Vail transmission (packet) consists of:
+								</p>
+								<ul>
+									<li>timestamp (milliseconds since 1 Jan 1970, 00:00:00 in Reykjavík)</li>
+									<li>transmission duration (milliseconds)</li>
+								</ul>
+								<p>
+									The repeater does nothing but broadcast everything it gets
+									to every connected Vail client,
+									including the one that sent the packet.
+									When your client gets back the exact same thing it sent,
+									it compares the current time to the time in the packet.
+									This is the <i>round-trip time</i>:
+									the time it takes for a packet to get from your computer to the repeater and back.
+								</p>
+								<p>
+									When the client gets a packet it didn't send,
+									it adds the <i>receive delay</i> to the timestamp,
+									and schedules to play the tones and silences in the packet
+									at that time.
+								</p>
+								<p>
+									By adding the maximum round-trip time to the <i>longest recent transmission</i>
+									(the length of a dah, hopefully),
+									your client can make a guess about how much time needs to be added to a received timestamp,
+									in order to have it play back in the future at the time it comes in.
+									This is just a guess.
+									If you're communicating with somebody with a higher round-trip time than you have,
+									you'll need to raise your receive delay to account for it.
+								</p>
+							</div>
 						</div>
 					</div>
+
 				</div>
 			</main>
 		</div>

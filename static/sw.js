@@ -1,13 +1,25 @@
-// jshint asi:true
+cacheName = "v1"
 
-self.addEventListener("install", install)
+self.addEventListener("install", e => install(e))
 function install(event) {
-	console.log(event)
-	event.waitUntil(Promise.resolve(true))
+	event.waitUntil(
+		caches.open(cacheName)
+		.then(cache => {
+			return cache.addAll(
+				[
+					"/",
+				]
+			)
+		})
+	)
 }
 
-self.addEventListener("fetch", fetcher)
-function fetcher(event) {
-	event.respondWith(fetch(event.request))
+self.addEventListener("fetch", e => cacheFetch(e))
+function cacheFetch(event) {
+	event.respondWith(
+		fetch(event.request)
+		.catch(() => {
+			return caches.match(event.request)
+		})
+	)
 }
-
