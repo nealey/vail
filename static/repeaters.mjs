@@ -1,0 +1,115 @@
+export class Vail {
+    constructor(name, rx) {
+        this.name = name
+        this.rx = rx
+        this.lagDurations = []
+        this.sent = []
+        
+		this.wsUrl = new URL("chat", window.location)
+		this.wsUrl.protocol = this.wsUrl.protocol.replace("http", "ws")
+        this.wsUrl.searchParams.set("repeater", name)
+        
+        this.reopen()
+    }
+    
+    reopen() {
+        console.info("Attempting to reconnect", this.wsUrl)
+        this.clockOffset = 0
+		this.socket = new WebSocket(this.wsUrl)
+		this.socket.addEventListener("message", e => this.wsMessage(e))
+		this.socket.addEventListener("close", () => this.reopen())
+    }
+
+    stats() {
+        return {
+            averageLag: this.lagDurations.reduce((a,b) => (a+b), 0) / this.lagDurations.length,
+            clockOffset: this.clockOffset,
+        }
+    }
+
+    wsMessage(event) {
+        let now = Date.now()
+        let jmsg = event.data
+        let msg
+        try {
+            msg = JSON.parse(jmsg)
+        }
+        catch (err) {
+            console.error(err, jmsg)
+            return
+        }
+        let beginTxTime = msg[0]
+        let durations = msg.slice(1)
+
+		// Why is this happening?
+		if (beginTxTime == 0) {
+			return
+        }
+        
+        let sent = this.sent.filter(e => e != jmsg)
+		if (sent.length < this.sent.length) {
+			// We're getting our own message back, which tells us our lag.
+			// We shouldn't emit a tone, though.
+			let totalDuration = durations.reduce((a, b) => a + b)
+            this.sent = sent
+            this.lagDurations.unshift(now - this.clockOffset - beginTxTime - totalDuration)
+            this.lagDurations.splice(20, 2)
+            this.rx(0, 0, this.stats())
+			return
+		}
+
+        // The very first packet is the server telling us the current time
+		if (durations.length == 0) {
+			if (this.clockOffset == 0) {
+                this.clockOffset = now - beginTxTime
+                this.rx(0, 0, this.stats())
+			}
+			return
+		}
+
+		// Adjust playback time to clock offset
+        let adjustedTxTime = beginTxTime + this.clockOffset
+
+		// Every second value is a silence duration
+		let tx = true
+		for (let duration of durations) {
+			duration = Number(duration)
+			if (tx && (duration > 0)) {
+                this.rx(adjustedTxTime, duration, this.stats())
+			}
+			adjustedTxTime = Number(adjustedTxTime) + duration
+			tx = !tx
+		}
+    }
+
+    /**
+     * Send a transmission
+     * 
+     * @param {number} time When to play this transmission
+     * @param {number} duration How long the transmission is
+     * @param {boolean} squelch True to mute this tone when we get it back from the repeater
+     */
+    Transmit(time, duration, squelch=true) {
+        let msg = [time - this.clockOffset, duration]
+        let jmsg = JSON.stringify(msg)
+        this.socket.send(jmsg)
+        if (squelch) {
+            this.sent.push(jmsg)
+        }
+    }
+
+    Close() {
+        this.socket.close()
+    }
+}
+
+export class Null {
+    constructor(name, rx) {
+    }
+
+    Transmit(time, duration, squelch=True) {
+    }
+
+    Close() {
+    }
+}

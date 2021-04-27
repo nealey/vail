@@ -1,10 +1,28 @@
 import * as Morse from "./morse.mjs"
+import * as Inputs from "./inputs.mjs"
+import * as Repeaters from "./repeaters.mjs"
 import {getFortune} from "./fortunes.mjs"
-import { toast } from "./morse.mjs"
 
 const DefaultRepeater = "General Chaos"
 
-class Vail {
+/**
+ * Pop up a message, using an MDL snackbar.
+ * 
+ * @param {string} msg Message to display
+ */
+function toast(msg) {
+	let el = document.querySelector("#snackbar")
+	if (!el || !el.MaterialSnackbar) {
+		console.warn(msg)
+		return
+	}
+	el.MaterialSnackbar.showSnackbar({
+		message: msg,
+		timeout: 2000
+	})
+}
+
+class VailClient {
 	constructor() {
 		this.sent = []
 		this.lagTimes = [0]
@@ -13,39 +31,6 @@ class Vail {
 		this.rxDelay = 0 // Milliseconds to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 		this.debug = localStorage.debug
-
-		// Listen to HTML buttons
-		for (let e of document.querySelectorAll("button.key")) {
-			e.addEventListener("contextmenu", e => { e.preventDefault(); return false })
-			e.addEventListener("touchstart", e => this.keyButton(e))
-			e.addEventListener("touchend", e => this.keyButton(e))
-			e.addEventListener("mousedown", e => this.keyButton(e))
-			e.addEventListener("mouseup", e => this.keyButton(e))
-		}
-		for (let e of document.querySelectorAll("button.maximize")) {
-			e.addEventListener("click", e => this.maximize(e))
-		}
-
-		// Listen for keystrokes
-		document.addEventListener("keydown", e => this.keyboard(e))
-		document.addEventListener("keyup", e => this.keyboard(e))
-
-		// Make helpers
-		this.buzzer = new Morse.Buzzer()
-		this.iambic = new Morse.Iambic(() => this.beginTx(), () => this.endTx())
-		this.fortuneIambic = new Morse.Iambic(() => this.buzzer.Buzz(), () => this.buzzer.Silence())
-
-		// Listen for slider values
-		this.inputInit("#iambic-duration", e => {
-			this.iambic.SetIntervalDuration(e.target.value)
-			this.fortuneIambic.SetIntervalDuration(e.target.value)
-		})
-		this.inputInit("#rx-delay", e => { 
-			this.rxDelay = Number(e.target.value) 
-		})
-		this.inputInit("#handicap", e => {
-			this.fortuneIambic.SetPauseMultiplier(e.target.value)
-		})
 
 		// Redirect old URLs
 		if (window.location.search) {
@@ -56,20 +41,44 @@ class Vail {
 			window.location = me
 		}
 
+		// Make helpers
+		this.buzzer = new Morse.Buzzer()
+		this.keyer = new Morse.Keyer(() => this.beginTx(), () => this.endTx())
+		this.iambicKeyer = new Morse.Keyer(() => this.buzzer.Buzz(), () => this.buzzer.Silence())
+
+		// Set up various input methods
+		this.inputs = Inputs.SetupAll(this.keyer)
+
+		// Maximize button
+		for (let e of document.querySelectorAll("button.maximize")) {
+			e.addEventListener("click", e => this.maximize(e))
+		}
+		for (let e of document.querySelectorAll("#ck")) {
+			e.addEventListener("click", e => this.test())
+		}
+
+		// Set up sliders
+		this.sliderInit("#iambic-duration", e => {
+			this.keyer.SetIntervalDuration(e.target.value)
+			this.iambicKeyer.SetIntervalDuration(e.target.value)
+		})
+		this.sliderInit("#rx-delay", e => { 
+			this.rxDelay = Number(e.target.value) 
+		})
+
 		// Fill in the name of our repeater
 		let repeaterElement = document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
 		this.setRepeater(decodeURI(unescape(window.location.hash.split("#")[1] || "")))
-
-		// Request MIDI access
-		if (navigator.requestMIDIAccess) {
-			navigator.requestMIDIAccess()
-				.then(a => this.midiInit(a))
-		}
-
-		// Set up for gamepad input
-		window.addEventListener("gamepadconnected", e => this.gamepadConnected(e))
 	}
 
+	/**
+	 * Connect to a repeater by name.
+	 * 
+	 * In the future this may do some fancy switching logic to provide multiple types of repeaters.
+	 * For instance, I'd like to create a set of repeaters that run locally, for practice.
+	 * 
+	 * @param {string} name Repeater name
+	 */
 	setRepeater(name) {
 		if (!name || (name == "")) {
 			name = "General Chaos"
@@ -94,18 +103,29 @@ class Vail {
 			window.location.hash = hash
 		}
 		
-		toast(`Now using repeater: ${name}`)
+		if (this.repeater) {
+			this.repeater.Close()
+		}
+		this.repeater = new Repeaters.Vail(name, (w,d,s) => this.receive(w,d,s))
 
-		let wsUrl = new URL("chat", window.location)
-		wsUrl.protocol = wsUrl.protocol.replace("http", "ws")
-		wsUrl.searchParams.set("repeater", name)
-		this.socket = new WebSocket(wsUrl)
-		this.socket.addEventListener("message", e => this.wsMessage(e))
-		this.socket.addEventListener("close", () => this.setRepeater(name))
+		toast(`Now using repeater: ${name}`)
 	}
 
-	inputInit(selector, func) {
+	/**
+	 * Set up a slider.
+	 * 
+	 * This reads any previously saved value and sets the slider to that.
+	 * When the slider is updated, it saves the value it's updated to,
+	 * and calls the provided callback with the new value.
+	 * 
+	 * @param {string} selector CSS path to the element
+	 * @param {function} callback Callback to call with any new value that is set
+	 */
+	sliderInit(selector, callback) {
 		let element = document.querySelector(selector)
+		if (!element) {
+			return
+		}
 		let storedValue = localStorage[element.id]
 		if (storedValue) {
 			element.value = storedValue
@@ -116,74 +136,82 @@ class Vail {
 			if (outputElement) {
 				outputElement.value = element.value
 			}
-			func(e)
+			if (callback) {
+				callback(e)
+			}
 		})
 		element.dispatchEvent(new Event("input"))
 	}
 
-	midiInit(access) {
-		this.midiAccess = access
-		for (let input of this.midiAccess.inputs.values()) {
-			input.addEventListener("midimessage", e => this.midiMessage(e))
-		}
-		this.midiAccess.addEventListener("statechange", e => this.midiStateChange(e))
-	}
-
-	midiStateChange(event) {
-		// XXX: it's not entirely clear how to handle new devices showing up.
-		// XXX: possibly we go through this.midiAccess.inputs and somehow only listen on new things
-	}
-
-	midiMessage(event) {
-		let data = Array.from(event.data)
-
-		let begin
-		let cmd = data[0] >> 4
-		let chan = data[0] & 0xf
-		switch (cmd) {
-			case 9:
-				begin = true
-				break
-			case 8:
-				begin = false
-				break
-			default:
-				return
-		}
-
-		switch (data[1] % 12) {
-			case 0: // C
-				this.straightKey(begin)
-				break
-			case 1: // C#
-				this.iambic.Key(Morse.DIT, begin)
-				break
-			case 2: // D
-				this.iambic.Key(Morse.DAH, begin)
-				break
-			default:
-				return
-		}
-	}
-
+	/**
+	 * Make an error sound and pop up a message
+	 * 
+	 * @param {string} msg The message to pop up
+	 */
 	error(msg) {
-		Morse.toast(msg)
+		toast(msg)
 		this.buzzer.ErrorTone()
 	}
 
+	/**
+	 * Start the side tone buzzer.
+	 */
 	beginTx() {
 		this.beginTxTime = Date.now()
 		this.buzzer.Buzz(true)
 	}
 
+	/**
+	 * Stop the side tone buzzer, and send out how long it was active.
+	 */
 	endTx() {
 		let endTxTime = Date.now()
 		let duration = endTxTime - this.beginTxTime
 		this.buzzer.Silence(true)
-		this.wsSend(this.beginTxTime, duration)
+		this.repeater.Transmit(this.beginTxTime, duration)
 		this.beginTxTime = null
 	}
 
+	/**
+	 * Called by a repeater class when there's something received.
+	 * 
+	 * @param {number} when When to play the tone
+	 * @param {number} duration How long to play the tone
+	 * @param {dict} stats Stuff the repeater class would like us to know about
+	 */
+	receive(when, duration, stats) {
+		this.clockOffset = stats.clockOffset
+		let now = Date.now()
+		when += this.rxDelay
+
+		if (duration > 0) {
+			if (when < now) {
+				this.error("Packet requested playback " + (now - when) + "ms in the past. Increase receive delay!")
+				return
+			}
+
+			this.buzzer.BuzzDuration(false, when, duration)
+
+			this.rxDurations.unshift(duration)
+			this.rxDurations.splice(20, 2)
+		}
+
+		let averageLag = (stats.averageLag || 0).toFixed(2)
+		let longestRxDuration = this.rxDurations.reduce((a,b) => Math.max(a,b))
+		let suggestedDelay = ((averageLag + longestRxDuration) * 1.2).toFixed(0)
+
+		this.updateReading("#lag-value", averageLag)
+		this.updateReading("#longest-rx-value", longestRxDuration)
+		this.updateReading("#suggested-delay-value", suggestedDelay)
+		this.updateReading("#clock-off-value", this.clockOffset)
+	}
+
+	/**
+	 * Update an element with a value, if that element exists
+	 * 
+	 * @param {string} selector CSS path to the element
+	 * @param value Value to set
+	 */
 	updateReading(selector, value) {
 		let e = document.querySelector(selector)
 		if (e) {
@@ -191,249 +219,11 @@ class Vail {
 		}
 	}
 
-	updateReadings() {
-		let avgLag = this.lagTimes.reduce((a, b) => (a + b)) / this.lagTimes.length
-		let longestRx = this.rxDurations.reduce((a, b) => Math.max(a, b))
-		let suggestedDelay = (avgLag + longestRx) * 1.2
-
-		this.updateReading("#lag-value", avgLag.toFixed())
-		this.updateReading("#longest-rx-value", longestRx)
-		this.updateReading("#suggested-delay-value", suggestedDelay.toFixed())
-		this.updateReading("#clock-off-value", this.clockOffset)
-	}
-
-	addLagReading(duration) {
-		this.lagTimes.push(duration)
-		while (this.lagTimes.length > 20) {
-			this.lagTimes.shift()
-		}
-		this.updateReadings()
-	}
-
-	addRxDuration(duration) {
-		this.rxDurations.push(duration)
-		while (this.rxDurations.length > 20) {
-			this.rxDurations.shift()
-		}
-		this.updateReadings()
-	}
-
-	wsSend(time, duration) {
-		let msg = [time - this.clockOffset, duration]
-		let jmsg = JSON.stringify(msg)
-		this.socket.send(jmsg)
-		this.sent.push(jmsg)
-	}
-
-	wsMessage(event) {
-		let now = Date.now()
-		let jmsg = event.data
-		let msg
-		try {
-			msg = JSON.parse(jmsg)
-		}
-		catch (err) {
-			console.log(err, msg)
-			return
-		}
-		let beginTxTime = msg[0]
-		let durations = msg.slice(1)
-
-		if (this.debug) {
-			console.log("recv", beginTxTime, durations)
-		}
-
-		let sent = this.sent.filter(e => e != jmsg)
-		if (sent.length < this.sent.length) {
-			// We're getting our own message back, which tells us our lag.
-			// We shouldn't emit a tone, though.
-			let totalDuration = durations.reduce((a, b) => a + b)
-			this.sent = sent
-			this.addLagReading(now - beginTxTime - totalDuration)
-			return
-		}
-
-		// Server is telling us the current time
-		if (durations.length == 0) {
-			let offset = now - beginTxTime
-			if (this.clockOffset == 0) {
-				this.clockOffset = offset
-				this.updateReadings()
-			}
-			return
-		}
-
-		// Why is this happening?
-		if (beginTxTime == 0) {
-			return
-		}
-
-		// Add rxDelay
-		let adjustedTxTime = beginTxTime + this.rxDelay
-		if (adjustedTxTime < now) {
-			console.log("adjustedTxTime: ", adjustedTxTime, " now: ", now)
-			this.error("Packet requested playback " + (now - adjustedTxTime) + "ms in the past. Increase receive delay!")
-			return
-		}
-
-		// Every other value is a silence duration
-		let tx = true
-		for (let duration of durations) {
-			duration = Number(duration)
-			if (tx && (duration > 0)) {
-				this.buzzer.BuzzDuration(false, adjustedTxTime, duration)
-				this.addRxDuration(duration)
-			}
-			adjustedTxTime = Number(adjustedTxTime) + duration
-			tx = !tx
-		}
-	}
-
-	straightKey(begin) {
-		if (begin) {
-			this.beginTx()
-		} else {
-			this.endTx()
-		}
-	}
-
-	iambicDit(begin) {
-		this.iambic.Key(Morse.DIT, begin)
-	}
-
-	iambicDah(begin) {
-		this.iambic.Key(Morse.DAH, begin)
-	}
-
-	keyboard(event) {
-		if (["INPUT"].includes(document.activeElement.tagName)) {
-			// Ignore everything if the user is entering text somewhere
-			return
-		}
-		if (event.repeat) {
-			// Ignore key repeats generated by the OS, we do this ourselves
-			return
-		}
-
-		let begin = event.type.endsWith("down")
-
-		if ((event.code == "KeyX") ||
-			(event.code == "Period") ||
-			(event.code == "BracketLeft") ||
-			(event.key == "[")) {
-			event.preventDefault()
-			this.iambicDit(begin)
-		}
-		if ((event.code == "KeyZ") ||
-			(event.code == "Slash") ||
-			(event.code == "BracketRight") ||
-			(event.key == "]")) {
-			event.preventDefault()
-			this.iambicDah(begin)
-		}
-		if ((event.code == "KeyC") ||
-			(event.code == "Comma") ||
-			(event.key == "Enter") ||
-			(event.key == "NumpadEnter")) {
-			event.preventDefault()
-			this.straightKey(begin)
-		}
-	}
-
-	keyButton(event) {
-		let begin = event.type.endsWith("down") || event.type.endsWith("start")
-
-		event.preventDefault()
-
-		if (event.target.id == "dah") {
-			this.iambicDah(begin)
-		} else if ((event.target.id == "dit") && (event.button == 2)) {
-			this.iambicDah(begin)
-		} else if (event.target.id == "dit") {
-			this.iambicDit(begin)
-		} else if (event.target.id == "key") {
-			this.straightKey(begin)
-		} else if ((event.target.id == "ck") && begin) {
-			this.Test()
-		} else if ((event.target.id == "fortune") && begin) {
-			this.PlayFortune()
-		}
-	}
-
-
-	gamepadConnected(event) {
-		// Polling could be computationally expensive,
-		// especially on devices with a power budget, like phones.
-		// To be considerate, we only start polling if a gamepad appears.
-		if (!this.gamepadButtons) {
-			this.gamepadButtons = {}
-			this.gamepadPoll(event.timeStamp)
-		}
-	}
-
-	gamepadPoll(timestamp) {
-		let currentButtons = {}
-		for (let gp of navigator.getGamepads()) {
-			if (gp == null) {
-				continue
-			}
-			for (let i in gp.buttons) {
-				let pressed = gp.buttons[i].pressed
-				if (i < 2) {
-					currentButtons.key |= pressed
-				} else if (i % 2 == 0) {
-					currentButtons.dit |= pressed
-				} else {
-					currentButtons.dah |= pressed
-				}
-			}
-		}
-
-		if (currentButtons.key != this.gamepadButtons.key) {
-			this.straightKey(currentButtons.key)
-		}
-		if (currentButtons.dit != this.gamepadButtons.dit) {
-			this.iambicDit(currentButtons.dit)
-		}
-		if (currentButtons.dah != this.gamepadButtons.dah) {
-			this.iambicDah(currentButtons.dah)
-		}
-		this.gamepadButtons = currentButtons
-
-		requestAnimationFrame(e => this.gamepadPoll(e))
-	}
-
 	/**
-	  * Send "CK" to server, and don't squelch the repeat
-	  */
-	Test() {
-		let dit = Number(document.querySelector("#iambic-duration-value").value)
-		let dah = dit * 3
-		let s = dit
-
-		let msg = [
-			Date.now(),
-			dah, s, dit, s, dah, s, dit,
-			s * 3,
-			dah, s, dit, s, dah
-		]
-		this.wsSend(Date.now(), 0) // Get round-trip time
-		this.socket.send(JSON.stringify(msg))
-	}
-
-	/**
-	 * Play a randomly-chosen fortune
-	 && begin */
-	PlayFortune() {
-		if (this.fortuneIambic.Busy()) {
-			toast("I am already telling your fortune!")
-		} else {
-			let fortune = getFortune()
-			this.fortuneIambic.EnqueueAsciiString(`${fortune}\x04`)
-		}
-	}
-
-
+	 * Maximize/minimize a card
+	 * 
+	 * @param e Event
+	 */
 	maximize(e) {
 		let element = e.target
 		while (!element.classList.contains("mdl-card")) {
@@ -447,7 +237,29 @@ class Vail {
 		console.log(element)
 	}
 
+	/**
+	  * Send "CK" to server, and don't squelch the echo
+	  */
+	 test() {
+		let when = Date.now()
+		let dit = Number(document.querySelector("#iambic-duration-value").value)
+		let dah = dit * 3
+		let s = dit
+		let message = [
+			dah, s, dit, s, dah, s, dit,
+			s * 3,
+			dah, s, dit, s, dah
+		]
 
+		this.repeater.Transmit(when, 0) // Get round-trip time
+		for (let i in message) {
+			let duration = message[i]
+			if (i % 2 == 0) {
+				this.repeater.Transmit(when, duration, false)
+			}
+			when += duration
+		}
+	}
 }
 
 function vailInit() {
@@ -455,10 +267,10 @@ function vailInit() {
 		navigator.serviceWorker.register("sw.js")
 	}
 	try {
-		window.app = new Vail()
+		window.app = new VailClient()
 	} catch (err) {
 		console.log(err)
-		Morse.toast(err)
+		toast(err)
 	}
 }
 

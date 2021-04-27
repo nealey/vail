@@ -9,6 +9,7 @@ const DIT = 1
 /** Duration of a dah */
 const DAH = 3
 
+
 const MorseMap = {
     "\x04": ".-.-.", // End Of Transmission
     "\x18": "........", // Cancel
@@ -73,18 +74,6 @@ if (!window.AudioContext) {
 	window.AudioContext = window.webkitAudioContext
 }
 
-function toast(msg) {
-	let el = document.querySelector("#snackbar")
-	if (!el || !el.MaterialSnackbar) {
-		console.warn(msg)
-		return
-	}
-	el.MaterialSnackbar.showSnackbar({
-		message: msg,
-		timeout: 2000
-	})
-}
-
 /**
  * A callback to start or stop transmission
  * 
@@ -92,14 +81,14 @@ function toast(msg) {
  */
 
 /**
- * Iambic input class.
+ * Keyer class. This handles iambic and straight key input.
  * 
  * This will handle the following things that people appear to want with iambic input:
  * 
  * - Typematic: you hold the key down and it repeats evenly-spaced tones
  * - Typeahead: if you hit a key while it's still transmitting the last-entered one, it queues up your next entered one
  */
-class Iambic {
+class Keyer {
 	/**
 	 * Create an Iambic control
 	 * 
@@ -177,6 +166,7 @@ class Iambic {
 	Busy() {
 		return this.pulseTimer
 	}
+
 	/**
 	  * Set a new dit interval (transmission rate)
 	  *
@@ -250,22 +240,41 @@ class Iambic {
     }
 
 	/**
-	  * Edge trigger on key press or release
-	  *
-	  * @param {number} key DIT or DAH
-	  * @param {boolean} down True if key was pressed, false if released
-	  */
-	Key(key, down) {
-		if (key == DIT) {
-			this.ditDown = down
-		} else if (key == DAH) {
-			this.dahDown = down
-		}
-
+	 * Do something to the straight key
+	 * 
+	 * @param down True if key was pressed
+	 */
+	Straight(down) {
 		if (down) {
-			this.Enqueue(key)
+			this.beginTxFunc()
+		} else {
+			this.endTxFunc()
 		}
-    }
+	}
+	
+	/**
+	 * Do something to the dit key
+	 * 
+	 * @param down True if key was pressed
+	 */
+	Dit(down) {
+		this.ditDown = down
+		if (down) {
+			this.Enqueue(DIT)
+		}
+	}
+
+	/**
+	 * Do something to the dah key
+	 * 
+	 * @param down True if key was pressed
+	 */
+	Dah(down) {
+		this.dahDown = down
+		if (down) {
+			this.Enqueue(DAH)
+		}
+	}
 }
 
 class Buzzer {
@@ -422,15 +431,15 @@ class Buzzer {
 	/**
 	  * Buzz for a duration at time
 	  *
-	  * @param {boolean} high High or low pitched tone
+	  * @param {boolean} tx Transmit or receive tone
 	  * @param {number} when Time to begin (ms since 1970-01-01Z, null=now)
 	  * @param {number} duration Duration of buzz (ms)
 	  */
-	BuzzDuration(high, when, duration) {
-		this.Buzz(high, when)
-		this.Silence(high, when + duration)
+	BuzzDuration(tx, when, duration) {
+		this.Buzz(tx, when)
+		this.Silence(tx, when + duration)
 	}
 }
 
 export {DIT, DAH, PAUSE, PAUSE_WORD, PAUSE_LETTER}
-export {toast, Iambic, Buzzer}
+export {Keyer, Buzzer}

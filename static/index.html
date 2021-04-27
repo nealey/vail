@@ -166,42 +166,14 @@
 								</table>
 							</div>
 							<div class="mdl-tabs__panel" id="tools">
-								<table class="center wide">
-									<tr>
-										<td>
-											<button id="ck" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-												CK
-											</button>
-										</td>
-										<td>
-											<button id="fortune" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-												Fortune
-											</button>
-										</td>
-									</tr>
-									<tr class="mdl-card__supporting-text">
-										<td>
-											<p>
-												Send <code>CK</code> (check) to the repeater, and play when it comes back.
-											</p>
-										</td>
-										<td>
-											<p>
-												Spacing: ×<output id="handicap-value"></output>
-												<input
-													id="handicap"
-													class="mdl-slider mdl-js-slider"
-													type="range"
-													min="1"
-													max="8"
-													value="4">
-											</p>
-											<p>
-												Have vail tell your fortune, in English. Local only: not transmitted.
-											</p>
-										</td>
-									</tr>
-								</table>
+								<div class="flex mdl-card__supporting-text">									
+									<button id="ck" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+										CK
+									</button>
+									<p>
+										Send <code>CK</code> (check) to the repeater, and play when it comes back.
+									</p>
+								</div>
 							</div>
 							<div class="mdl-card__actions">
 								<button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored maximize" title="maximize">
@@ -464,8 +436,10 @@
 									<li>The sending computer's clock is in the past (running slow)</li>
 								</ol>
 								<p>
-									Make sure your clock is synced with an Internet time server.
-									Accurate time is very important to how Vail works.
+									Vail attempts to correct for clock differences,
+									but making sure your computer has correct time, 
+									down to the millisecond,
+									can help with reliability.
 								</p>
 
 								<h3 class="mdl-card__title-text">How can I help?</h3>
