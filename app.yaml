@@ -1,3 +1,6 @@
+# At one point I was deploying this using Google App Engine.
+# Then I discovered it would be cheaper to use my tiny cloud VM.
+
 runtime: go112
 
 instance_class: B1
