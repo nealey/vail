@@ -57,11 +57,8 @@ class Vail {
 		}
 
 		// Fill in the name of our repeater
-		let repeater = decodeURI(window.location.hash.split("#")[1] || "")
-		let repeaterElement = document.querySelector("#repeater")
-		repeaterElement.addEventListener("change", e => this.setRepeater(e.target.value.trim()))
-		repeaterElement.value = unescape(repeater)
-		repeaterElement.dispatchEvent(new Event("change"))
+		let repeaterElement = document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
+		this.setRepeater(decodeURI(unescape(window.location.hash.split("#")[1] || "")))
 
 		// Request MIDI access
 		if (navigator.requestMIDIAccess) {
@@ -79,6 +76,15 @@ class Vail {
 		}
 		this.repeaterName = name
 
+		// Set value of repeater element
+		let repeaterElement = document.querySelector("#repeater")
+		let paps = repeaterElement.parentElement
+		if (paps.MaterialTextfield) {
+			paps.MaterialTextfield.change(name)
+		} else {
+			repeaterElement.value = name
+		}
+
 		// Set window URL
 		let hash = name
 		if (name == DefaultRepeater) {
@@ -87,7 +93,7 @@ class Vail {
 		if (hash != window.location.hash) {
 			window.location.hash = hash
 		}
-		document.querySelector("#repeater").value = name
+		
 		toast(`Now using repeater: ${name}`)
 
 		let wsUrl = new URL("chat", window.location)
@@ -327,7 +333,6 @@ class Vail {
 		}
 		if ((event.code == "KeyC") ||
 			(event.code == "Comma") ||
-			(event.key == "Shift") ||
 			(event.key == "Enter") ||
 			(event.key == "NumpadEnter")) {
 			event.preventDefault()
