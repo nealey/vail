@@ -141,6 +141,9 @@ export class Fortune {
 
         let fortune = GetFortune()
         this.keyer.EnqueueAsciiString(`${fortune}\x04    `)
+        this.rx(0, 0, {
+            note: "local",
+        })
     }
 
     Transmit(time, duration, squelch=true) {

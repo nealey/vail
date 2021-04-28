@@ -26,7 +26,7 @@ class VailClient {
 		this.sent = []
 		this.lagTimes = [0]
 		this.rxDurations = [0]
-		this.clockOffset = "unknown" // How badly our clock is off of the server's
+		this.clockOffset = null // How badly our clock is off of the server's
 		this.rxDelay = 0 // Milliseconds to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 		this.debug = localStorage.debug
@@ -192,9 +192,10 @@ class VailClient {
 	 * @param {dict} stats Stuff the repeater class would like us to know about
 	 */
 	receive(when, duration, stats) {
-		this.clockOffset = stats.clockOffset || "unknown"
+		this.clockOffset = stats.clockOffset || "?"
 		let now = Date.now()
 		when += this.rxDelay
+		console.log(stats)
 
 		if (duration > 0) {
 			if (when < now) {
@@ -212,6 +213,7 @@ class VailClient {
 		let longestRxDuration = this.rxDurations.reduce((a,b) => Math.max(a,b))
 		let suggestedDelay = ((averageLag + longestRxDuration) * 1.2).toFixed(0)
 
+		this.updateReading("#note", stats.note || "")
 		this.updateReading("#lag-value", averageLag)
 		this.updateReading("#longest-rx-value", longestRxDuration)
 		this.updateReading("#suggested-delay-value", suggestedDelay)

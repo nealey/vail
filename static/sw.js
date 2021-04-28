@@ -17,7 +17,7 @@ function install(event) {
 self.addEventListener("fetch", e => cacheFetch(e))
 function cacheFetch(event) {
 	let fetchInit = {}
-	if (event.request.match(/(css|js|html)$/)) {
+	if (event.request.url.match(/\.(css|mjs|js|html)$/)) {
 		fetchInit.cache = "no-cache"
 	}
 	event.respondWith(

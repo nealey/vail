@@ -109,6 +109,14 @@ img {
 	background-color: orange;
 }
 
+#note {
+	position: absolute;
+	top: 0.5em;
+	right: 5em;
+	font-size: 80%;
+	color: #888;
+}
+
 .input-methods td {
 	text-align: left;
 }
