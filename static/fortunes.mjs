@@ -462,6 +462,6 @@ export const fortunes = [
 /**
  * Return a randomly-chosen fortune.
  */
-export function getFortune() {
+export function GetFortune() {
 	return fortunes[Math.floor(Math.random() * fortunes.length)]
 }

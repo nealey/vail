@@ -1,7 +1,6 @@
 import * as Morse from "./morse.mjs"
 import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
-import {getFortune} from "./fortunes.mjs"
 
 const DefaultRepeater = "General Chaos"
 
@@ -27,7 +26,7 @@ class VailClient {
 		this.sent = []
 		this.lagTimes = [0]
 		this.rxDurations = [0]
-		this.clockOffset = 0 // How badly our clock is off of the server's
+		this.clockOffset = "unknown" // How badly our clock is off of the server's
 		this.rxDelay = 0 // Milliseconds to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 		this.debug = localStorage.debug
@@ -37,14 +36,14 @@ class VailClient {
 			let me = new URL(location)
 			let repeater = me.searchParams.get("repeater")
 			me.search = ""
-			me.hash = repeater
+			me.hash = decodeURIComponent(repeater)
 			window.location = me
 		}
 
 		// Make helpers
 		this.buzzer = new Morse.Buzzer()
 		this.keyer = new Morse.Keyer(() => this.beginTx(), () => this.endTx())
-		this.iambicKeyer = new Morse.Keyer(() => this.buzzer.Buzz(), () => this.buzzer.Silence())
+		this.roboKeyer = new Morse.Keyer(() => this.buzzer.Buzz(), () => this.buzzer.Silence())
 
 		// Set up various input methods
 		this.inputs = Inputs.SetupAll(this.keyer)
@@ -60,7 +59,7 @@ class VailClient {
 		// Set up sliders
 		this.sliderInit("#iambic-duration", e => {
 			this.keyer.SetIntervalDuration(e.target.value)
-			this.iambicKeyer.SetIntervalDuration(e.target.value)
+			this.roboKeyer.SetIntervalDuration(e.target.value)
 		})
 		this.sliderInit("#rx-delay", e => { 
 			this.rxDelay = Number(e.target.value) 
@@ -68,7 +67,7 @@ class VailClient {
 
 		// Fill in the name of our repeater
 		let repeaterElement = document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
-		this.setRepeater(decodeURI(unescape(window.location.hash.split("#")[1] || "")))
+		this.setRepeater(decodeURI(decodeURIComponent(window.location.hash.split("#")[1] || "")))
 	}
 
 	/**
@@ -81,7 +80,7 @@ class VailClient {
 	 */
 	setRepeater(name) {
 		if (!name || (name == "")) {
-			name = "General Chaos"
+			name = DefaultRepeater
 		}
 		this.repeaterName = name
 
@@ -106,7 +105,20 @@ class VailClient {
 		if (this.repeater) {
 			this.repeater.Close()
 		}
-		this.repeater = new Repeaters.Vail(name, (w,d,s) => this.receive(w,d,s))
+		let rx = (w,d,s) => this.receive(w,d,s)
+
+		// You can set the repeater name to "Fortunes: Pauses×10" for a nice and easy intro
+		if (name.startsWith("Fortunes")) {
+			let m = name.match(/[x×]([0-9]+)/)
+			let mult = 1
+			if (m) {
+				mult = Number(m[1])
+			}
+			this.roboKeyer.SetPauseMultiplier(mult)
+			this.repeater = new Repeaters.Fortune(rx, this.roboKeyer)
+		} else {
+			this.repeater = new Repeaters.Vail(name, rx)
+		}
 
 		toast(`Now using repeater: ${name}`)
 	}
@@ -180,7 +192,7 @@ class VailClient {
 	 * @param {dict} stats Stuff the repeater class would like us to know about
 	 */
 	receive(when, duration, stats) {
-		this.clockOffset = stats.clockOffset
+		this.clockOffset = stats.clockOffset || "unknown"
 		let now = Date.now()
 		when += this.rxDelay
 

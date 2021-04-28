@@ -1,3 +1,9 @@
+import {GetFortune} from "./fortunes.mjs"
+
+const Millisecond = 1
+const Second = 1000 * Millisecond
+const Minute = 60 * Second
+
 export class Vail {
     constructor(name, rx) {
         this.name = name
@@ -104,12 +110,44 @@ export class Vail {
 }
 
 export class Null {
-    constructor(name, rx) {
+    constructor() {
     }
 
     Transmit(time, duration, squelch=True) {
     }
 
     Close() {
+    }
+}
+
+export class Fortune {
+    /**
+     * 
+     * @param rx Receive callback
+     * @param {Keyer} keyer Keyer object
+     */
+    constructor(rx, keyer) {
+        this.rx = rx
+        this.keyer = keyer
+
+        this.interval = setInterval(() => this.pulse(), 1 * Minute)
+        this.pulse()
+    }
+
+    pulse() {
+        if (this.keyer.Busy()) {
+            return
+        }
+
+        let fortune = GetFortune()
+        this.keyer.EnqueueAsciiString(`${fortune}\x04    `)
+    }
+
+    Transmit(time, duration, squelch=true) {
+        // Do nothing.
+    }
+
+    Close() {
+        clearInterval(this.interval)
     }
 }

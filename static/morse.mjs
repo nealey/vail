@@ -90,11 +90,12 @@ if (!window.AudioContext) {
  */
 class Keyer {
 	/**
-	 * Create an Iambic control
+	 * Create an Keyer
 	 * 
-	 * @param {TxControl} beginTxFunc Function to begin transmitting
-	 * @param {TxControl} endTxFunc Function to end transmitting
+	 * @param {TxControl} beginTxFunc Callback to begin transmitting
+	 * @param {TxControl} endTxFunc Callback to end transmitting
 	 * @param {number} intervalDuration Dit duration (milliseconds)
+	 * @param {number} pauseMultiplier How long to stretch out inter-letter and inter-word pauses
 	 */
 	constructor(beginTxFunc, endTxFunc, {intervalDuration=100, pauseMultiplier=1}={}) {
 		this.beginTxFunc = beginTxFunc
@@ -201,6 +202,11 @@ class Keyer {
 		this.maybePulse()
 	}
 
+	/**
+	 * Enqueue a morse code string (eg "... --- ...")
+	 * 
+	 * @param {string} ms String to enqueue
+	 */
     EnqueueMorseString(ms) {
         for (let mc of ms) {
             switch (mc) {
@@ -217,6 +223,11 @@ class Keyer {
         }
     }
 
+	/**
+	 * Enqueue an ASCII string (eg "SOS help")
+	 * 
+	 * @param {string} s String to enqueue
+	 */
     EnqueueAsciiString(s, {pauseLetter = PAUSE_LETTER, pauseWord = PAUSE_WORD} = {}) {
         for (let c of s.toLowerCase()) {
             let m = MorseMap[c]
