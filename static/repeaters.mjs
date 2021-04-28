@@ -5,9 +5,9 @@ const Second = 1000 * Millisecond
 const Minute = 60 * Second
 
 export class Vail {
-    constructor(name, rx) {
-        this.name = name
+    constructor(rx, name) {
         this.rx = rx
+        this.name = name
         this.lagDurations = []
         this.sent = []
         
@@ -110,10 +110,33 @@ export class Vail {
 }
 
 export class Null {
-    constructor() {
+    constructor(rx) {
+        this.rx = rx
+        this.interval = setInterval(() => this.pulse(), 1 * Second)
     }
 
-    Transmit(time, duration, squelch=True) {
+    pulse() {
+        console.log("pulse")
+        this.rx(0, 0, {note: "local"})
+    }
+
+    Transmit(time, duration, squelch=true) {
+    }
+
+    Close() {
+        clearInterval(this.interval)
+    }
+}
+
+export class Echo {
+    constructor(rx, delay=0) {
+        this.rx = rx
+        this.delay = delay
+        this.Transmit(0, 0)
+    }
+
+    Transmit(time, duration, squelch=true) {
+        this.rx(time + this.delay, duration, {note: "local"})
     }
 
     Close() {
@@ -135,15 +158,13 @@ export class Fortune {
     }
 
     pulse() {
+        this.rx(0, 0, {note: "local"})
         if (this.keyer.Busy()) {
             return
         }
 
         let fortune = GetFortune()
         this.keyer.EnqueueAsciiString(`${fortune}\x04    `)
-        this.rx(0, 0, {
-            note: "local",
-        })
     }
 
     Transmit(time, duration, squelch=true) {
@@ -151,6 +172,7 @@ export class Fortune {
     }
 
     Close() {
+        this.keyer.Flush()
         clearInterval(this.interval)
     }
 }

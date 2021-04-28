@@ -3,6 +3,9 @@ import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
 
 const DefaultRepeater = "General Chaos"
+const Millisecond = 1
+const Second = 1000 * Millisecond
+const Minute = 60 * Second
 
 /**
  * Pop up a message, using an MDL snackbar.
@@ -65,16 +68,27 @@ class VailClient {
 			this.rxDelay = Number(e.target.value) 
 		})
 
+		
 		// Fill in the name of our repeater
 		let repeaterElement = document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
-		this.setRepeater(decodeURI(decodeURIComponent(window.location.hash.split("#")[1] || "")))
+		window.addEventListener("hashchange", () => this.hashchange())
+		this.hashchange()
+	}
+
+	/**
+	 * Called when the hash part of the URL has changed.
+	 */
+	hashchange() {
+		let hashParts = window.location.hash.split("#")
+		
+		this.setRepeater(decodeURIComponent(hashParts[1] || ""))
 	}
 
 	/**
 	 * Connect to a repeater by name.
 	 * 
-	 * In the future this may do some fancy switching logic to provide multiple types of repeaters.
-	 * For instance, I'd like to create a set of repeaters that run locally, for practice.
+	 * This does some switching logic to provide multiple types of repeaters,
+	 * like the Fortunes repeaters.
 	 * 
 	 * @param {string} name Repeater name
 	 */
@@ -94,12 +108,11 @@ class VailClient {
 		}
 
 		// Set window URL
-		let hash = name
-		if (name == DefaultRepeater) {
-			hash = ""
-		}
-		if (hash != window.location.hash) {
-			window.location.hash = hash
+		let prevHash = window.location.hash
+		window.location.hash = (name == DefaultRepeater) ? "" : name
+		if (window.location.hash != prevHash) {
+			// We're going to get a hashchange event, which will re-run this method
+			return
 		}
 		
 		if (this.repeater) {
@@ -107,17 +120,25 @@ class VailClient {
 		}
 		let rx = (w,d,s) => this.receive(w,d,s)
 
-		// You can set the repeater name to "Fortunes: Pauses×10" for a nice and easy intro
+		// If there's a number in the name, store that for potential later use
+		let numberMatch = name.match(/[0-9]+/)
+		let number = 0
+		if (numberMatch) {
+			number = Number(numberMatch[0])
+		}
+
 		if (name.startsWith("Fortunes")) {
-			let m = name.match(/[x×]([0-9]+)/)
-			let mult = 1
-			if (m) {
-				mult = Number(m[1])
-			}
-			this.roboKeyer.SetPauseMultiplier(mult)
+			this.roboKeyer.SetPauseMultiplier(number || 1)
 			this.repeater = new Repeaters.Fortune(rx, this.roboKeyer)
+		} else if (name.startsWith("Echo")) {
+			let delayElement = document.querySelector("#rx-delay")
+			delayElement.value = (number || 2) * Second
+			delayElement.dispatchEvent(new Event("input"))
+			this.repeater = new Repeaters.Echo(rx)
+		} else if (name == "Null") {
+			this.repeater = new Repeaters.Null(rx)
 		} else {
-			this.repeater = new Repeaters.Vail(name, rx)
+			this.repeater = new Repeaters.Vail(rx, name)
 		}
 
 		toast(`Now using repeater: ${name}`)
@@ -195,7 +216,6 @@ class VailClient {
 		this.clockOffset = stats.clockOffset || "?"
 		let now = Date.now()
 		when += this.rxDelay
-		console.log(stats)
 
 		if (duration > 0) {
 			if (when < now) {

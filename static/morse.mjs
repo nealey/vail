@@ -190,6 +190,13 @@ class Keyer {
 	}
 
 	/**
+	 * Delete anything left on the queue.
+	 */
+	Flush() {
+		this.queue.splice(0)
+	}
+
+	/**
 	 * Add to the output queue, and start processing the queue if it's not currently being processed.
 	 * 
 	 * @param {number} key A duration, in dits. Negative durations are silent.
