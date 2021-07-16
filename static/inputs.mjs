@@ -40,7 +40,7 @@ export class Keyboard {
 	}
 
 	keyboard(event) {
-		if (["INPUT"].includes(document.activeElement.tagName)) {
+		if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
 			// Ignore everything if the user is entering text somewhere
 			return
 		}
