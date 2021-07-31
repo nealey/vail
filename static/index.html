@@ -213,6 +213,73 @@
 
 					<div class="mdl-card mdl-shadow--4dp">
 						<div class="mdl-card__title">
+							<h2 class="mdl-card__title-text">Knobs</h2>
+						</div>
+						<div class="mdl-card__supporting-text">
+							<p>
+								Dit length (iambic):
+								<output id="iambic-duration-value"></output>ms
+								<input
+									id="iambic-duration"
+									class="mdl-slider mdl-js-slider"
+									type="range"
+									min="40"
+									max="255"
+									value="100">
+							</p>
+							<p>
+								Receive delay:
+								<output id="rx-delay-value"></output>ms
+								<input
+									id="rx-delay"
+									class="mdl-slider mdl-js-slider"
+									type="range"
+									min="0"
+									max="9999"
+									value="4000">
+							</p>
+							<hr>
+							<table>
+								<tbody>
+									<tr>
+										<td>
+											Suggested receive delay:
+										</td>
+										<td>
+											<output id="suggested-delay-value">0</output>ms
+										</td>
+									</tr>
+									<tr>
+										<td>
+											Average round-trip time:
+										</td>
+										<td>
+											<output id="lag-value">0</output>ms
+										</td>
+									</tr>
+									<tr>
+										<td>
+											Longest recent transmission:
+										</td>
+										<td>
+											<output id="longest-rx-value">0</output>ms
+										</td>
+									</tr>
+									<tr>
+										<td>
+											Your clock is off by:
+										</td>
+										<td>
+											<output id="clock-off-value">??</output>ms
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<div class="mdl-card mdl-shadow--4dp">
+						<div class="mdl-card__title">
 							<h2 class="mdl-card__title-text">Alphabet</h2>
 						</div>
 						<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
@@ -342,73 +409,6 @@
 								<span>? / Say Again ..--..</span>
 								<span>Speak Slower --.- .-. ...</span>
 							</div>
-						</div>
-					</div>
-
-					<div class="mdl-card mdl-shadow--4dp">
-						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">Knobs</h2>
-						</div>
-						<div class="mdl-card__supporting-text">
-							<p>
-								Dit length (iambic):
-								<output id="iambic-duration-value"></output>ms
-								<input
-									id="iambic-duration"
-									class="mdl-slider mdl-js-slider"
-									type="range"
-									min="40"
-									max="255"
-									value="100">
-							</p>
-							<p>
-								Receive delay:
-								<output id="rx-delay-value"></output>ms
-								<input
-									id="rx-delay"
-									class="mdl-slider mdl-js-slider"
-									type="range"
-									min="0"
-									max="9999"
-									value="4000">
-							</p>
-							<hr>
-							<table>
-								<tbody>
-									<tr>
-										<td>
-											Suggested receive delay:
-										</td>
-										<td>
-											<output id="suggested-delay-value">0</output>ms
-										</td>
-									</tr>
-									<tr>
-										<td>
-											Average round-trip time:
-										</td>
-										<td>
-											<output id="lag-value">0</output>ms
-										</td>
-									</tr>
-									<tr>
-										<td>
-											Longest recent transmission:
-										</td>
-										<td>
-											<output id="longest-rx-value">0</output>ms
-										</td>
-									</tr>
-									<tr>
-										<td>
-											Your clock is off by:
-										</td>
-										<td>
-											<output id="clock-off-value">??</output>ms
-										</td>
-									</tr>
-								</tbody>
-							</table>
 						</div>
 					</div>
 
