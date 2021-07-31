@@ -2,7 +2,8 @@ FROM golang:1 AS builder
 
 COPY . /src
 COPY static /target/static
-RUN CGO_ENABLED=0 GOOS=linux go install -i -a -ldflags '-extldflags "-static"' /src/...
+WORKDIR /src
+RUN CGO_ENABLED=0 GOOS=linux go install -a -ldflags '-extldflags "-static"' ./...
 RUN cp -r /go/bin /target
 
 FROM scratch

@@ -1,0 +1,25 @@
+#! /bin/sh
+
+case $1 in
+    -h|-help|--help)
+        echo "Usage: $0 TARGET"
+        echo
+        echo "Sets CI build variables for gitlab"
+        exit 1
+        ;;
+esac
+
+branch=$(git symbolic-ref -q --short HEAD)
+if [ "$branch" = "main" ]; then
+    branch=latest
+fi
+
+printf "Branch: %s\n" "$branch"
+printf "::set-output name=branch::%s\n" "$branch"
+printf "::set-output name=tag::%s\n" "$branch"
+
+# I think it will use whichever comes last
+git tag --points-at HEAD | while read tag; do
+    printf "Tag: %s\n" "$tag"
+    printf "::set-output name=tag::%s\n" "$tag"
+done

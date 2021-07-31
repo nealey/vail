@@ -1,0 +1,47 @@
+name: Build/Push
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - v*
+
+jobs:
+  publish:
+    name: Publish container images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve code
+        uses: actions/checkout@v2
+
+      - name: Gitlab variables
+        id: vars
+        run: build/gitlab-vars
+
+      - name: Login to GitHub Packages Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      # Currently required, because buildx doesn't support auto-push from docker
+      - name: Set up builder
+        uses: docker/setup-buildx-action@v1
+        id: buildx
+
+      - name: Build and push moth image
+        uses: docker/build-push-action@v2
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          target: moth
+          file: build/Dockerfile
+          push: true
+          platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le
+          tags: |
+            ghcr.io/nealey/vail:${{ steps.vars.outputs.tag }}
