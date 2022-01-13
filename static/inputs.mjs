@@ -54,6 +54,7 @@ export class Keyboard {
 		if ((event.code == "KeyX") ||
 			(event.code == "Period") ||
 			(event.code == "BracketLeft") ||
+			(event.code == "ControlLeft") ||
 			(event.key == "[")) {
 			event.preventDefault()
 			this.keyer.Dit(down)
@@ -61,6 +62,7 @@ export class Keyboard {
 		if ((event.code == "KeyZ") ||
 			(event.code == "Slash") ||
 			(event.code == "BracketRight") ||
+			(event.code == "ControlRight") ||
 			(event.key == "]")) {
 			event.preventDefault()
 			this.keyer.Dah(down)

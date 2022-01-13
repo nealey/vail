@@ -1,3 +1,3 @@
 #! /bin/sh
 
-rsync -va static fozzie.woozle.org:/srv/vail/
+rsync -va static melville.woozle.org:/srv/vail/
