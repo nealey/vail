@@ -12,6 +12,9 @@ jobs:
   publish:
     name: Publish container images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Retrieve code
         uses: actions/checkout@v2
