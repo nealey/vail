@@ -51,6 +51,11 @@ class VailClient {
 		// Set up various input methods
 		this.inputs = Inputs.SetupAll(this.keyer)
 
+		// VBand: Keep track of how the user wants the single key to behave
+		for (let e of document.querySelectorAll("[data-singlekey]")) {
+			e.addEventListener("click", e => this.singlekeyChange(e))
+		}
+
 		// Maximize button
 		for (let e of document.querySelectorAll("button.maximize")) {
 			e.addEventListener("click", e => this.maximize(e))
@@ -82,6 +87,19 @@ class VailClient {
 		let hashParts = window.location.hash.split("#")
 		
 		this.setRepeater(decodeURIComponent(hashParts[1] || ""))
+	}
+
+	/**
+	 * VBand: Called when something happens to change what a single key does
+	 * 
+	 * @param {Event} event What caused this
+	 */
+	singlekeyChange(event) {
+		for (let e of event.path) {
+			if (e.dataset && e.dataset.singlekey) {
+				this.inputs.Keyboard.iambic = (e.dataset.singlekey == "iambic")
+			}
+		}
 	}
 
 	/**
