@@ -13,6 +13,7 @@ export class Vail {
         
 		this.wsUrl = new URL("chat", window.location)
 		this.wsUrl.protocol = this.wsUrl.protocol.replace("http", "ws")
+        this.wsUrl.pathname = this.wsUrl.pathname.replace("testing/", "") // Allow staging deploys
         this.wsUrl.searchParams.set("repeater", name)
         
         this.reopen()

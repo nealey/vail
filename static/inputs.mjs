@@ -37,6 +37,9 @@ export class Keyboard {
 		// Listen for keystrokes
 		document.addEventListener("keydown", e => this.keyboard(e))
 		document.addEventListener("keyup", e => this.keyboard(e))
+
+		// VBand: the keyboard input needs to know whether vband's "left" should be dit or straight
+		this.iambic = false
 	}
 
 	keyboard(event) {
@@ -54,7 +57,6 @@ export class Keyboard {
 		if ((event.code == "KeyX") ||
 			(event.code == "Period") ||
 			(event.code == "BracketLeft") ||
-			(event.code == "ControlLeft") ||
 			(event.key == "[")) {
 			event.preventDefault()
 			this.keyer.Dit(down)
@@ -62,7 +64,7 @@ export class Keyboard {
 		if ((event.code == "KeyZ") ||
 			(event.code == "Slash") ||
 			(event.code == "BracketRight") ||
-			(event.code == "ControlRight") ||
+			(event.code == "ControlRight") || // VBand only: don't display this option to the user
 			(event.key == "]")) {
 			event.preventDefault()
 			this.keyer.Dah(down)
@@ -73,6 +75,19 @@ export class Keyboard {
 			(event.key == "NumpadEnter")) {
 			event.preventDefault()
 			this.keyer.Straight(down)
+		}
+
+		if ((event.code == "ControlLeft")) {
+			// VBand and the VBand adapter take a different approach to inputs:
+			// There is a "left" key, and a "right" key, and the computer decides what those mean.
+			// Users expect "left" to be a straight key or dit, depending on some screen control.
+			// "right" is always dah.
+			event.preventDefault()
+			if (this.iambic) {
+				this.keyer.Dit(down)
+			} else {
+				this.keyer.Straight(down)
+			}
 		}
 	}
 }
