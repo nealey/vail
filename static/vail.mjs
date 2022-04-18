@@ -182,10 +182,14 @@ class VailClient {
 			element.value = storedValue
 		}
 		let outputElement = document.querySelector(selector + "-value")
+		let outputWpmElement = document.querySelector(selector + "-wpm")
 		element.addEventListener("input", e => {
 			localStorage[element.id] = element.value
 			if (outputElement) {
 				outputElement.value = element.value
+			}
+			if (outputWpmElement) {
+				outputWpmElement.value = (1200 / element.value).toFixed(1)
 			}
 			if (callback) {
 				callback(e)
