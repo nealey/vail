@@ -90,7 +90,7 @@ if (!window.AudioContext) {
  */
 class Keyer {
 	/**
-	 * Create an Keyer
+	 * Create a Keyer
 	 * 
 	 * @param {TxControl} beginTxFunc Callback to begin transmitting
 	 * @param {TxControl} endTxFunc Callback to end transmitting
@@ -104,6 +104,8 @@ class Keyer {
 		this.pauseMultiplier = pauseMultiplier
 		this.ditDown = false
 		this.dahDown = false
+		this.typeahead = false
+		this.iambicModeB = true
 		this.last = null
 		this.queue = []
 		this.pulseTimer = null
@@ -146,10 +148,14 @@ class Keyer {
 
 	typematic() {
 		if (this.ditDown && this.dahDown) {
-			if (this.last == DIT) {
-				this.last = DAH
+			if (this.iambicModeB) {
+				if (this.last == DIT) {
+					this.last = DAH
+				} else {
+					this.last = DIT
+				}
 			} else {
-				this.last = DIT
+				this.last = this.last // Mode A = keep on truckin'
 			}
 		} else if (this.ditDown) {
 			this.last = DIT
@@ -189,6 +195,34 @@ class Keyer {
 		this.pauseMultiplier = multiplier
 	}
 
+	/**
+	 * Set Iambic mode B.
+	 * 
+	 * If true, holding both keys will alternate between dit and dah.
+	 * If false, holding both keys sends whatever key was depressed first.
+	 * 
+	 * @param {boolean} value True to set mode to B
+	 */
+	SetIambicModeB(value) {
+		this.iambicModeB = Boolean(value)
+	}
+
+	/**
+	 * Enable/disable typeahead.
+	 * 
+	 * Typeahead maintains a key buffer, so you can key in dits and dahs faster than the 
+	 * Iambic keyer can play them out.
+	 * 
+	 * Some people apparently expect this behavior, and have trouble if it isn't enabled.
+	 * For others, having this enabled makes it feel like they have a "phantom keyer"
+	 * entering keys they did not send.
+	 * 
+	 * @param value True to enable typeahead
+	 */
+	SetTypeahead(value) {
+		this.typeahead = value
+	}
+	
 	/**
 	 * Delete anything left on the queue.
 	 */
@@ -277,8 +311,8 @@ class Keyer {
 	 */
 	Dit(down) {
 		this.ditDown = down
-		if (down) {
-			this.Enqueue(DIT)
+		if (down && this.typeahead || !this.Busy()) {
+			this.Enqueue(DIT, this.typeahead)
 		}
 	}
 
@@ -289,8 +323,8 @@ class Keyer {
 	 */
 	Dah(down) {
 		this.dahDown = down
-		if (down) {
-			this.Enqueue(DAH)
+		if (down && this.typeahead || !this.Busy()) {
+			this.Enqueue(DAH, this.typeahead)
 		}
 	}
 }

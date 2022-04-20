@@ -45,6 +45,7 @@ export class Vail {
             console.error(err, jmsg)
             return
         }
+
         let beginTxTime = msg[0]
         let durations = msg.slice(1)
 
@@ -62,8 +63,15 @@ export class Vail {
             this.lagDurations.unshift(now - this.clockOffset - beginTxTime - totalDuration)
             this.lagDurations.splice(20, 2)
             this.rx(0, 0, this.stats())
+            if (this.name == "debug") {
+                console.debug("Vail.wsMessage() SQUELCH", msg)
+            }
 			return
 		}
+
+        if (this.name == "debug") {
+            console.debug("Vail.wsMessage()", msg)
+        }
 
         // The very first packet is the server telling us the current time
 		if (durations.length == 0) {

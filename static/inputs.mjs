@@ -102,16 +102,25 @@ export class MIDI {
 	}
 
 	async midiInit(access) {
+		this.inputs = []
 		this.midiAccess = await navigator.requestMIDIAccess()
-		for (let input of this.midiAccess.inputs.values()) {
-			input.addEventListener("midimessage", e => this.midiMessage(e))
-		}
 		this.midiAccess.addEventListener("statechange", e => this.midiStateChange(e))
+		this.midiStateChange()
 	}
 
 	midiStateChange(event) {
-		// XXX: it's not entirely clear how to handle new devices showing up.
-		// XXX: possibly we go through this.midiAccess.inputs and somehow only listen on new things
+		// Go through this.midiAccess.inputs and only listen on new things
+		for (let input of this.midiAccess.inputs.values()) {
+			if (!this.inputs.includes(input)) {
+				input.addEventListener("midimessage", e => this.midiMessage(e))
+				this.inputs.push(input)
+			}
+		}
+
+		// Tell the Vail adapter to disable keyboard events: we can do MIDI!
+		for (let output of this.midiAccess.outputs.values()) {
+			output.send([0x80, 0x00, 0x00]) // Stop playing low C
+		}
 	}
 
 	midiMessage(event) {

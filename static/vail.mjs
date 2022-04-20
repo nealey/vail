@@ -64,15 +64,20 @@ class VailClient {
 			e.addEventListener("click", e => this.test())
 		}
 
-		// Set up sliders
-		this.sliderInit("#iambic-duration", e => {
+		// Set up inputs
+		this.inputInit("#iambic-duration", e => {
 			this.keyer.SetIntervalDuration(e.target.value)
 			this.roboKeyer.SetIntervalDuration(e.target.value)
 		})
-		this.sliderInit("#rx-delay", e => { 
+		this.inputInit("#rx-delay", e => { 
 			this.rxDelay = Number(e.target.value) 
 		})
-
+		this.inputInit("#iambic-mode-b", e => {
+			this.keyer.SetIambicModeB(e.target.checked)
+		})
+		this.inputInit("#iambic-typeahead", e => {
+			this.keyer.SetTypeahead(e.target.checked)
+		})
 		
 		// Fill in the name of our repeater
 		let repeaterElement = document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
@@ -163,33 +168,40 @@ class VailClient {
 	}
 
 	/**
-	 * Set up a slider.
+	 * Set up an input.
 	 * 
-	 * This reads any previously saved value and sets the slider to that.
-	 * When the slider is updated, it saves the value it's updated to,
+	 * This reads any previously saved value and sets the input value to that.
+	 * When the input is updated, it saves the value it's updated to,
 	 * and calls the provided callback with the new value.
 	 * 
 	 * @param {string} selector CSS path to the element
 	 * @param {function} callback Callback to call with any new value that is set
 	 */
-	sliderInit(selector, callback) {
+	inputInit(selector, callback) {
 		let element = document.querySelector(selector)
 		if (!element) {
 			return
 		}
 		let storedValue = localStorage[element.id]
-		if (storedValue) {
+		if (storedValue != null) {
 			element.value = storedValue
+			element.checked = JSON.parse(storedValue)
 		}
 		let outputElement = document.querySelector(selector + "-value")
 		let outputWpmElement = document.querySelector(selector + "-wpm")
+
 		element.addEventListener("input", e => {
-			localStorage[element.id] = element.value
+			let value = element.value
+			if (element.hasAttribute("checked")) {
+				value = element.checked
+			}
+	
+			localStorage[element.id] = value
 			if (outputElement) {
-				outputElement.value = element.value
+				outputElement.value = value
 			}
 			if (outputWpmElement) {
-				outputWpmElement.value = (1200 / element.value).toFixed(1)
+				outputWpmElement.value = (1200 / value).toFixed(1)
 			}
 			if (callback) {
 				callback(e)
