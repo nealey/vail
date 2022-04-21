@@ -100,7 +100,7 @@ class VailClient {
 	 * @param {Event} event What caused this
 	 */
 	singlekeyChange(event) {
-		for (let e of event.path) {
+		for (let e of event.composedPath()) {
 			if (e.dataset && e.dataset.singlekey) {
 				this.inputs.Keyboard.iambic = (e.dataset.singlekey == "iambic")
 			}
