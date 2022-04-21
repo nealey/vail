@@ -342,6 +342,7 @@ class Buzzer {
 		this.txGain = txGain
 
 		this.ac = new AudioContext()
+		this.ramp = 0.005 // Lead-in and lead-out time to avoid popping. This one is in seconds.
 
 		this.lowGain = this.create(lowFreq)
 		this.highGain = this.create(highFreq)
@@ -455,7 +456,7 @@ class Buzzer {
 		let acWhen = this.acTime(when)
 		this.ac.resume()
 			.then(() => {
-				gain.setTargetAtTime(this.txGain, acWhen, 0.001)
+				gain.setTargetAtTime(this.txGain, acWhen, this.ramp)
 			})
 	}
 
@@ -477,7 +478,7 @@ class Buzzer {
 		let gain = this.gain(tx)
 		let acWhen = this.acTime(when)
 
-		gain.setTargetAtTime(0, acWhen, 0.001)
+		gain.setTargetAtTime(0, acWhen, this.ramp)
 	}
 
 	/**
