@@ -1,7 +1,15 @@
-
-export class HTML {
+class Input {
 	constructor(keyer) {
 		this.keyer = keyer
+	}
+	SetIntervalDuration(delay) {
+		// Nothing
+	}
+}
+
+export class HTML extends Input{
+	constructor(keyer) {
+		super(keyer)
 
 		// Listen to HTML buttons
 		for (let e of document.querySelectorAll("button.key")) {
@@ -30,9 +38,9 @@ export class HTML {
 	}
 }
 
-export class Keyboard {
+export class Keyboard extends Input{
 	constructor(keyer) {
-		this.keyer = keyer
+		super(keyer)
 
 		// Listen for keystrokes
 		document.addEventListener("keydown", e => this.keyboard(e))
@@ -92,10 +100,11 @@ export class Keyboard {
 	}
 }
 
-export class MIDI {
+export class MIDI extends Input{
 	constructor(keyer) {
-		this.keyer = keyer
+		super(keyer)
 
+		this.midiAccess = {outputs: []} // stub while we wait for async stuff
 		if (navigator.requestMIDIAccess) {
 			this.midiInit()
 		}
@@ -106,6 +115,14 @@ export class MIDI {
 		this.midiAccess = await navigator.requestMIDIAccess()
 		this.midiAccess.addEventListener("statechange", e => this.midiStateChange(e))
 		this.midiStateChange()
+	}
+
+	SetIntervalDuration(delay) {
+		// Send the Vail adapter the current iambic delay setting
+		for (let output of this.midiAccess.outputs.values()) {
+			// MIDI only supports 7-bit values, so we have to divide it by two
+			output.send([0x8B, 0x01, delay/2])
+		}
 	}
 
 	midiStateChange(event) {
@@ -119,7 +136,7 @@ export class MIDI {
 
 		// Tell the Vail adapter to disable keyboard events: we can do MIDI!
 		for (let output of this.midiAccess.outputs.values()) {
-			output.send([0x80, 0x00, 0x00]) // Stop playing low C
+			output.send([0x8B, 0x00, 0x00]) // Turn off keyboard mode
 		}
 	}
 
@@ -156,9 +173,9 @@ export class MIDI {
 	}	
 }
 
-export class Gamepad {
+export class Gamepad extends Input{
 	constructor(keyer) {
-		this.keyer = keyer
+		super(keyer)
 
 		// Set up for gamepad input
 		window.addEventListener("gamepadconnected", e => this.gamepadConnected(e))

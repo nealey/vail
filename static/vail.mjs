@@ -2,10 +2,9 @@ import * as Morse from "./morse.mjs"
 import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
 
-const DefaultRepeater = "General Chaos"
+const DefaultRepeater = "General"
 const Millisecond = 1
 const Second = 1000 * Millisecond
-const Minute = 60 * Second
 
 /**
  * Pop up a message, using an MDL snackbar.
@@ -30,14 +29,24 @@ class VailClient {
 		this.lagTimes = [0]
 		this.rxDurations = [0]
 		this.clockOffset = null // How badly our clock is off of the server's
-		this.rxDelay = 0 // Milliseconds to add to incoming timestamps
+		this.rxDelay = 0 * Millisecond // Time to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 		this.debug = localStorage.debug
 
 		// Make helpers
-		this.buzzer = new Morse.Buzzer()
+		this.lamp = new Morse.Lamp()
+		this.buzzer = new Morse.ToneBuzzer()
 		this.keyer = new Morse.Keyer(() => this.beginTx(), () => this.endTx())
-		this.roboKeyer = new Morse.Keyer(() => this.buzzer.Buzz(), () => this.buzzer.Silence())
+		this.roboKeyer = new Morse.Keyer(
+			() => {
+				this.buzzer.Buzz()
+				this.lamp.Buzz()
+			}, 
+			() => {
+				this.buzzer.Silence()
+				this.lamp.Silence()
+			}
+		)
 
 		// Set up various input methods
 		this.inputs = Inputs.SetupAll(this.keyer)
@@ -59,6 +68,9 @@ class VailClient {
 		this.inputInit("#iambic-duration", e => {
 			this.keyer.SetIntervalDuration(e.target.value)
 			this.roboKeyer.SetIntervalDuration(e.target.value)
+			for (let i of Object.values(this.inputs)) {
+				i.SetIntervalDuration(e.target.value)
+			}
 		})
 		this.inputInit("#rx-delay", e => { 
 			this.rxDelay = Number(e.target.value) 
@@ -88,7 +100,7 @@ class VailClient {
 		if (enable) {
 			this.buzzer = new Morse.TelegraphBuzzer()
 		} else {
-			this.buzzer = new Morse.Buzzer()
+			this.buzzer = new Morse.ToneBuzzer()
 		}
 	}
 
@@ -226,7 +238,7 @@ class VailClient {
 	 */
 	error(msg) {
 		toast(msg)
-		this.buzzer.ErrorTone()
+		this.buzzer.Error()
 	}
 
 	/**
@@ -267,6 +279,7 @@ class VailClient {
 			}
 
 			this.buzzer.BuzzDuration(false, when, duration)
+			this.lamp.BuzzDuration(false, when, duration)
 
 			this.rxDurations.unshift(duration)
 			this.rxDurations.splice(20, 2)
