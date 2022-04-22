@@ -350,9 +350,9 @@ class Buzzer {
 		//this.noiseGain = this.whiteNoise()
 
 		this.ac.resume()
-			.then(() => {
-				document.querySelector("#muted").classList.add("hidden")
-			})
+		.then(() => {
+			document.querySelector("#muted").classList.add("hidden")
+		})
 
 	}
 
@@ -494,5 +494,41 @@ class Buzzer {
 	}
 }
 
+class TelegraphBuzzer extends Buzzer{
+	constructor(gain=0.6) {
+		super()
+
+		this.gain = this.ac.createGain()
+		this.gain.connect(this.ac.destination)
+		this.gain.gain.value = gain
+		
+		this.loadMedia("telegraph-a.mp3").then(s => this.closeBuf = s)
+		this.loadMedia("telegraph-b.mp3").then(s => this.openBuf = s)
+	}
+
+	async loadMedia(url) {
+		let resp = await fetch(url)
+		let buf = await resp.arrayBuffer()
+		return await this.ac.decodeAudioData(buf)
+	}
+
+	play(buf, when) {
+		let bs = this.ac.createBufferSource()
+		bs.buffer = buf
+		bs.connect(this.gain)
+		bs.start(this.acTime(when))
+	}
+
+	Buzz(tx, when=0) {
+		if (tx) return
+		this.play(this.closeBuf, when)
+	}
+
+	Silence(tx ,when=0) {
+		if (tx) return
+		this.play(this.openBuf, when)
+	}
+}
+
 export {DIT, DAH, PAUSE, PAUSE_WORD, PAUSE_LETTER}
-export {Keyer, Buzzer}
+export {Keyer, Buzzer, TelegraphBuzzer}

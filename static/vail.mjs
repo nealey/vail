@@ -34,15 +34,6 @@ class VailClient {
 		this.beginTxTime = null // Time when we began transmitting
 		this.debug = localStorage.debug
 
-		// Redirect old URLs
-		if (window.location.search) {
-			let me = new URL(location)
-			let repeater = me.searchParams.get("repeater")
-			me.search = ""
-			me.hash = decodeURIComponent(repeater)
-			window.location = me
-		}
-
 		// Make helpers
 		this.buzzer = new Morse.Buzzer()
 		this.keyer = new Morse.Keyer(() => this.beginTx(), () => this.endTx())
@@ -78,11 +69,27 @@ class VailClient {
 		this.inputInit("#iambic-typeahead", e => {
 			this.keyer.SetTypeahead(e.target.checked)
 		})
+		this.inputInit("#telegraph-buzzer", e => {
+			this.setTelegraphBuzzer(e.target.checked)
+		})
 		
 		// Fill in the name of our repeater
-		let repeaterElement = document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
+		document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
 		window.addEventListener("hashchange", () => this.hashchange())
 		this.hashchange()
+	}
+
+	/**
+	 * Toggle the clicktastic buzzer, instead of the beeptastic one.
+	 * 
+	 * @param {bool} enable true to enable clicky buzzer
+	 */
+	setTelegraphBuzzer(enable) {
+		if (enable) {
+			this.buzzer = new Morse.TelegraphBuzzer()
+		} else {
+			this.buzzer = new Morse.Buzzer()
+		}
 	}
 
 	/**
@@ -185,7 +192,7 @@ class VailClient {
 		let storedValue = localStorage[element.id]
 		if (storedValue != null) {
 			element.value = storedValue
-			element.checked = JSON.parse(storedValue)
+			element.checked = (storedValue == "on")
 		}
 		let outputElement = document.querySelector(selector + "-value")
 		let outputWpmElement = document.querySelector(selector + "-wpm")
@@ -194,9 +201,11 @@ class VailClient {
 			let value = element.value
 			if (element.hasAttribute("checked")) {
 				value = element.checked
+				localStorage[element.id] = value?"on":"off"
+			} else {
+				localStorage[element.id] = value
 			}
 	
-			localStorage[element.id] = value
 			if (outputElement) {
 				outputElement.value = value
 			}
