@@ -1,4 +1,5 @@
-import * as Morse from "./morse.mjs"
+import * as Keyer from "./keyer.mjs"
+import * as Buzzer from "./buzzer.mjs"
 import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
 
@@ -34,10 +35,10 @@ class VailClient {
 		this.debug = localStorage.debug
 
 		// Make helpers
-		this.lamp = new Morse.Lamp()
-		this.buzzer = new Morse.ToneBuzzer()
-		this.keyer = new Morse.Keyer(() => this.beginTx(), () => this.endTx())
-		this.roboKeyer = new Morse.Keyer(
+		this.lamp = new Buzzer.Lamp()
+		this.buzzer = new Buzzer.ToneBuzzer()
+		this.keyer = new Keyer.Keyer(() => this.beginTx(), () => this.endTx())
+		this.roboKeyer = new Keyer.Keyer(
 			() => {
 				this.buzzer.Buzz()
 				this.lamp.Buzz()
@@ -62,6 +63,9 @@ class VailClient {
 		}
 		for (let e of document.querySelectorAll("#ck")) {
 			e.addEventListener("click", e => this.test())
+		}
+		for (let e of document.querySelectorAll("#reset")) {
+			e.addEventListener("click", e => this.reset())
 		}
 
 		// Set up inputs
@@ -89,6 +93,13 @@ class VailClient {
 		document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
 		window.addEventListener("hashchange", () => this.hashchange())
 		this.hashchange()
+	
+		// Turn off the "muted" symbol when we can start making noise
+		Buzzer.Ready()
+		.then(() => {
+			console.log("Audio context ready")
+			document.querySelector("#muted").classList.add("hidden")
+		})
 	}
 
 	/**
@@ -98,9 +109,9 @@ class VailClient {
 	 */
 	setTelegraphBuzzer(enable) {
 		if (enable) {
-			this.buzzer = new Morse.TelegraphBuzzer()
+			this.buzzer = new Buzzer.TelegraphBuzzer()
 		} else {
-			this.buzzer = new Morse.ToneBuzzer()
+			this.buzzer = new Buzzer.ToneBuzzer()
 		}
 	}
 
@@ -211,12 +222,10 @@ class VailClient {
 
 		element.addEventListener("input", e => {
 			let value = element.value
-			if (element.hasAttribute("checked")) {
-				value = element.checked
-				localStorage[element.id] = value?"on":"off"
-			} else {
-				localStorage[element.id] = value
+			if (element.type == "checkbox") {
+				value = element.checked?"on":"off"
 			}
+			localStorage[element.id] = value
 	
 			if (outputElement) {
 				outputElement.value = value
@@ -349,6 +358,12 @@ class VailClient {
 			}
 			when += duration
 		}
+	}
+
+	/** Reset to factory defaults */
+	reset() {
+		localStorage.clear()
+		location.reload()
 	}
 }
 

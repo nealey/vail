@@ -20,7 +20,7 @@ export class Vail {
     }
     
     reopen() {
-        console.info("Attempting to reconnect", this.wsUrl)
+        console.info("Attempting to reconnect", this.wsUrl.href)
         this.clockOffset = 0
 		this.socket = new WebSocket(this.wsUrl)
 		this.socket.addEventListener("message", e => this.wsMessage(e))
@@ -107,6 +107,11 @@ export class Vail {
     Transmit(time, duration, squelch=true) {
         let msg = [time - this.clockOffset, duration]
         let jmsg = JSON.stringify(msg)
+        if (this.socket.readyState != 1) {
+            // If we aren't connected, complain.
+            console.error("Not connected, dropping", jmsg)
+            return
+        }
         this.socket.send(jmsg)
         if (squelch) {
             this.sent.push(jmsg)

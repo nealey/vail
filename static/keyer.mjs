@@ -9,7 +9,6 @@ const DIT = 1
 /** Duration of a dah */
 const DAH = 3
 
-
 const MorseMap = {
     "\x04": ".-.-.", // End Of Transmission
     "\x18": "........", // Cancel
@@ -72,6 +71,20 @@ const MorseMap = {
 // iOS kludge
 if (!window.AudioContext) {
 	window.AudioContext = window.webkitAudioContext
+}
+
+/**
+ * Return the inverse of the input. 
+ * If you give it dit, it returns dah, and vice-versa.
+ * 
+ * @param ditdah What to invert
+ * @returns The inverse of ditdah
+ */
+function morseNot(ditdah) {
+	if (ditdah == DIT) {
+		return DAH
+	}
+	return DIT
 }
 
 /**
@@ -149,21 +162,20 @@ class Keyer {
 
 	typematic() {
 		if (this.ditDown && this.dahDown) {
-			if (this.iambicModeB) {
-				if (this.last == DIT) {
-					this.last = DAH
-				} else {
-					this.last = DIT
-				}
-			} else {
-				this.last = this.last // Mode A = keep on truckin'
-			}
+			this.modeBQueue = this.last
+			this.last = morseNot(this.last)
 		} else if (this.ditDown) {
+			this.modeBQueue = null
 			this.last = DIT
 		} else if (this.dahDown) {
+			this.modeBQueue = null
 			this.last = DAH
+		} else if (this.modeBQueue && this.iambicModeB) {
+			this.last = this.modeBQueue
+			this.modeBQueue = null
 		} else {
 			this.last = null
+			this.modeBQueue = null
 		}
 		return this.last
 	}
@@ -199,8 +211,17 @@ class Keyer {
 	/**
 	 * Set Iambic mode B.
 	 * 
-	 * If true, holding both keys will alternate between dit and dah.
-	 * If false, holding both keys sends whatever key was depressed first.
+	 * Near as I can tell, B sends one more tone than was entered, when
+	 * both keys are held down. 
+	 * This logic happens in the typematic code.
+	 * 
+	 * ▁▁▔▔▔▔▔▔▔▁▁▁▁	Dit key
+	 * 
+	 * ▁▔▔▔▔▔▔▔▔▁▁▁▁	Dah key
+	 * 
+	 * ▁▔▔▔▁▔▁▔▔▔▁▁▁	Mode A output
+	 * 
+	 * ▁▔▔▔▁▔▁▔▔▔▁▔▁	Mode B output
 	 * 
 	 * @param {boolean} value True to set mode to B
 	 */
@@ -330,258 +351,4 @@ class Keyer {
 	}
 }
 
-/**
- * A (mostly) virtual class defining a buzzer.
- */
-class Buzzer {
-	/**
-	  * Signal an error
-	  */
-	 Error() {
-		 console.log("Error")
-	}
-
-	/**
-	  * Begin buzzing at time
-	  *
-	  * @param {boolean} tx Transmit or receive tone
-	  * @param {number} when Time to begin, in ms (null=now)
-	  */
-	Buzz(tx, when = null) {
-		console.log("Buzz", tx, when)
-	}
-
-	/**
-	  * End buzzing at time
-	  *
-	  * @param {boolean} tx Transmit or receive tone
-	  * @param {number} when Time to end, in ms (null=now)
-	  */
-	Silence(tx, when = null) {
-		console.log("Silence", tx, when)
-	}
-
-	/**
-	  * Buzz for a duration at time
-	  *
-	  * @param {boolean} tx Transmit or receive tone
-	  * @param {number} when Time to begin (ms since 1970-01-01Z, null=now)
-	  * @param {number} duration Duration of buzz (ms)
-	  */
-	 BuzzDuration(tx, when, duration) {
-		this.Buzz(tx, when)
-		this.Silence(tx, when + duration)
-	}
-}
-
-class AudioBuzzer extends Buzzer {
-	constructor(errorFreq=30) {
-		super()
-
-		this.ac = new AudioContext()
-		this.ac.resume()
-		.then(() => {
-			document.querySelector("#muted").classList.add("hidden")
-		})
-
-		this.errorGain = this.create(errorFreq, "square")
-		this.errorFreq = errorFreq
-	}
-
-	create(frequency, type = "sine") {
-		let gain = this.ac.createGain()
-		gain.connect(this.ac.destination)
-		gain.gain.value = 0
-		let osc = this.ac.createOscillator()
-		osc.type = type
-		osc.connect(gain)
-		osc.frequency.value = frequency
-		osc.start()
-		return gain
-	}
-
-	ready() {
-		return this.ac.state == "running"
-	}
-
-	Error() {
-		this.errorGain.gain.setTargetAtTime(0.5, this.ac.currentTime, 0.001)
-		this.errorGain.gain.setTargetAtTime(0, this.ac.currentTime + 0.2, 0.001)
-	}
-
-	/**
-	  * Convert clock time to AudioContext time
-	  *
-	  * @param {number} when Clock time in ms
-	  * @return {number} AudioContext offset time
-	  */
-	 acTime(when) {
-		if (!when) {
-			return this.ac.currentTime
-		}
-
-		let acOffset = Date.now() - this.ac.currentTime * 1000
-		let acTime = (when - acOffset) / 1000
-		return acTime
-	}
-}
-
-class ToneBuzzer extends AudioBuzzer {
-	// Buzzers keep two oscillators: one high and one low.
-	// They generate a continuous waveform,
-	// and we change the gain to turn the pitches off and on.
-	//
-	// This also implements a very quick ramp-up and ramp-down in gain,
-	// in order to avoid "pops" (square wave overtones)
-	// that happen with instant changes in gain.
-
-	constructor({txGain=0.6, highFreq=660, lowFreq=550} = {}) {
-		super()
-		this.txGain = txGain
-
-		this.ac = new AudioContext()
-		this.ramp = 0.005 // Lead-in and lead-out time to avoid popping. This one is in seconds.
-
-		this.lowGain = this.create(lowFreq)
-		this.highGain = this.create(highFreq)
-		//this.noiseGain = this.whiteNoise()
-	}
-
-	// Generate some noise to prevent the browser from putting us to sleep
-	whiteNoise() {
-		let bufferSize = 17 * this.ac.sampleRate
-		let noiseBuffer = this.ac.createBuffer(1, bufferSize, this.ac.sampleRate)
-		let output = noiseBuffer.getChannelData(0)
-		for (let i = 0; i < bufferSize; i++) {
-			output[i] = Math.random() * 2 - 1;
-		}
-
-		let whiteNoise = this.ac.createBufferSource();
-		whiteNoise.buffer = noiseBuffer;
-		whiteNoise.loop = true;
-		whiteNoise.start(0);
-
-		let filter = this.ac.createBiquadFilter()
-		filter.type = "lowpass"
-		filter.frequency.value = 100
-
-		let gain = this.ac.createGain()
-		gain.gain.value = 0.01
-
-		whiteNoise.connect(filter)
-		filter.connect(gain)
-		gain.connect(this.ac.destination)
-
-		return gain
-	}
-
-	gain(high) {
-		if (high) {
-			return this.highGain.gain
-		} else {
-			return this.lowGain.gain
-		}
-	}
-
-
-	/**
-	  * Set gain
-	  *
-	  * @param {number} gain Value (0-1)
-	  */
-	SetGain(gain) {
-		this.txGain = gain
-	}
-
-	/**
-	  * Begin buzzing at time
-	  *
-	  * @param {boolean} tx Transmit or receive tone
-	  * @param {number} when Time to begin, in ms (null=now)
-	  */
-	Buzz(tx, when = null) {
-		let gain = this.gain(tx)
-		let acWhen = this.acTime(when)
-		this.ac.resume()
-			.then(() => {
-				gain.setTargetAtTime(this.txGain, acWhen, this.ramp)
-			})
-	}
-
-	/**
-	  * End buzzing at time
-	  *
-	  * @param {boolean} tx Transmit or receive tone
-	  * @param {number} when Time to end, in ms (null=now)
-	  */
-	Silence(tx, when = null) {
-		let gain = this.gain(tx)
-		let acWhen = this.acTime(when)
-
-		gain.setTargetAtTime(0, acWhen, this.ramp)
-	}
-}
-
-class TelegraphBuzzer extends AudioBuzzer{
-	constructor(gain=0.6) {
-		super()
-
-		this.gain = this.ac.createGain()
-		this.gain.connect(this.ac.destination)
-		this.gain.gain.value = gain
-		
-		this.loadMedia("telegraph-a.mp3").then(s => this.closeBuf = s)
-		this.loadMedia("telegraph-b.mp3").then(s => this.openBuf = s)
-	}
-
-	async loadMedia(url) {
-		let resp = await fetch(url)
-		let buf = await resp.arrayBuffer()
-		return await this.ac.decodeAudioData(buf)
-	}
-
-	play(buf, when) {
-		let bs = this.ac.createBufferSource()
-		bs.buffer = buf
-		bs.connect(this.gain)
-		bs.start(this.acTime(when))
-	}
-
-	Buzz(tx, when=0) {
-		if (tx) return
-		this.play(this.closeBuf, when)
-	}
-
-	Silence(tx ,when=0) {
-		if (tx) return
-		this.play(this.openBuf, when)
-	}
-}
-
-class Lamp extends Buzzer {
-	constructor() {
-		super()
-		this.lamp = document.querySelector("#recv")
-	}
-
-	Buzz(tx, when=0) {
-		if (tx) return
-
-		let ms = when - Date.now()
-		setTimeout(e => {
-			recv.classList.add("rx")
-		}, ms)
-	}
-	Silence(tx, when=0) {
-		if (tx) return
-
-		let recv = document.querySelector("#recv")
-		let ms = when - Date.now()
-		setTimeout(e => {
-			recv.classList.remove("rx")
-		}, ms)
-	}
-}
-
-export {DIT, DAH, PAUSE, PAUSE_WORD, PAUSE_LETTER}
-export {Keyer, ToneBuzzer, TelegraphBuzzer, Lamp}
+export {Keyer}
