@@ -262,6 +262,9 @@ class VailClient {
 	 * Stop the side tone buzzer, and send out how long it was active.
 	 */
 	endTx() {
+		if (!this.beginTxTime) {
+			return
+		}
 		let endTxTime = Date.now()
 		let duration = endTxTime - this.beginTxTime
 		this.buzzer.Silence(true)
