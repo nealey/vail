@@ -333,8 +333,12 @@ class Keyer {
 	 */
 	Dit(down) {
 		this.ditDown = down
-		if (down && this.typeahead || !this.Busy()) {
-			this.Enqueue(DIT, this.typeahead)
+		if (down) {
+			if (this.typeahead 
+				|| !this.Busy()
+				|| (this.iambicModeB && (this.last == DAH))) {
+				this.Enqueue(DIT)
+			}
 		}
 	}
 
@@ -345,8 +349,12 @@ class Keyer {
 	 */
 	Dah(down) {
 		this.dahDown = down
-		if (down && this.typeahead || !this.Busy()) {
-			this.Enqueue(DAH, this.typeahead)
+		if (down) {
+			if (this.typeahead 
+				|| !this.Busy()
+				|| (this.iambicModeB && (this.last == DIT))) {
+				this.Enqueue(DAH)
+			}
 		}
 	}
 }
