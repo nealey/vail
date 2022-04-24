@@ -26,7 +26,7 @@ const Second = 1000 * Millisecond
  */
  const OscillatorRampDuration = 5*Millisecond
 
-
+console.warn("Chrome will now complain about an AudioContext not being allowed to start. This is normal, and there is no way to make Chrome stop complaining about this.")
 const BuzzerAudioContext = new AudioContext()
 /**
  * Compute the special "Audio Context" time

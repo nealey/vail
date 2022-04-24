@@ -13,18 +13,16 @@ export class HTML extends Input{
 
 		// Listen to HTML buttons
 		for (let e of document.querySelectorAll("button.key")) {
-			e.addEventListener("contextmenu", e => { e.preventDefault(); return false })
-			e.addEventListener("touchstart", e => this.keyButton(e))
-			e.addEventListener("touchend", e => this.keyButton(e))
-			e.addEventListener("mousedown", e => this.keyButton(e))
-			e.addEventListener("mouseup", e => this.keyButton(e))
+			e.addEventListener("contextmenu", e => { return false }, {passive: true})
+			e.addEventListener("touchstart", e => this.keyButton(e), {passive: true})
+			e.addEventListener("touchend", e => this.keyButton(e), {passive: true})
+			e.addEventListener("mousedown", e => this.keyButton(e), {passive: true})
+			e.addEventListener("mouseup", e => this.keyButton(e), {passive: true})
 		}
 	}
 
 	keyButton(event) {
 		let begin = event.type.endsWith("down") || event.type.endsWith("start")
-
-		event.preventDefault()
 
 		if (event.target.id == "dah") {
 			this.keyer.Dah(begin)
@@ -69,7 +67,6 @@ export class Keyboard extends Input{
 			if (this.ditDown != down) {
 				this.keyer.Dit(down)
 				this.ditDown = down
-				event.preventDefault()
 			}
 		}
 		if (
@@ -82,7 +79,6 @@ export class Keyboard extends Input{
 			if (this.dahDown != down) {
 				this.keyer.Dah(down)
 				this.dahDown = down
-				event.preventDefault()
 			}
 		}
 		if (
@@ -95,7 +91,6 @@ export class Keyboard extends Input{
 			if (this.straightDown != down) {
 				this.keyer.Straight(down)
 				this.straightDown = down
-				event.preventDefault()
 			}
 		}
 
@@ -104,7 +99,6 @@ export class Keyboard extends Input{
 			// There is a "left" key, and a "right" key, and the computer decides what those mean.
 			// Users expect "left" to be a straight key or dit, depending on some screen control.
 			// "right" is always dah.
-			event.preventDefault()
 			if (this.iambic) {
 				this.keyer.Dit(down)
 			} else {

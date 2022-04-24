@@ -63,15 +63,11 @@ export class Vail {
             this.lagDurations.unshift(now - this.clockOffset - beginTxTime - totalDuration)
             this.lagDurations.splice(20, 2)
             this.rx(0, 0, this.stats())
-            if (this.name == "debug") {
-                console.debug("Vail.wsMessage() SQUELCH", msg)
-            }
+            console.debug("Vail.wsMessage() SQUELCH", msg)
 			return
 		}
 
-        if (this.name == "debug") {
-            console.debug("Vail.wsMessage()", msg)
-        }
+        console.debug("Vail.wsMessage()", msg)
 
         // The very first packet is the server telling us the current time
 		if (durations.length == 0) {
@@ -112,6 +108,7 @@ export class Vail {
             console.error("Not connected, dropping", jmsg)
             return
         }
+        console.debug("Transmit", msg)
         this.socket.send(jmsg)
         if (squelch) {
             this.sent.push(jmsg)

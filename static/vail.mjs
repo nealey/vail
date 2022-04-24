@@ -15,7 +15,7 @@ const Second = 1000 * Millisecond
 function toast(msg) {
 	let el = document.querySelector("#snackbar")
 	if (!el || !el.MaterialSnackbar) {
-		console.warn(msg)
+		console.info(msg)
 		return
 	}
 	el.MaterialSnackbar.showSnackbar({
@@ -32,7 +32,6 @@ class VailClient {
 		this.clockOffset = null // How badly our clock is off of the server's
 		this.rxDelay = 0 * Millisecond // Time to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
-		this.debug = localStorage.debug
 
 		// Make helpers
 		this.lamp = new Buzzer.Lamp()
@@ -110,6 +109,7 @@ class VailClient {
 	setTelegraphBuzzer(enable) {
 		if (enable) {
 			this.buzzer = new Buzzer.TelegraphBuzzer()
+			toast("Telegraphs only make sound when receiving!")
 		} else {
 			this.buzzer = new Buzzer.ToneBuzzer()
 		}
