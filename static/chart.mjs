@@ -66,7 +66,7 @@ class HistoryChart {
         let y = 0
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-        
+
         this.ctx.moveTo(0, y)
         this.ctx.beginPath()
         for (let point of this.data) {
@@ -75,6 +75,7 @@ class HistoryChart {
             y = point[1] * this.canvas.height
             this.ctx.lineTo(x, y)
         }
+        this.ctx.lineTo(this.canvas.width, y)
         this.ctx.stroke()
 
         requestAnimationFrame(() => this.draw())
