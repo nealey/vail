@@ -93,18 +93,6 @@ export class Keyboard extends Input{
 				this.straightDown = down
 			}
 		}
-
-		if ((event.code == "ControlLeft")) {
-			// VBand and the VBand adapter take a different approach to inputs:
-			// There is a "left" key, and a "right" key, and the computer decides what those mean.
-			// Users expect "left" to be a straight key or dit, depending on some screen control.
-			// "right" is always dah.
-			if (this.iambic) {
-				this.keyer.Dit(down)
-			} else {
-				this.keyer.Straight(down)
-			}
-		}
 	}
 }
 
