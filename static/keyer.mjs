@@ -1,3 +1,5 @@
+import * as Chart from "./chart.mjs"
+
 /** Silent period between words */
 const PAUSE_WORD = -7
 /** Silent period between letters */
@@ -145,10 +147,16 @@ class Keyer {
 				next *= this.pauseMultiplier
 			} else {
 				this.endTxFunc()
+				if (this.txChart) {
+					this.txChart.Add(Date.now(), 0)
+				}
 			}
 		} else {
 			this.last = next
 			this.beginTxFunc()
+			if (this.txChart) {
+				this.txChart.Add(Date.now(), 1)
+			}
 		}
 		this.pulseTimer = setTimeout(() => this.pulse(), next * this.intervalDuration)
 	}
@@ -178,6 +186,25 @@ class Keyer {
 			this.modeBQueue = null
 		}
 		return this.last
+	}
+
+	/**
+	 * Set up various charts by providing canvases for them.
+	 * 
+	 * @param {Element} txCanvas 
+	 * @param {Element} straightCanvas 
+	 * @param {Element} ditCanvas 
+	 * @param {Element} dahCanvas 
+	 */
+	SetCanvas(txCanvas=null, straightCanvas=null, ditCanvas=null, dahCanvas=null) {
+		for (let c of [this.txChart, this.straightChart, this.ditChart, this.dahChart]) {
+			if (c) c.Stop()
+		}
+
+		this.txChart = txCanvas?new Chart.HistoryChart(txCanvas, "red"):null
+		this.straightChart =straightCanvas?new Chart.HistoryChart(straightCanvas, "teal"):null
+		this.ditChart =ditCanvas?new Chart.HistoryChart(ditCanvas, "olive"):null
+		this.dahChart =dahCanvas?new Chart.HistoryChart(dahCanvas, "purple"):null
 	}
 
 	/**
@@ -324,6 +351,9 @@ class Keyer {
 		} else {
 			this.endTxFunc()
 		}
+		if (this.straightChart) {
+			this.straightChart.Add(Date.now(), down?1:0)
+		}
 	}
 	
 	/**
@@ -340,6 +370,9 @@ class Keyer {
 				this.Enqueue(DIT)
 			}
 		}
+		if (this.ditChart) {
+			this.ditChart.Add(Date.now(), down?1:0)
+		}
 	}
 
 	/**
@@ -355,6 +388,9 @@ class Keyer {
 				|| (this.iambicModeB && (this.last == DIT))) {
 				this.Enqueue(DAH)
 			}
+		}
+		if (this.dahChart) {
+			this.dahChart.Add(Date.now(), down?1:0)
 		}
 	}
 }

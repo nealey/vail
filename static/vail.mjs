@@ -87,6 +87,10 @@ class VailClient {
 		this.inputInit("#telegraph-buzzer", e => {
 			this.setTelegraphBuzzer(e.target.checked)
 		})
+		this.inputInit("#timing-chart", e => {
+			console.log("moo")
+			this.setTimingCharts(e.target.checked)
+		})
 		
 		// Fill in the name of our repeater
 		document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
@@ -99,6 +103,30 @@ class VailClient {
 			console.log("Audio context ready")
 			document.querySelector("#muted").classList.add("hidden")
 		})
+	}
+
+	/**
+	 * Toggle timing charts.
+	 * 
+	 * @param enable True to enable charts
+	 */
+	setTimingCharts(enable) {
+		// XXX: UI code shouldn't be in the Keyer class.
+		// Actually, the charts calls should be in vail
+		let chartsContainer = document.querySelector("#charts")
+		if (enable) {
+			chartsContainer.classList.remove("hidden")
+			this.keyer.SetCanvas(
+				document.querySelector("#txChart"),
+				document.querySelector("#straightChart"),
+				document.querySelector("#ditChart"),
+				document.querySelector("#dahChart"),
+			)
+		} else {
+			chartsContainer.classList.add("hidden")
+			this.keyer.SetCanvas()
+		}
+		console.log("timing chart", enable)
 	}
 
 	/**
@@ -210,6 +238,7 @@ class VailClient {
 	inputInit(selector, callback) {
 		let element = document.querySelector(selector)
 		if (!element) {
+			console.warn("Unable to find an input to init", selector)
 			return
 		}
 		let storedValue = localStorage[element.id]
@@ -234,6 +263,7 @@ class VailClient {
 				outputWpmElement.value = (1200 / value).toFixed(1)
 			}
 			if (callback) {
+				console.log("callback", selector)
 				callback(e)
 			}
 		})

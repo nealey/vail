@@ -14,7 +14,7 @@ class HistoryChart {
      * @param {string} strokeStyle strokeStyle to draw in
      * @param {Duration} duration Time to display history for
      */
-    constructor(canvas, strokeStyle, duration) {
+    constructor(canvas, strokeStyle="black", duration=20*Second) {
         this.canvas = canvas
         this.ctx = canvas.getContext("2d")
         this.duration = duration
@@ -29,8 +29,10 @@ class HistoryChart {
         this.ctx.translate(0, -canvas.height)
 
         this.ctx.strokeStyle = strokeStyle
+        this.ctx.fillStyle = strokeStyle
         this.ctx.lineWdith = 2
 
+        this.running=true
         this.draw()
     }
 
@@ -42,8 +44,8 @@ class HistoryChart {
      * This also cleans up the event list,
      * purging anything that is too old to be displayed.
      * 
-     * @param when Time the event happened
-     * @param value Value for the event
+     * @param {Number} when Time the event happened
+     * @param {Number} value Value for the event
      */
     Add(when, value) {
         let now = Date.now()
@@ -54,8 +56,10 @@ class HistoryChart {
         while ((this.data.length > 1) && (this.data[1][0] < earliest)) {
             this.data.shift()
         }
+    }
 
-        console.log(this.data)
+    Stop() {
+        this.running = false
     }
 
     draw() {
@@ -64,43 +68,29 @@ class HistoryChart {
         let xScale = this.canvas.width / this.duration
         let yScale = this.canvas.height * 0.95
         let y = 0
+        let x = 0
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
-        this.ctx.moveTo(0, 0)
-        this.ctx.beginPath()
         for (let point of this.data) {
-            let x = (point[0] - earliest) * xScale
-            this.ctx.lineTo(x, y)
-            y = point[1] * yScale
-            this.ctx.lineTo(x, y)
-        }
-        this.ctx.lineTo(this.canvas.width, y)
-        this.ctx.stroke()
+            let x2 = (point[0] - earliest) * xScale
+            let y2 = point[1] * yScale
 
-        requestAnimationFrame(() => this.draw())
+            if (y > 0) {
+                this.ctx.fillRect(x, 0, x2-x, y)
+            }
+
+            x=x2
+            y=y2
+        }
+        if (y > 0) {
+            this.ctx.fillRect(x, 0, this.canvas.width, y)
+        }
+
+        if (this.running) {
+            requestAnimationFrame(() => this.draw())
+        }
     }
 }
 
 export {HistoryChart}
-
-
-// XXX: remove after testing
-let chart
-
-function init() {
-    let canvas = document.querySelector("#chart")
-    chart = new HistoryChart(canvas, "red", 20 * Second)
-    setInterval(update, 500 * Millisecond)
-}
-
-function update() {
-    let now = Date.now()
-    chart.Add(now, Math.sin(now/Second)/2 + 0.5)
-}
-
-if (document.readyState === "loading") {
-	document.addEventListener("DOMContentLoaded", init)
-} else {
-	init()
-}

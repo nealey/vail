@@ -153,3 +153,11 @@ img {
 	padding: 0.4em;
 	min-width: 4em;
 }
+
+#charts {
+	line-height: 0;
+}
+#charts canvas {
+	height: 0.5em;
+	width: 100%;
+}
