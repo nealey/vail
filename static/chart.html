@@ -2,67 +2,7 @@
 <html>
     <head>
         <title>Chart-O-Matic</title>
-        <script>
-data = []
-
-const Millisecond = 1
-const Second = 1000 * Millisecond
-const ChartWidth = 20 * Second
-
-function draw(canvas) {
-    let ctx = canvas.getContext("2d")
-    let now = Date.now()
-    let begin = now - ChartWidth
-
-    let xScale = canvas.width / ChartWidth
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.save()
-
-    // Make 0,0 be the lower-left corner, like in PostScript
-    ctx.scale(1, -1)
-    ctx.translate(0, -canvas.height)
-
-    ctx.strokeStyle = "red"
-    ctx.lineWidth = 2
-    let y = 0
-    ctx.moveTo(0, y)
-    ctx.beginPath()
-    for (let point of data) {
-        let x = (point[0] - begin) * xScale
-        ctx.lineTo(x, y)
-        y = point[1] * canvas.height
-        ctx.lineTo(x, y)
-    }
-    ctx.stroke()
-
-    ctx.restore()
-    requestAnimationFrame(() => draw(canvas))
-}
-
-function update() {
-    let now = Date.now()
-    let earliest = now - ChartWidth
-
-    data.push([now, Math.sin(now/Second)>0?1:0])
-    while (data[0][0] < earliest) {
-        data.shift()
-    }
-}
-
-function init() {
-    let canvas = document.querySelector("#chart")
-    canvas.width = ChartWidth / (20 * Millisecond)
-    setInterval(update, 50 * Millisecond)
-    draw(canvas)
-}
-
-if (document.readyState === "loading") {
-	document.addEventListener("DOMContentLoaded", init)
-} else {
-	init()
-}
-        </script>
+        <script type="module" src="chart.mjs"></script>
     </head>
     <body>
         <h1>The Amazing Chart-O-Matic</h1>
