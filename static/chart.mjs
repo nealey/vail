@@ -20,8 +20,6 @@ class HistoryChart {
         this.duration = duration
 
         this.data = []
-        this.max = 1
-        this.min = 0
 
         // One canvas pixel = 20ms
         canvas.width = duration / (20 * Millisecond)
@@ -52,7 +50,8 @@ class HistoryChart {
         let earliest = now - this.duration
 
         this.data.push([when, value])
-        while (this.data[0][0] < earliest) {
+        // Leave one old datapoint so we know the value when the window opens
+        while ((this.data.length > 1) && (this.data[1][0] < earliest)) {
             this.data.shift()
         }
 
@@ -63,16 +62,17 @@ class HistoryChart {
         let now = Date.now()
         let earliest = now - this.duration
         let xScale = this.canvas.width / this.duration
+        let yScale = this.canvas.height * 0.95
         let y = 0
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
-        this.ctx.moveTo(0, y)
+        this.ctx.moveTo(0, 0)
         this.ctx.beginPath()
         for (let point of this.data) {
             let x = (point[0] - earliest) * xScale
             this.ctx.lineTo(x, y)
-            y = point[1] * this.canvas.height
+            y = point[1] * yScale
             this.ctx.lineTo(x, y)
         }
         this.ctx.lineTo(this.canvas.width, y)
