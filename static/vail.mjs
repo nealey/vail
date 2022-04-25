@@ -2,6 +2,7 @@ import * as Keyer from "./keyer.mjs"
 import * as Buzzer from "./buzzer.mjs"
 import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
+import * as Chart from "./chart.mjs"
 
 const DefaultRepeater = "General"
 const Millisecond = 1
@@ -37,19 +38,11 @@ class VailClient {
 		this.lamp = new Buzzer.Lamp()
 		this.buzzer = new Buzzer.ToneBuzzer()
 		this.keyer = new Keyer.Keyer(() => this.beginTx(), () => this.endTx())
-		this.roboKeyer = new Keyer.Keyer(
-			() => {
-				this.buzzer.Buzz()
-				this.lamp.Buzz()
-			}, 
-			() => {
-				this.buzzer.Silence()
-				this.lamp.Silence()
-			}
-		)
+		this.roboKeyer = new Keyer.Keyer(() => this.Buzz(), () => this.Silence())
 
 		// Set up various input methods
-		this.inputs = Inputs.SetupAll(this.keyer)
+		// Send this as the keyer so we can intercept dit and dah events for charts
+		this.inputs = Inputs.SetupAll(this)
 
 		// VBand: Keep track of how the user wants the single key to behave
 		for (let e of document.querySelectorAll("[data-singlekey]")) {
@@ -88,7 +81,6 @@ class VailClient {
 			this.setTelegraphBuzzer(e.target.checked)
 		})
 		this.inputInit("#timing-chart", e => {
-			console.log("moo")
 			this.setTimingCharts(e.target.checked)
 		})
 		
@@ -104,6 +96,88 @@ class VailClient {
 			document.querySelector("#muted").classList.add("hidden")
 		})
 	}
+	
+	/**
+	 * Straight key change (keyer shim)
+	 * 
+	 * @param down If key has been depressed
+	 */
+	Straight(down) {
+		this.keyer.Straight(down)
+		if (this.straightChart) this.straightChart.Set(down?1:0)
+	}
+
+	/**
+	 * Dit key change (keyer shim)
+	 * 
+	 * @param down If the key has been depressed
+	 */
+	Dit(down) {
+		this.keyer.Dit(down)
+		if (this.ditChart) this.ditChart.Set(down?1:0)
+	}
+
+	/**
+	 * Dah key change (keyer shim)
+	 * 
+	 * @param down If the key has been depressed
+	 */
+	Dah(down) {
+		this.keyer.Dah(down)
+		if (this.dahChart) this.dahChart.Set(down?1:0)
+	}
+
+	Buzz() {
+		this.buzzer.Buzz()
+		this.lamp.Buzz()
+		if (this.rxChart) this.rxChart.Set(1)
+	}
+
+	Silence() {
+		this.buzzer.Silence()
+		this.lamp.Silence()
+		if (this.rxChart) this.rxChart.Set(0)
+	}
+
+	BuzzDuration(tx, when, duration) {
+		this.buzzer.BuzzDuration(tx, when, duration)
+		this.lamp.BuzzDuration(tx, when, duration)
+
+		let chart = tx?this.txChart:this.rxChart
+		if (chart) {
+			chart.SetAt(1, when)
+			chart.SetAt(0, when)
+		}
+	}
+
+	/**
+	 * Start the side tone buzzer.
+	 * 
+	 * Called from the keyer.
+	 */
+	 beginTx() {
+		this.beginTxTime = Date.now()
+		this.buzzer.Buzz(true)
+		if (this.txChart) this.txChart.Set(1)
+	}
+
+	/**
+	 * Stop the side tone buzzer, and send out how long it was active.
+	 * 
+	 * Called from the keyer
+	 */
+	endTx() {
+		if (!this.beginTxTime) {
+			return
+		}
+		let endTxTime = Date.now()
+		let duration = endTxTime - this.beginTxTime
+		this.buzzer.Silence(true)
+		this.repeater.Transmit(this.beginTxTime, duration)
+		this.beginTxTime = null
+		if (this.txChart) this.txChart.Set(0)
+	}
+
 
 	/**
 	 * Toggle timing charts.
@@ -116,17 +190,17 @@ class VailClient {
 		let chartsContainer = document.querySelector("#charts")
 		if (enable) {
 			chartsContainer.classList.remove("hidden")
-			this.keyer.SetCanvas(
-				document.querySelector("#txChart"),
-				document.querySelector("#straightChart"),
-				document.querySelector("#ditChart"),
-				document.querySelector("#dahChart"),
-			)
+			this.ditChart = Chart.FromSelector("#ditChart")
+			this.dahChart = Chart.FromSelector("#dahChart")
+			this.txChart = Chart.FromSelector("#txChart")
+			this.rxChart = Chart.FromSelector("#rxChart")
 		} else {
 			chartsContainer.classList.add("hidden")
-			this.keyer.SetCanvas()
+			this.ditChart = null
+			this.dahChart = null
+			this.txChart = null
+			this.rxChart = null
 		}
-		console.log("timing chart", enable)
 	}
 
 	/**
@@ -226,7 +300,7 @@ class VailClient {
 	}
 
 	/**
-	 * Set up an input.
+	 * Set up an HTML input element.
 	 * 
 	 * This reads any previously saved value and sets the input value to that.
 	 * When the input is updated, it saves the value it's updated to,
@@ -263,7 +337,6 @@ class VailClient {
 				outputWpmElement.value = (1200 / value).toFixed(1)
 			}
 			if (callback) {
-				console.log("callback", selector)
 				callback(e)
 			}
 		})
@@ -278,28 +351,6 @@ class VailClient {
 	error(msg) {
 		toast(msg)
 		this.buzzer.Error()
-	}
-
-	/**
-	 * Start the side tone buzzer.
-	 */
-	beginTx() {
-		this.beginTxTime = Date.now()
-		this.buzzer.Buzz(true)
-	}
-
-	/**
-	 * Stop the side tone buzzer, and send out how long it was active.
-	 */
-	endTx() {
-		if (!this.beginTxTime) {
-			return
-		}
-		let endTxTime = Date.now()
-		let duration = endTxTime - this.beginTxTime
-		this.buzzer.Silence(true)
-		this.repeater.Transmit(this.beginTxTime, duration)
-		this.beginTxTime = null
 	}
 
 	/**
@@ -320,8 +371,7 @@ class VailClient {
 				return
 			}
 
-			this.buzzer.BuzzDuration(false, when, duration)
-			this.lamp.BuzzDuration(false, when, duration)
+			this.BuzzDuration(false, when, duration)
 
 			this.rxDurations.unshift(duration)
 			this.rxDurations.splice(20, 2)

@@ -4,17 +4,17 @@
 
  /**
   * A chart of historical values.
-  * 
-  * Curently this assumes all values are between 0 and 1, 
+  *
+  * Curently this assumes all values are between 0 and 1,
   * since that's all I need.
   */
 class HistoryChart {
     /**
      * @param {Element} canvas Canvas element to draw on
-     * @param {string} strokeStyle strokeStyle to draw in
+     * @param {string} style style to draw in; falls back to the `data-style` attribute
      * @param {Duration} duration Time to display history for
      */
-    constructor(canvas, strokeStyle="black", duration=20*Second) {
+    constructor(canvas, style=null, duration=20*Second) {
         this.canvas = canvas
         this.ctx = canvas.getContext("2d")
         this.duration = duration
@@ -23,13 +23,12 @@ class HistoryChart {
 
         // One canvas pixel = 20ms
         canvas.width = duration / (20 * Millisecond)
-        
+
         // Set origin to lower-left corner
         this.ctx.scale(1, -1)
         this.ctx.translate(0, -canvas.height)
 
-        this.ctx.strokeStyle = strokeStyle
-        this.ctx.fillStyle = strokeStyle
+        this.ctx.fillStyle = style || canvas.dataset.color || "black"
         this.ctx.lineWdith = 2
 
         this.running=true
@@ -37,21 +36,34 @@ class HistoryChart {
     }
 
     /**
-     * Add an event point at a given time.
-     * 
-     * These must always be added in time order.
-     * 
+     * Set value to something at the current time.
+     *
      * This also cleans up the event list,
      * purging anything that is too old to be displayed.
-     * 
-     * @param {Number} when Time the event happened
+     *
      * @param {Number} value Value for the event
      */
-    Add(when, value) {
-        let now = Date.now()
-        let earliest = now - this.duration
+     Set(value) {
+        this.SetAt(value)
+    }
 
-        this.data.push([when, value])
+    /**
+     * Set value to something at the provided time.
+     *
+     * This also cleans up the event list,
+     * purging anything that is too old to be displayed.
+     *
+     * @param {Number} value Value for the event
+     * @param {Number} when Time to set the value
+     */
+     SetAt(value, when=null) {
+        let now = Date.now()
+        if (!when) when=now
+
+        this.data.push([now, value])
+        this.data.sort()
+
+        let earliest = now - this.duration
         // Leave one old datapoint so we know the value when the window opens
         while ((this.data.length > 1) && (this.data[1][0] < earliest)) {
             this.data.shift()
@@ -93,4 +105,19 @@ class HistoryChart {
     }
 }
 
-export {HistoryChart}
+/**
+ * Return a new chart based on an HTML selector
+ * 
+ * @param selector HTML selector
+ * @param style fill style
+ * @param duration duration of chart window
+ * @returns new chart, or null if it couldn't find a canvas
+ */
+function FromSelector(selector, style, duration=20*Second) {
+    let canvas = document.querySelector(selector)
+    if (canvas) {
+        return new HistoryChart(canvas, style, duration)
+    }
+    return null
+}
+export {HistoryChart, FromSelector}
