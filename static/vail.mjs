@@ -146,7 +146,7 @@ class VailClient {
 		let chart = tx?this.txChart:this.rxChart
 		if (chart) {
 			chart.SetAt(1, when)
-			chart.SetAt(0, when)
+			chart.SetAt(0, when+duration)
 		}
 	}
 

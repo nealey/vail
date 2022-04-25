@@ -60,7 +60,7 @@ class HistoryChart {
         let now = Date.now()
         if (!when) when=now
 
-        this.data.push([now, value])
+        this.data.push([when, value])
         this.data.sort()
 
         let earliest = now - this.duration
