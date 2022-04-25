@@ -78,7 +78,7 @@ class HistoryChart {
         let now = Date.now()
         let earliest = now - this.duration
         let xScale = this.canvas.width / this.duration
-        let yScale = this.canvas.height * 0.95
+        let yScale = this.canvas.height
         let y = 0
         let x = 0
 
