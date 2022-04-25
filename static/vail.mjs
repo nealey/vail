@@ -367,6 +367,7 @@ class VailClient {
 
 		if (duration > 0) {
 			if (when < now) {
+				console.warn("Too old", when, duration)
 				this.error("Packet requested playback " + (now - when) + "ms in the past. Increase receive delay!")
 				return
 			}
