@@ -12,8 +12,11 @@
 .key {
   width: 100%;
   height: 6em;
-  user-select: none;
-  -webkit-user-select: none; /* 2022-04-26 Safari still needs this */
+}
+
+.mashable-area {
+	user-select: none;
+	-webkit-user-select: none; /* 2022-04-26 Safari still needs this */  
 }
 
 .center {

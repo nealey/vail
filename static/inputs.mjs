@@ -14,10 +14,10 @@ export class HTML extends Input{
 		// Listen to HTML buttons
 		for (let e of document.querySelectorAll("button.key")) {
 			e.addEventListener("contextmenu", e => { e.preventDefault(); return false }, {passive: false})
-			e.addEventListener("touchstart", e => this.keyButton(e), {passive: true})
-			e.addEventListener("touchend", e => this.keyButton(e), {passive: true})
-			e.addEventListener("mousedown", e => this.keyButton(e), {passive: true})
-			e.addEventListener("mouseup", e => this.keyButton(e), {passive: true})
+			e.addEventListener("touchstart", e => this.keyButton(e), {passive: false})
+			e.addEventListener("touchend", e => this.keyButton(e), {passive: false})
+			e.addEventListener("mousedown", e => this.keyButton(e), {passive: false})
+			e.addEventListener("mouseup", e => this.keyButton(e), {passive: false})
 			e.contentEditable = false
 		}
 	}
@@ -33,6 +33,11 @@ export class HTML extends Input{
 			this.keyer.Dit(begin)
 		} else if (event.target.id == "key") {
 			this.keyer.Straight(begin)
+		} else {
+			return
+		}
+		if (event.cancelable) {
+			event.preventDefault()
 		}
 	}
 }
