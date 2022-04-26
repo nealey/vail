@@ -13,11 +13,12 @@ export class HTML extends Input{
 
 		// Listen to HTML buttons
 		for (let e of document.querySelectorAll("button.key")) {
-			e.addEventListener("contextmenu", e => { return false }, {passive: true})
+			e.addEventListener("contextmenu", e => { e.preventDefault(); return false }, {passive: false})
 			e.addEventListener("touchstart", e => this.keyButton(e), {passive: true})
 			e.addEventListener("touchend", e => this.keyButton(e), {passive: true})
 			e.addEventListener("mousedown", e => this.keyButton(e), {passive: true})
 			e.addEventListener("mouseup", e => this.keyButton(e), {passive: true})
+			e.contentEditable = false
 		}
 	}
 
