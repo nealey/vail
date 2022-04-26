@@ -13,6 +13,9 @@ export class HTML extends Input{
 
 		// Listen to HTML buttons
 		for (let e of document.querySelectorAll("button.key")) {
+			// Chrome is going to suggest you use passive events here.
+			// I tried that and it screws up Safari mobile,
+			// making it so that hitting the button selects text on the page.
 			e.addEventListener("contextmenu", e => { e.preventDefault(); return false }, {passive: false})
 			e.addEventListener("touchstart", e => this.keyButton(e), {passive: false})
 			e.addEventListener("touchend", e => this.keyButton(e), {passive: false})

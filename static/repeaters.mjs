@@ -10,6 +10,7 @@ export class Vail {
         this.name = name
         this.lagDurations = []
         this.sent = []
+        this.wantConnected = true
         
 		this.wsUrl = new URL("chat", window.location)
 		this.wsUrl.protocol = this.wsUrl.protocol.replace("http", "ws")
@@ -20,6 +21,9 @@ export class Vail {
     }
     
     reopen() {
+        if (!this.wantConnected) {
+            return
+        }
         console.info("Attempting to reconnect", this.wsUrl.href)
         this.clockOffset = 0
 		this.socket = new WebSocket(this.wsUrl)
@@ -67,7 +71,7 @@ export class Vail {
 			return
 		}
 
-        console.debug("Vail.wsMessage()", msg)
+        console.debug("Vail.wsMessage()", this.socket, msg)
 
         // The very first packet is the server telling us the current time
 		if (durations.length == 0) {
@@ -108,7 +112,7 @@ export class Vail {
             console.error("Not connected, dropping", jmsg)
             return
         }
-        console.debug("Transmit", msg)
+        console.debug("Transmit", this.socket, msg)
         this.socket.send(jmsg)
         if (squelch) {
             this.sent.push(jmsg)
@@ -116,6 +120,7 @@ export class Vail {
     }
 
     Close() {
+        this.wantConnected = false
         this.socket.close()
     }
 }

@@ -14,9 +14,9 @@ const Second = 1000 * Millisecond
  * @param {string} msg Message to display
  */
 function toast(msg) {
+	console.info(msg)
 	let el = document.querySelector("#snackbar")
 	if (!el || !el.MaterialSnackbar) {
-		console.info(msg)
 		return
 	}
 	el.MaterialSnackbar.showSnackbar({
