@@ -29,11 +29,17 @@ export class HTML extends Input{
 		let begin = event.type.endsWith("down") || event.type.endsWith("start")
 
 		if (event.target.id == "dah") {
-			this.keyer.Dah(begin)
-		} else if ((event.target.id == "dit") && (event.button == 2)) {
-			this.keyer.Dah(begin)
+			if (event.button == 2) {
+				this.keyer.Dit(begin)
+			} else {
+				this.keyer.Dah(begin)
+			}
 		} else if (event.target.id == "dit") {
-			this.keyer.Dit(begin)
+			if (event.button == 2) {
+				this.keyer.Dah(begin)
+			} else {
+				this.keyer.Dit(begin)
+			}
 		} else if (event.target.id == "key") {
 			this.keyer.Straight(begin)
 		} else {
