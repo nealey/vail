@@ -5,10 +5,9 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-		<!-- Material Design Lite -->
-		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-		<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-purple.min.css">
-		<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+		<!-- Bulma CSS -->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css">
 
 		<!-- Vail stuff -->
 		<link rel="manifest" href="manifest.json">
@@ -18,50 +17,46 @@
 		<link rel="stylesheet" href="vail.css">
 	</head>
 	<body>
-		<div class="mdl-layout mdl-js-layout">
-			<header class="mdl-layout__header mdl-layout__header--scroll">
-				<div class="mdl-layout__header-row">
-					<!-- Title -->
-					<span class="mdl-layout-title">Vail</span>
-					<!-- Add spacer, to align navigation to the right -->
-					<div class="mdl-layout-spacer"></div>
-					<!-- Navigation -->
-					<nav class="mdl-navigation">
-						<a class="mdl-navigation__link" href="https://github.com/nealey/vail">Source Code</a>
-					</nav>
+		<nav class="navbar">
+			<div class="navbar-brand">
+				<a class="navbar-item">
+					<img src="vail.svg" alt=""> 
+					Vail
+				</a>
+			</div>
+			<div class="navbar-menu">
+				<div class="navbar-end">
+					<div class="navbar-item">
+						<a href="https://github.com/nealey/vail/">Source Code</a>
+					</div>
 				</div>
-			</header>
-
-			<div class="mdl-layout__drawer">
-				<span class="mdl-layout-title">Repeaters</span>
-				<nav class="mdl-navigation">
-					<a class="mdl-navigation__link" href="#">General</a>
-					<a class="mdl-navigation__link" href="#1">Channel 1</a>
-					<a class="mdl-navigation__link" href="#2">Channel 2</a>
-					<a class="mdl-navigation__link" href="#3">Channel 3</a>
-				</nav>
-				<hr>
-				<span class="mdl-layout-title">Local Practice</span>
-				<nav class="mdl-navigation">
-					<a class="mdl-navigation__link" href="#Echo">Echo</a>
-					<a class="mdl-navigation__link" href="#Fortunes">Fortunes</a>
-					<a class="mdl-navigation__link" href="#Fortunes: Pauses ×2">Fortunes (slow)</a>
-					<a class="mdl-navigation__link" href="#Fortunes: Pauses ×4">Fortunes (very slow)</a>
-					<a class="mdl-navigation__link" href="#Fortunes: Pauses ×6">Fortunes (very very slow)</a>
-					<a class="mdl-navigation__link" href="#Fortunes: Pauses ×10">Fortunes (crazy slow)</a>
-				</nav>
-				<hr>
-				<span class="mdl-layout-title">Resources</span>
-				<nav class="mdl-navigation">					
-					<a class="mdl-navigation__link" href="https://github.com/nealey/vail/wiki" target="_blank">Wiki</a>
-					<a class="mdl-navigation__link" href="https://discord.gg/GBzj8cBat7" target="_blank">Discord</a>
-				</nav>
 			</div>
-			
-			<div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
-				<div class="mdl-snackbar__text"></div>
-				<button class="mdl-snackbar__action" type="button"></button>
+		</nav>
+		<section class="section">
+			<div class="container">
+				<div class="field">
+					<label class="mdl-textfield__label" for="repeater">Repeater</label>
+					<div class="control">
+						<input class="mdl-textfield__input" type="text" id="repeater" list="repeater-list">
+						<datalist id="repeater-list">
+							<option>General</option>
+							<option value="1">Channel 1</option>
+							<option value="2">Channel 2</option>
+							<option value="3">Channel 3</option>
+							<option value="Null">No transmit</option>
+							<option>Echo</option>
+							<option>Echo 5s</option>
+							<option>Echo 10s</option>
+							<option>Fortunes</option>
+							<option>Fortunes: Pauses ×2</option>
+							<option>Fortunes: Pauses ×4</option>
+							<option>Fortunes: Pauses ×8</option>
+						</datalist>
+					</div>
+				</div>
 			</div>
+		</section>
+		
 
 			<main class="mdl-layout__content">
 				<div class="flex">
@@ -73,22 +68,6 @@
 						<div class="mdl-card__title">
 							<h2 class="mdl-card__title-text">
 								<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-									<input class="mdl-textfield__input" type="text" id="repeater" list="repeater-list">
-									<datalist id="repeater-list">
-										<option value="">General</option>
-										<option value="1">Channel 1</option>
-										<option value="2">Channel 2</option>
-										<option value="3">Channel 3</option>
-										<option value="Null">Null (dummy load)</option>
-										<option>Echo</option>
-										<option>Echo 5s</option>
-										<option>Echo 10s</option>
-										<option>Fortunes</option>
-										<option>Fortunes: Pauses ×2</option>
-										<option>Fortunes: Pauses ×4</option>
-										<option>Fortunes: Pauses ×8</option>
-									</datalist>
-									<label class="mdl-textfield__label" for="repeater">Repeater</label>
 								</div>
 							</h2>
 						</div>
@@ -118,7 +97,7 @@
 									</tr>
 									<tr>
 										<td>
-											<i class="material-icons" role="presentation">keyboard</i>
+											<i class="mdi mdi-keyboard" title="Keyboard"></i>
 										</td>
 										<td>
 											<kbd>c</kbd> 
@@ -128,11 +107,11 @@
 									</tr>
 									<tr>
 										<td>
-											<i class="material-icons" role="presentation">gamepad</i>
+											    <i class="mdi mdi-controller-classic"></i>
 										</td>
 										<td>
-											<img class="gamepad b0" title="Gamepad Bottom Button" src="b0.svg" alt="Bottom button">
-											<img class="gamepad b1" title="Gamepad Right Button" src="b1.svg" alt="Right button">
+											<i class="mdi mdi-gamepad-circle-down" title="Gamepad Bottom Button"></i>
+											<i class="mdi mdi-gamepad-circle-right" title="Gamepad Right Button"></i>
 										</td>
 									</tr>
 								</table>
@@ -153,14 +132,14 @@
 									</tr>
 									<tr>
 										<td>
-											<i class="material-icons" role="presentation">keyboard</i>
+											<i class="mdi mdi-keyboard" title="Keyboard"></i>
 										</td>
 										<td>
 											<kbd>.</kbd>
 											<kbd>x</kbd>
 										</td>
 										<td>
-											<i class="material-icons" role="presentation">keyboard</i>
+											<i class="mdi mdi-keyboard" title="Keyboard"></i>
 										</td>
 										<td>
 											<kbd>/</kbd>
@@ -169,17 +148,17 @@
 									</tr>
 									<tr>
 										<td>
-											<i class="material-icons" role="presentation">gamepad</i>
+											    <i class="mdi mdi-controller-classic"></i>
 										</td>
 										<td>
-											<img class="gamepad b2" title="Gamepad Left Button" src="b2.svg" alt="Left Button">
+											<i class="mdi mdi-gamepad-circle-left" title="Gamepad Left Button"></i>
 											<kbd class="gamepad" title="Gamepad Left Shoulder Button">L1</kbd>
 										</td>
 										<td>
-											<i class="material-icons" role="presentation">gamepad</i>
+											    <i class="mdi mdi-controller-classic"></i>
 										</td>
 										<td>
-											<img class="gamepad b3" title="Gamepad Top Button" src="b3.svg" alt="Top Button">
+											<i class="mdi mdi-gamepad-circle-up" title="Gamepad Top Button"></i>
 											<kbd class="gamepad" title="Gamepad Right Shoulder Button">R1</kbd>
 										</td>
 									</tr>
@@ -319,7 +298,6 @@
 
 				</div>
 			</main>
-		</div>
 	</body>
 </html>
 <!-- vim: set noet ts=2 sw=2 : -->

@@ -2,7 +2,7 @@ class Input {
 	constructor(keyer) {
 		this.keyer = keyer
 	}
-	SetIntervalDuration(delay) {
+	SetDitDuration(delay) {
 		// Nothing
 	}
 }

@@ -25,6 +25,11 @@ function toast(msg) {
 	})
 }
 
+// iOS kludge
+if (!window.AudioContext) {
+	window.AudioContext = window.webkitAudioContext
+}
+
 class VailClient {
 	constructor() {
 		this.sent = []
@@ -37,8 +42,9 @@ class VailClient {
 		// Make helpers
 		this.lamp = new Buzzer.Lamp()
 		this.buzzer = new Buzzer.ToneBuzzer()
-		this.keyer = new Keyer.Keyer(() => this.beginTx(), () => this.endTx())
-		this.roboKeyer = new Keyer.Keyer(() => this.Buzz(), () => this.Silence())
+		this.straightKeyer = new Keyer.StraightKeyer(() => this.beginTx(), () => this.endTx())
+		this.keyer = new Keyer.SingleDotKeyer(() => this.beginTx(), () => this.endTx())
+		this.roboKeyer = new Keyer.ElBugKeyer(() => this.Buzz(), () => this.Silence())
 
 		// Set up various input methods
 		// Send this as the keyer so we can intercept dit and dah events for charts
@@ -62,10 +68,10 @@ class VailClient {
 
 		// Set up inputs
 		this.inputInit("#iambic-duration", e => {
-			this.keyer.SetIntervalDuration(e.target.value)
-			this.roboKeyer.SetIntervalDuration(e.target.value)
+			this.keyer.SetDitDuration(e.target.value)
+			this.roboKeyer.SetDitDuration(e.target.value)
 			for (let i of Object.values(this.inputs)) {
-				i.SetIntervalDuration(e.target.value)
+				i.SetDitDuration(e.target.value)
 			}
 		})
 		this.inputInit("#rx-delay", e => { 
@@ -103,7 +109,7 @@ class VailClient {
 	 * @param down If key has been depressed
 	 */
 	Straight(down) {
-		this.keyer.Straight(down)
+		this.straightKeyer.Key(0, down)
 		if (this.straightChart) this.straightChart.Set(down?1:0)
 	}
 
@@ -113,7 +119,7 @@ class VailClient {
 	 * @param down If the key has been depressed
 	 */
 	Dit(down) {
-		this.keyer.Dit(down)
+		this.keyer.Key(0, down)
 		if (this.ditChart) this.ditChart.Set(down?1:0)
 	}
 
@@ -123,7 +129,7 @@ class VailClient {
 	 * @param down If the key has been depressed
 	 */
 	Dah(down) {
-		this.keyer.Dah(down)
+		this.keyer.Key(1, down)
 		if (this.dahChart) this.dahChart.Set(down?1:0)
 	}
 
