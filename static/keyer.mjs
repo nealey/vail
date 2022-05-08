@@ -12,9 +12,9 @@ const PAUSE_WORD = -7
 const PAUSE_LETTER = -3
 /** Silent period between dits and dash */
 const PAUSE = -1
-/** Duration of a dit */
+/** Length of a dit */
 const DIT = 1
-/** Duration of a dah */
+/** Length of a dah */
 const DAH = 3
 
 /** 
@@ -105,6 +105,25 @@ function not(ditdah) {
 		return DAH
 	}
 	return DIT
+}
+
+/**
+ * Queue Set: A Set you can shift and pop.
+ * 
+ * Performance of this implementation may be bad for large sets.
+ */
+class QSet extends Set {
+	shift() {
+		let r = [...this].shift()
+		this.delete(r)
+		return r
+	}
+
+	pop() {
+		let r = [...this].pop()
+		this.delete(r)
+		return r
+	}
 }
 
 /**
@@ -302,6 +321,22 @@ class ElBugKeyer extends BugKeyer {
 	}
 
 	/**
+	 * Computes transmission duration for a given key.
+	 * 
+	 * @param {number} key Key to calculate
+	 * @returns {Duration} Duration of transmission
+	 */
+	keyDuration(key) {
+		switch (key) {
+			case 0:
+				return DIT * this.ditDuration
+			case 1:
+				return DAH * this.ditDuration
+		}
+		return 0
+	}
+
+	/**
 	 * Calculates the duration of the next transmission to send.
 	 * 
 	 * If there is nothing to send, returns 0.
@@ -309,13 +344,10 @@ class ElBugKeyer extends BugKeyer {
 	 * @returns {Duration} Duration of next transmission
 	 */
 	nextTxDuration() {
-		switch (this.lastPressed) {
-			case 0:
-				return this.ditDuration * DIT
-			case 1:
-				return this.ditDuration * DAH
+		if (!this.keyPressed.some(Boolean)) {
+			return 0
 		}
-		return 0
+		return this.keyDuration(this.lastPressed)
 	}
 
 	pulse() {
@@ -324,15 +356,10 @@ class ElBugKeyer extends BugKeyer {
 		// This keyer only drives one transmit relay
 		if (this.TxClosed()) {
 			// If we're transmitting at all, pause
-			this.Tx(0, false)
 			nextPulse = this.ditDuration
-		} else if (this.keyPressed.some(Boolean)) {
-			// If there's a key down, transmit. 
-			//
-			// Wait until here to ask for next duration, so things with memories
-			// don't flush that memory for a pause.
+			this.Tx(0, false)
+		} else if ((nextPulse = this.nextTxDuration()) > 0) {
 			this.Tx(0, true)
-			nextPulse = this.nextTxDuration()
 		}
 		
 		if (nextPulse) {
@@ -352,22 +379,31 @@ class ElBugKeyer extends BugKeyer {
 class SingleDotKeyer extends ElBugKeyer {
 	Reset() {
 		super.Reset()
-		this.queue = []
+		this.queue = new QSet()
 	}
 
 	Key(key, pressed) {
-		super.Key(key, pressed)
-		if (pressed && (key == 0) && this.keyPressed[1]) {
-			this.queue = [DIT]
+		if (pressed && (key == 0)) {
+			this.queue.add(0)
 		}
+		super.Key(key, pressed)
 	}
 
 	nextTxDuration() {
-		if (this.queue.length) {
-			let dits = this.queue.shift()
-			return dits * this.ditDuration
+		let key = this.queue.shift()
+		if (key != null) {
+			return this.keyDuration(key)
 		}
 		return super.nextTxDuration()
+	}
+}
+
+class UltimaticKeyer extends SingleDotKeyer {
+	Key(key, pressed) {
+		if (pressed) {
+			this.queue.add(key)
+		}
+		super.Key(key, pressed)
 	}
 }
 
@@ -643,4 +679,4 @@ class OldKeyer {
 	}
 }
 
-export {StraightKeyer, CootieKeyer, BugKeyer, ElBugKeyer, SingleDotKeyer}
+export {StraightKeyer, CootieKeyer, BugKeyer, ElBugKeyer, SingleDotKeyer, UltimaticKeyer}

@@ -43,7 +43,7 @@ class VailClient {
 		this.lamp = new Buzzer.Lamp()
 		this.buzzer = new Buzzer.ToneBuzzer()
 		this.straightKeyer = new Keyer.StraightKeyer(() => this.beginTx(), () => this.endTx())
-		this.keyer = new Keyer.SingleDotKeyer(() => this.beginTx(), () => this.endTx())
+		this.keyer = new Keyer.UltimaticKeyer(() => this.beginTx(), () => this.endTx())
 		this.roboKeyer = new Keyer.ElBugKeyer(() => this.Buzz(), () => this.Silence())
 
 		// Set up various input methods
