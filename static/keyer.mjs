@@ -371,10 +371,40 @@ class ElBugKeyer extends BugKeyer {
 }
 
 /**
+ * Ultimatic Keyer.
+ *
+ * If you know what an Iambic keyer does, this works similarly, but doesn't go
+ * back and forth when both keys are held.
+ */
+class UltimaticKeyer extends ElBugKeyer {
+	Reset() {
+		super.Reset()
+		this.queue = new QSet()
+	}
+
+	Key(key, pressed) {
+		if (pressed) {
+			this.queue.add(key)
+		}
+		super.Key(key, pressed)
+	}
+
+	nextTxDuration() {
+		let key = this.queue.shift()
+		if (key != null) {
+			return this.keyDuration(key)
+		}
+		return super.nextTxDuration()
+	}
+}
+
+/**
  * Single dot memory keyer.
  *
- * If you tap dit while a dah is sending, it queues up a dit to send, even if
- * the dit key is no longer being held at the start of the next cycle.
+ * If you tap dit while a dah is sending, it queues up a dit to send, but
+ * reverts back to dah until the dah key is released or the dit key is pressed
+ * again. In other words, if the dah is held, it only pay attention to the edge
+ * on dit.
  */
 class SingleDotKeyer extends ElBugKeyer {
 	Reset() {
@@ -394,18 +424,17 @@ class SingleDotKeyer extends ElBugKeyer {
 		if (key != null) {
 			return this.keyDuration(key)
 		}
-		return super.nextTxDuration()
+		for (let key of [1, 0]) {
+			if (this.keyPressed[key]) {
+				return this.keyDuration(key)
+			}
+		}
+		return 0
 	}
+
 }
 
-class UltimaticKeyer extends SingleDotKeyer {
-	Key(key, pressed) {
-		if (pressed) {
-			this.queue.add(key)
-		}
-		super.Key(key, pressed)
-	}
-}
+class IambicKeyer  {}
 
 /**
  * Keyer class. This handles iambic and straight key input.
