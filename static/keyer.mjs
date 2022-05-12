@@ -245,7 +245,7 @@ class BugKeyer extends StraightKeyer {
 			clearInterval(this.pulseTimer)
 			this.pulseTimer = null
 		}
-		this.keyPressed = []
+		this.keyPressed = [false, false]
 	}
 
 	/**
@@ -307,15 +307,15 @@ class ElBugKeyer extends BugKeyer {
 
 	Reset() {
 		super.Reset()
-		this.lastPressed = -1
+		this.nextRepeat = -1 // What to send next, if we're repeating
 	}
 
 	Key(key, pressed) {
 		this.keyPressed[key] = pressed
 		if (pressed) {	
-			this.lastPressed = key
+			this.nextRepeat = key
 		} else {
-			this.lastPressed = this.keyPressed.findIndex(Boolean)
+			this.nextRepeat = this.keyPressed.findIndex(Boolean)
 		}
 		this.beginPulsing()
 	}
@@ -337,29 +337,32 @@ class ElBugKeyer extends BugKeyer {
 	}
 
 	/**
-	 * Calculates the duration of the next transmission to send.
+	 * Calculates the key to auto-transmit next.
 	 * 
-	 * If there is nothing to send, returns 0.
+	 * If there is nothing to send, returns -1.
 	 * 
-	 * @returns {Duration} Duration of next transmission
+	 * @returns {number} Key to transmit
 	 */
-	nextTxDuration() {
+	nextTx() {
 		if (!this.keyPressed.some(Boolean)) {
-			return 0
+			return -1
 		}
-		return this.keyDuration(this.lastPressed)
+		return this.nextRepeat
 	}
 
 	pulse() {
 		let nextPulse = 0
 
-		// This keyer only drives one transmit relay
-		if (this.TxClosed()) {
-			// If we're transmitting at all, pause
+		if (this.TxClosed(0)) {
+			// Pause if we're currently transmitting
 			nextPulse = this.ditDuration
 			this.Tx(0, false)
-		} else if ((nextPulse = this.nextTxDuration()) > 0) {
-			this.Tx(0, true)
+		} else {
+			let next = this.nextTx()
+			if (next >= 0) {
+				nextPulse = this.keyDuration(next)
+				this.Tx(0, true)
+			}
 		}
 		
 		if (nextPulse) {
@@ -389,12 +392,12 @@ class UltimaticKeyer extends ElBugKeyer {
 		super.Key(key, pressed)
 	}
 
-	nextTxDuration() {
+	nextTx() {
 		let key = this.queue.shift()
 		if (key != null) {
-			return this.keyDuration(key)
+			return key
 		}
-		return super.nextTxDuration()
+		return super.nextTx()
 	}
 }
 
@@ -414,27 +417,60 @@ class SingleDotKeyer extends ElBugKeyer {
 
 	Key(key, pressed) {
 		if (pressed && (key == 0)) {
-			this.queue.add(0)
+			this.queue.add(key)
 		}
 		super.Key(key, pressed)
 	}
 
-	nextTxDuration() {
+	nextTx() {
 		let key = this.queue.shift()
 		if (key != null) {
-			return this.keyDuration(key)
+			return key
 		}
 		for (let key of [1, 0]) {
 			if (this.keyPressed[key]) {
-				return this.keyDuration(key)
+				return key
 			}
 		}
-		return 0
+		return -1
 	}
-
 }
 
-class IambicKeyer  {}
+/**
+ * "Plain" Iambic keyer.
+ */
+class IambicKeyer extends ElBugKeyer {
+	nextTx() {
+		let next = super.nextTx()
+		if (this.keyPressed.every(Boolean)) {
+			this.nextRepeat = 1 - this.nextRepeat
+		}
+		return next
+	}
+}
+
+class IambicAKeyer extends IambicKeyer {
+	Reset() {
+		super.Reset()
+		this.queue = new QSet()
+	}
+
+	Key(key, pressed) {
+		if (pressed && (key == 0)) {
+			this.queue.add(key)
+		}
+		super.Key(key, pressed)
+	}
+
+	nextTx() {
+		let next = super.nextTx()
+		let key = this.queue.shift()
+		if (key != null) {
+			return key
+		}
+		return next
+	}
+}
 
 /**
  * Keyer class. This handles iambic and straight key input.
@@ -708,4 +744,9 @@ class OldKeyer {
 	}
 }
 
-export {StraightKeyer, CootieKeyer, BugKeyer, ElBugKeyer, SingleDotKeyer, UltimaticKeyer}
+export {
+	StraightKeyer, 
+	CootieKeyer, BugKeyer, ElBugKeyer,
+	SingleDotKeyer, UltimaticKeyer,
+	IambicKeyer, IambicAKeyer,
+}
