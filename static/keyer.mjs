@@ -472,6 +472,33 @@ class IambicAKeyer extends IambicKeyer {
 	}
 }
 
+class IambicBKeyer extends IambicKeyer {
+	Reset() {
+		super.Reset()
+		this.queue = new QSet()
+	}
+
+	Key(key, pressed) {
+		if (pressed) {
+			this.queue.add(key)
+		}
+		super.Key(key, pressed)
+	}
+
+	nextTx() {
+		for (let key of [0,1]) {
+			if (this.keyPressed[key]) {
+				this.queue.add(key)
+			}
+		}
+		let next = this.queue.shift()
+		if (next == null) {
+			return -1
+		}
+		return next
+	}
+}
+
 /**
  * Keyer class. This handles iambic and straight key input.
  * 
@@ -748,5 +775,5 @@ export {
 	StraightKeyer, 
 	CootieKeyer, BugKeyer, ElBugKeyer,
 	SingleDotKeyer, UltimaticKeyer,
-	IambicKeyer, IambicAKeyer,
+	IambicKeyer, IambicAKeyer, IambicBKeyer,
 }
