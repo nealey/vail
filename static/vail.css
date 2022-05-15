@@ -1,6 +1,14 @@
+.navbar-item img {
+	margin-right: 1em;
+}
+
 .key {
-  width: 100%;
-  height: 6em;
+  width: 95%;
+	height: 6em;
+}
+
+.wide {
+	width: 100%;
 }
 
 .mashable-area {
@@ -8,43 +16,39 @@
 	-webkit-user-select: none; /* 2022-04-26 Safari still needs this */  
 }
 
-.center {
-  text-align: center;
+#recv.rx {
+	background-color: orange;
 }
 
-.maximize {
-	position: absolute;
+input[type=range] {
+	height: 25px;
+	margin: 10px 0;
+	width: 100%;
+	accent-color: #00d1b2;
+}
+
+.bottom {
+	position: fixed;
 	bottom: 0;
-	right: 0;
+	width: 100vw;
 }
-.maximized .key {
-	height: 90vh;
-}
-.maximized {
-	width: 90vw;
-}
-
-.wide {
-  width: 100%;
-}
-
-.hidden {
-	visibility: none;
-}
-
 #errors {
-    color: rgba(127, 0, 0, .54);
-    max-height: 5em;
+    max-height: 10em;
     overflow-y: scroll;
 }
 
 @keyframes yellow-fade {
-	0% {background: yellow;}
-	100% {background: none;}
+	0% {background-color: orange;}
+	100% {background-color: default;}
 }
 #errors p {
-    margin: 0;
-    animation: yellow-fade 2s ease-in 1;
+	background-color: #444;
+	color: white;
+	margin: 0.5em;
+	padding: 0.2em;
+	border-radius: 4px;
+	text-align: center;
+    animation: yellow-fade 0.3s ease-in 1;
 }
 
 kbd {
@@ -70,78 +74,6 @@ code {
   background-color: #333;
   color: #fff;
   padding: 0.1em;
-}
-
-textarea.notes {
-	width: 100%;
-	min-height: 10em;
-	font-family: sans-serif;
-}
-
-img {
-  max-width: 20em;
-}
-
-.mdl-card__supporting-text {
-	max-height: 20em;
-	overflow-y: scroll;
-}
-.mdl-card__supporting-text.long {
-	max-height: inherit;
-}
-
-#recv {
-	width: 2em;
-	height: 1em;
-	line-height: 1em;
-	position: absolute;
-	top: 0.5em;
-	right: 1em;
-	border-radius: 0.3em;
-	text-align: center;
-	vertical-align: middle;
-}
-#recv.rx {
-	background-color: orange;
-}
-
-#note {
-	position: absolute;
-	top: 0.5em;
-	right: 5em;
-	font-size: 80%;
-	color: #888;
-}
-
-.input-methods td {
-	text-align: left;
-}
-
-
-#morse-tree table {
-	width: 100%;
-}
-#morse-tree tr {
-	height: 1.4em;
-	text-align: center;
-	font-family: monospace;
-}
-#morse-tree tr,
-#morse-tree td:nth-child(n+2) {
-	background: #eee;
-}
-#morse-tree tr:nth-child(n+2),
-#morse-tree td.dah {
-	background: #ddd;
-}
-
-#morse-list span {
-	font-family: monospace;
-	display: inline-block;
-	background: #eee;
-	margin: 1px;
-	padding: 0.4em;
-	min-width: 4em;
 }
 
 #charts {

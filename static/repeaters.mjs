@@ -124,11 +124,10 @@ export class Vail {
 export class Null {
     constructor(rx) {
         this.rx = rx
-        this.interval = setInterval(() => this.pulse(), 1 * Second)
+        this.interval = setInterval(() => this.pulse(), 3 * Second)
     }
 
     pulse() {
-        console.log("pulse")
         this.rx(0, 0, {note: "local"})
     }
 

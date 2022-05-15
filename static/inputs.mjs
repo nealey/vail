@@ -27,24 +27,14 @@ export class HTML extends Input{
 
 	keyButton(event) {
 		let begin = event.type.endsWith("down") || event.type.endsWith("start")
-
-		if (event.target.id == "dah") {
-			if (event.button == 2) {
-				this.keyer.Dit(begin)
-			} else {
-				this.keyer.Dah(begin)
-			}
-		} else if (event.target.id == "dit") {
-			if (event.button == 2) {
-				this.keyer.Dah(begin)
-			} else {
-				this.keyer.Dit(begin)
-			}
-		} else if (event.target.id == "key") {
-			this.keyer.Straight(begin)
-		} else {
-			return
+		let key = event.target.dataset.key
+		
+		// Button 2 does the other key (assuming 2 keys)
+		if (event.button == 2) {
+			key = 1 - key
 		}
+		this.keyer.Key(key, begin)
+
 		if (event.cancelable) {
 			event.preventDefault()
 		}
@@ -80,7 +70,7 @@ export class Keyboard extends Input{
 		) {
 			// Dit
 			if (this.ditDown != down) {
-				this.keyer.Dit(down)
+				this.keyer.Key(0, down)
 				this.ditDown = down
 			}
 		}
@@ -92,7 +82,7 @@ export class Keyboard extends Input{
 			|| (event.key == "]")
 		) {
 			if (this.dahDown != down) {
-				this.keyer.Dah(down)
+				this.keyer.Key(1, down)
 				this.dahDown = down
 			}
 		}
@@ -173,10 +163,10 @@ export class MIDI extends Input{
 				this.keyer.Straight(begin)
 				break
 			case 1: // C#
-				this.keyer.Dit(begin)
+				this.keyer.Key(0, begin)
 				break
 			case 2: // D
-				this.keyer.Dah(begin)
+				this.keyer.Key(1, begin)
 				break
 			default:
 				return
@@ -229,10 +219,10 @@ export class Gamepad extends Input{
 			this.keyer.Straight(currentButtons.key)
 		}
 		if (currentButtons.dit != this.gamepadButtons.dit) {
-			this.keyer.Dit(currentButtons.dit)
+			this.keyer.Key(0, currentButtons.dit)
 		}
 		if (currentButtons.dah != this.gamepadButtons.dah) {
-			this.keyer.Dah(currentButtons.dah)
+			this.keyer.Key(1, currentButtons.dah)
 		}
 		this.gamepadButtons = currentButtons
 

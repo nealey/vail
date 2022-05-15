@@ -8,296 +8,247 @@
 		<!-- Bulma CSS -->
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css">
-
+		
 		<!-- Vail stuff -->
 		<link rel="manifest" href="manifest.json">
 		<link rel="icon" href="vail.png" sizes="256x256" type="image/png">
 		<link rel="icon" href="vail.svg" sizes="any" type="image/svg+xml">
 		<script type="module" src="vail.mjs"></script>
+		<script type="module" src="ui.mjs"></script>
 		<link rel="stylesheet" href="vail.css">
 	</head>
 	<body>
-		<nav class="navbar">
+		<nav class="navbar is-dark">
 			<div class="navbar-brand">
 				<a class="navbar-item">
-					<img src="vail.svg" alt=""> 
-					Vail
+					<img class="" src="vail.svg" alt=""> 
+					<div class="block">Vail</div>
 				</a>
 			</div>
 			<div class="navbar-menu">
 				<div class="navbar-end">
-					<div class="navbar-item">
-						<a href="https://github.com/nealey/vail/">Source Code</a>
-					</div>
+					<a class="navbar-item" href="https://github.com/nealey/vail/">Source Code</a>
 				</div>
 			</div>
 		</nav>
+
 		<section class="section">
-			<div class="container">
-				<div class="field">
-					<label class="mdl-textfield__label" for="repeater">Repeater</label>
-					<div class="control">
-						<input class="mdl-textfield__input" type="text" id="repeater" list="repeater-list">
-						<datalist id="repeater-list">
-							<option>General</option>
-							<option value="1">Channel 1</option>
-							<option value="2">Channel 2</option>
-							<option value="3">Channel 3</option>
-							<option value="Null">No transmit</option>
-							<option>Echo</option>
-							<option>Echo 5s</option>
-							<option>Echo 10s</option>
-							<option>Fortunes</option>
-							<option>Fortunes: Pauses ×2</option>
-							<option>Fortunes: Pauses ×4</option>
-							<option>Fortunes: Pauses ×8</option>
-						</datalist>
+			<div class="columns">
+				<div class="column">
+					<div class="box" id="transciever">
+						<h1 class="title">Repeater</h1>
+						<div class="level">
+							<div class="level-left">
+								<div class="level-item">
+
+									<div class="field is-horizontal">
+										<div class="field-label is-hidden">
+											<label class="label" for="repeater">Repeater</label>
+										</div>
+										<div class="field-body">
+											<div class="field">
+												<div class="control">
+													<input class="input" type="text" id="repeater" list="repeater-list">
+													<datalist id="repeater-list">
+														<option>General</option>
+														<option value="1">Channel 1</option>
+														<option value="2">Channel 2</option>
+														<option value="3">Channel 3</option>
+														<option value="Null">No transmit</option>
+														<option>Echo</option>
+														<option>Echo 5s</option>
+														<option>Echo 10s</option>
+														<option>Fortunes</option>
+														<option>Fortunes: Pauses ×2</option>
+														<option>Fortunes: Pauses ×4</option>
+														<option>Fortunes: Pauses ×8</option>
+													</datalist>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="level-right">
+								<div class="level-item">
+									<!-- This appears as a little light that turns on when someone's sending -->
+									<span class="tag" id="recv">
+										<output class="has-text-info" id="note"></output>
+										<i class="mdi mdi-volume-off" id="muted"></i>
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="block">
+							<div class="" id="charts">
+								<canvas class="chart" id="rxChart" data-color="orange"></canvas>
+								<canvas class="chart" id="txChart" data-color="teal"></canvas>
+								<canvas class="chart" id="key0Chart" data-color="olive"></canvas>
+								<canvas class="chart" id="key1Chart" data-color="purple"></canvas>
+							</div>
+						</div>
+		
+						<div class="block">
+							<table class="wide">
+								<tr>
+									<td>
+										<button class="button key is-primary" data-key="0" title="right click for Key">
+											Key
+										</button>
+										<div class="shortcuts">
+											<kbd title="keyboard button">.</kbd>
+											<kbd title="keyboard button">x</kbd>
+											<i class="mdi mdi-gamepad-circle-left" title="Gamepad Left Button"></i>
+										</div>
+									</td>
+									<td>
+										<button class="button key is-primary" data-key="1" title="right click for Key">
+											Key
+										</button>
+										<div class="shortcuts">
+											<kbd title="keyboard button">/</kbd>
+											<kbd title="keyboard button">z</kbd>
+											<i class="mdi mdi-gamepad-circle-up" title="Gamepad Top Button"></i>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</div>
+
+						<div>
+							<div class="field is-horizontal">
+								<div class="field-label">
+									<label class="label">Mode</label>
+								</div>
+								<div class="field-body">
+									<div class="field">
+										<div class="control">
+											<div class="select">
+												<select id="keyer-mode">
+													<option value="cootie">Straight Key / Cootie</option>
+													<option value="bug">Bug</option>
+													<option value="elbug">ElBug</option>
+													<option value="singledot">Single Dot</option>
+													<option value="ultimatic">Ultimatic</option>
+													<option value="iambic">Iambic (Plain)</option>
+													<option value="iambica">Iambic A</option>
+													<option value="iambicb">Iambic B</option>
+													<option value="keyahead">Keyahead</option>
+												</select>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="field is-horizontal">
+								<div class="field-label">
+									<label class="label">
+										<output for="keyer-rate"></output> WPM
+									</label>
+								</div>
+								<div class="field-body">
+									<div class="field">
+										<div class="control">
+											<input
+												id="keyer-rate"
+												type="range"
+												min="5"
+												max="40"
+												step="1"
+												value="12">
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+	
+					</div>
+				</div>
+
+				<div class="column">
+					<div class="box">
+						<h2 class="title">Knobs</h2>
+						<div class="block">
+							<div class="control">
+								<button id="ck" class="button is-primary">
+									CK
+								</button>
+							</div>
+							<div class="">
+								Send <code>CK</code> (check) to the repeater, and play when it comes back.
+							</div>
+						</div>
+						<div class="block">
+							<div class="control">
+								<button id="reset" class="button">
+									Reset
+								</button>
+							</div>
+							<div>
+								Reset all Vail preferences to default.
+							</div>
+						</div>
+
+
+						<div class="field is-horizontal">
+							<div class="field-label">
+								<label class="label">
+									<output for="rx-delay"></output>s
+									rx delay									
+								</label>
+							</div>
+							<div class="field-body">
+								<div class="field">
+									<div class="control">
+										<input
+											id="rx-delay"
+											type="range"
+											min="0"
+											max="10"
+											value="4"
+											step="0.1"
+											list="rx-delays">
+										<datalist id="rx-delays">
+											<option value="0"></option>
+											<option value="1"></option>
+											<option value="2" label="2s"></option>
+											<option value="3"></option>
+											<option value="4" label="4s"></option>
+											<option value="5"></option>
+											<option value="6" label="6s"></option>
+											<option value="7"></option>
+											<option value="8" label="8s"></option>
+											<option value="9"></option>
+											<option value="10"></option>
+										</datalist>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<p>
+							<label class="checkbox">
+								<input type="checkbox" id="telegraph-buzzer">
+								Telegraph sounds
+							</label>
+						</p>
+
 					</div>
 				</div>
 			</div>
 		</section>
 		
+		<div class="box">
+			<h2 class="title">Notes</h2>
+			<textarea class="textarea" placeholder="Enter your own notes here" id="notes"></textarea>
+			<a href="https://github.com/nealey/vail/wiki" target="_blank">Vail Wiki</a>
+		</div>
 
-			<main class="mdl-layout__content">
-				<div class="flex">
-					<div class="mdl-card mdl-shadow--4dp input-methods mashable-area">
-						<div id="recv">
-							<!-- This div appears as a little light that turns on when someone's sending -->
-							<i class="material-icons" id="muted">volume_off</i>
-						</div>
-						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">
-								<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-								</div>
-							</h2>
-						</div>
-						<output id="note"></output>
-
-						<div id="charts">
-							<canvas class="chart" id="rxChart" data-color="orange"></canvas>
-							<canvas class="chart" id="txChart" data-color="teal"></canvas>
-							<canvas class="chart" id="ditChart" data-color="olive"></canvas>
-							<canvas class="chart" id="dahChart" data-color="purple"></canvas>
-						</div>
-
-						<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-							<div class="mdl-tabs__tab-bar">
-								<a href="#straight" class="mdl-tabs__tab is-active" data-singlekey="straight">Straight Key</a>
-								<a href="#iambic" class="mdl-tabs__tab" data-singlekey="iambic">Iambic</a>
-								<a href="#tools" class="mdl-tabs__tab">Tools</a>
-							</div>
-							<div class="mdl-tabs__panel is-active" id="straight">
-								<table class="center wide">
-									<tr>
-										<td colspan="2">
-											<button id="key" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-												Key
-											</button>
-										</td>
-									</tr>
-									<tr>
-										<td>
-											<i class="mdi mdi-keyboard" title="Keyboard"></i>
-										</td>
-										<td>
-											<kbd>c</kbd> 
-											<kbd>,</kbd> 
-											<kbd>Enter</kbd>
-										</td>
-									</tr>
-									<tr>
-										<td>
-											    <i class="mdi mdi-controller-classic"></i>
-										</td>
-										<td>
-											<i class="mdi mdi-gamepad-circle-down" title="Gamepad Bottom Button"></i>
-											<i class="mdi mdi-gamepad-circle-right" title="Gamepad Right Button"></i>
-										</td>
-									</tr>
-								</table>
-							</div>
-							<div class="mdl-tabs__panel" id="iambic">
-								<table class="center wide">
-									<tr>
-										<td colspan="2">
-											<button id="dit" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-												Dit
-											</button>
-										</td>
-										<td colspan="2">
-											<button id="dah" class="key mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-												Dah
-											</button>
-										</td>
-									</tr>
-									<tr>
-										<td>
-											<i class="mdi mdi-keyboard" title="Keyboard"></i>
-										</td>
-										<td>
-											<kbd>.</kbd>
-											<kbd>x</kbd>
-										</td>
-										<td>
-											<i class="mdi mdi-keyboard" title="Keyboard"></i>
-										</td>
-										<td>
-											<kbd>/</kbd>
-											<kbd>z</kbd>
-										</td>
-									</tr>
-									<tr>
-										<td>
-											    <i class="mdi mdi-controller-classic"></i>
-										</td>
-										<td>
-											<i class="mdi mdi-gamepad-circle-left" title="Gamepad Left Button"></i>
-											<kbd class="gamepad" title="Gamepad Left Shoulder Button">L1</kbd>
-										</td>
-										<td>
-											    <i class="mdi mdi-controller-classic"></i>
-										</td>
-										<td>
-											<i class="mdi mdi-gamepad-circle-up" title="Gamepad Top Button"></i>
-											<kbd class="gamepad" title="Gamepad Right Shoulder Button">R1</kbd>
-										</td>
-									</tr>
-									<tr>
-										<td colspan="4" class="mdl-card__supporting-text" style="text-align: center;">
-											Second mouse button switches dah and dit
-										</td>
-									</tr>
-								</table>
-							</div>
-							<div class="mdl-tabs__panel" id="tools">
-								<div class="flex mdl-card__supporting-text">									
-									<button id="ck" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-										CK
-									</button>
-									<p>
-										Send <code>CK</code> (check) to the repeater, and play when it comes back.
-									</p>
-								</div>
-								<div class="flex mdl-card__supporting-text">									
-									<button id="reset" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-										Reset
-									</button>
-									<p>
-										Reset all Vail preferences to default.
-									</p>
-								</div>							
-							</div>
-							<div class="mdl-card__actions">
-								<button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored maximize" title="maximize">
-									<i class="material-icons mdl-color-text--white" role="presentation">aspect_ratio</i>
-								</button>
-							</div>
-						</div>
-					</div>
-
-					<div class="mdl-card mdl-shadow--4dp">
-						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">Notes</h2>
-						</div>
-						<div class="mdl-card__supporting-text">
-							<textarea class="notes" placeholder="Enter your own notes here"></textarea>
-							<a href="https://github.com/nealey/vail/wiki" target="_blank">Vail Wiki</a>
-						</div>
-					</div>
-
-					<div class="mdl-card mdl-shadow--4dp">
-						<div class="mdl-card__title">
-							<h2 class="mdl-card__title-text">Knobs</h2>
-						</div>
-						<div class="mdl-card__supporting-text">
-							<p>
-								Iambic Dit length:
-								<output id="iambic-duration-value"></output>ms
-								/
-								<output id="iambic-duration-wpm"></output> WPM
-								<input
-									id="iambic-duration"
-									class="mdl-slider mdl-js-slider"
-									type="range"
-									min="40"
-									max="255"
-									value="100">
-							</p>
-							<p>
-								<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="iambic-mode-b">
-									<input type="checkbox" id="iambic-mode-b" class="mdl-switch__input">
-									<span class="mdl-switch__label">Iambic mode B</span>
-								</label>
-								<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="iambic-typeahead">
-									<input type="checkbox" id="iambic-typeahead" class="mdl-switch__input">
-									<span class="mdl-switch__label">Iambic typeahead</span>
-								</label>
-							</p>
-							<p>
-								Receive delay:
-								<output id="rx-delay-value"></output>ms
-								<input
-									id="rx-delay"
-									class="mdl-slider mdl-js-slider"
-									type="range"
-									min="0"
-									max="9999"
-									value="4000">
-							</p>
-							<p>
-								<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="telegraph-buzzer">
-									<input type="checkbox" id="telegraph-buzzer" class="mdl-switch__input">
-									<span class="mdl-switch__label">Telegraph sounds</span>
-								</label>
-							</p>
-							<p>
-								<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="timing-chart">
-									<input type="checkbox" id="timing-chart" class="mdl-switch__input">
-									<span class="mdl-switch__label">Timing chart</span>
-								</label>
-							</p>
-						<hr>
-							<table>
-								<tbody>
-									<tr>
-										<td>
-											Suggested receive delay:
-										</td>
-										<td>
-											<output id="suggested-delay-value">0</output>ms
-										</td>
-									</tr>
-									<tr>
-										<td>
-											Average round-trip time:
-										</td>
-										<td>
-											<output id="lag-value">0</output>ms
-										</td>
-									</tr>
-									<tr>
-										<td>
-											Longest recent transmission:
-										</td>
-										<td>
-											<output id="longest-rx-value">0</output>ms
-										</td>
-									</tr>
-									<tr>
-										<td>
-											Your clock is off by:
-										</td>
-										<td>
-											<output id="clock-off-value">??</output>ms
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
-
-				</div>
-			</main>
+		<div class="columns is-centered bottom">
+			<div class="column is-half" id="errors"></div>
+		</div>
 	</body>
 </html>
 <!-- vim: set noet ts=2 sw=2 : -->

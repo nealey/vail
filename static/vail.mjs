@@ -1,4 +1,4 @@
-import * as Keyer from "./keyer.mjs"
+import {Keyers} from "./keyers.mjs"
 import * as Buzzer from "./buzzer.mjs"
 import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
@@ -7,22 +7,20 @@ import * as Chart from "./chart.mjs"
 const DefaultRepeater = "General"
 const Millisecond = 1
 const Second = 1000 * Millisecond
+const Minute = 60 * Second
 
 /**
- * Pop up a message, using an MDL snackbar.
+ * Pop up a message, using an notification..
  * 
  * @param {string} msg Message to display
  */
-function toast(msg) {
+function toast(msg, timeout=4*Second) {
 	console.info(msg)
-	let el = document.querySelector("#snackbar")
-	if (!el || !el.MaterialSnackbar) {
-		return
-	}
-	el.MaterialSnackbar.showSnackbar({
-		message: msg,
-		timeout: 2000
-	})
+
+	let errors = document.querySelector("#errors")
+	let p = errors.appendChild(document.createElement("p"))
+	p.textContent = msg
+	setTimeout(() => p.remove(), timeout)
 }
 
 // iOS kludge
@@ -40,20 +38,15 @@ class VailClient {
 		this.beginTxTime = null // Time when we began transmitting
 
 		// Make helpers
-		this.lamp = new Buzzer.Lamp()
+		this.lamp = new Buzzer.Lamp(document.querySelector("#recv"))
 		this.buzzer = new Buzzer.ToneBuzzer()
-		this.straightKeyer = new Keyer.StraightKeyer(() => this.beginTx(), () => this.endTx())
-		this.keyer = new Keyer.SingleDotKeyer(() => this.beginTx(), () => this.endTx())
-		this.roboKeyer = new Keyer.ElBugKeyer(() => this.Buzz(), () => this.Silence())
+		this.straightKeyer = new Keyers.straight(() => this.beginTx(), () => this.endTx())
+		this.keyer = new Keyers.straight(() => this.beginTx(), () => this.endTx())
+		this.roboKeyer = new Keyers.robo(() => this.Buzz(), () => this.Silence())
 
 		// Set up various input methods
 		// Send this as the keyer so we can intercept dit and dah events for charts
 		this.inputs = Inputs.SetupAll(this)
-
-		// VBand: Keep track of how the user wants the single key to behave
-		for (let e of document.querySelectorAll("[data-singlekey]")) {
-			e.addEventListener("click", e => this.singlekeyChange(e))
-		}
 
 		// Maximize button
 		for (let e of document.querySelectorAll("button.maximize")) {
@@ -67,39 +60,36 @@ class VailClient {
 		}
 
 		// Set up inputs
-		this.inputInit("#iambic-duration", e => {
-			this.keyer.SetDitDuration(e.target.value)
-			this.roboKeyer.SetDitDuration(e.target.value)
+		this.inputInit("#keyer-mode", e => this.setKeyer(e.target.value))
+		this.inputInit("#keyer-rate", e => {
+			let rate = e.target.value
+			let ditDuration = Minute / rate / 50
+			this.keyer.SetDitDuration(ditDuration)
+			this.roboKeyer.SetDitDuration(ditDuration)
 			for (let i of Object.values(this.inputs)) {
-				i.SetDitDuration(e.target.value)
+				i.SetDitDuration(ditDuration)
 			}
 		})
 		this.inputInit("#rx-delay", e => { 
 			this.rxDelay = Number(e.target.value) 
 		})
-		this.inputInit("#iambic-mode-b", e => {
-			this.keyer.SetIambicModeB(e.target.checked)
-		})
-		this.inputInit("#iambic-typeahead", e => {
-			this.keyer.SetTypeahead(e.target.checked)
-		})
 		this.inputInit("#telegraph-buzzer", e => {
 			this.setTelegraphBuzzer(e.target.checked)
 		})
-		this.inputInit("#timing-chart", e => {
-			this.setTimingCharts(e.target.checked)
-		})
-		
+		this.inputInit("#notes")
+
 		// Fill in the name of our repeater
 		document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
 		window.addEventListener("hashchange", () => this.hashchange())
 		this.hashchange()
 	
+		this.setTimingCharts(true)
+
 		// Turn off the "muted" symbol when we can start making noise
 		Buzzer.Ready()
 		.then(() => {
 			console.log("Audio context ready")
-			document.querySelector("#muted").classList.add("hidden")
+			document.querySelector("#muted").classList.add("is-hidden")
 		})
 	}
 	
@@ -110,27 +100,36 @@ class VailClient {
 	 */
 	Straight(down) {
 		this.straightKeyer.Key(0, down)
-		if (this.straightChart) this.straightChart.Set(down?1:0)
 	}
 
 	/**
-	 * Dit key change (keyer shim)
+	 * Key/paddle change
 	 * 
-	 * @param down If the key has been depressed
+	 * @param {Number} key Key which was pressed
+	 * @param {Boolean} down True if key was pressed
 	 */
-	Dit(down) {
-		this.keyer.Key(0, down)
-		if (this.ditChart) this.ditChart.Set(down?1:0)
+	Key(key, down) {
+		this.keyer.Key(key, down)
+		if (this.keyCharts) this.keyCharts[key].Set(down?1:0)
 	}
 
-	/**
-	 * Dah key change (keyer shim)
-	 * 
-	 * @param down If the key has been depressed
-	 */
-	Dah(down) {
-		this.keyer.Key(1, down)
-		if (this.dahChart) this.dahChart.Set(down?1:0)
+	setKeyer(keyerName) {
+		let newKeyerClass = Keyers[keyerName]
+		if (!newKeyerClass) {
+			console.error("Keyer not found", keyerName)
+			return
+		}
+		let newKeyer = new newKeyerClass(() => this.beginTx(), () => this.endTx())
+		let i = 0
+		for (let keyName of newKeyer.KeyNames()) {
+			let e = document.querySelector(`.key[data-key="${i}"]`)
+			e.textContent = keyName
+			i += 1
+		}
+		this.keyer.Release()
+		this.keyer = newKeyer
+
+		document.querySelector("#keyer-rate").dispatchEvent(new Event("input"))
 	}
 
 	Buzz() {
@@ -196,14 +195,15 @@ class VailClient {
 		let chartsContainer = document.querySelector("#charts")
 		if (enable) {
 			chartsContainer.classList.remove("hidden")
-			this.ditChart = Chart.FromSelector("#ditChart")
-			this.dahChart = Chart.FromSelector("#dahChart")
+			this.keyCharts = [
+				Chart.FromSelector("#key0Chart"),
+				Chart.FromSelector("#key1Chart")
+			]
 			this.txChart = Chart.FromSelector("#txChart")
 			this.rxChart = Chart.FromSelector("#rxChart")
 		} else {
 			chartsContainer.classList.add("hidden")
-			this.ditChart = null
-			this.dahChart = null
+			this.keyCharts = []
 			this.txChart = null
 			this.rxChart = null
 		}
@@ -230,19 +230,6 @@ class VailClient {
 		let hashParts = window.location.hash.split("#")
 		
 		this.setRepeater(decodeURIComponent(hashParts[1] || ""))
-	}
-
-	/**
-	 * VBand: Called when something happens to change what a single key does
-	 * 
-	 * @param {Event} event What caused this
-	 */
-	singlekeyChange(event) {
-		for (let e of event.composedPath()) {
-			if (e.dataset && e.dataset.singlekey) {
-				this.inputs.Keyboard.iambic = (e.dataset.singlekey == "iambic")
-			}
-		}
 	}
 
 	/**
@@ -326,8 +313,8 @@ class VailClient {
 			element.value = storedValue
 			element.checked = (storedValue == "on")
 		}
-		let outputElement = document.querySelector(selector + "-value")
-		let outputWpmElement = document.querySelector(selector + "-wpm")
+		let id = element.id
+		let outputElement = document.querySelector(`[for="${id}"]`)
 
 		element.addEventListener("input", e => {
 			let value = element.value
@@ -338,9 +325,6 @@ class VailClient {
 	
 			if (outputElement) {
 				outputElement.value = value
-			}
-			if (outputWpmElement) {
-				outputWpmElement.value = (1200 / value).toFixed(1)
 			}
 			if (callback) {
 				callback(e)
@@ -388,7 +372,7 @@ class VailClient {
 		let longestRxDuration = this.rxDurations.reduce((a,b) => Math.max(a,b))
 		let suggestedDelay = ((averageLag + longestRxDuration) * 1.2).toFixed(0)
 
-		this.updateReading("#note", stats.note || "")
+		this.updateReading("#note", stats.note || "☁")
 		this.updateReading("#lag-value", averageLag)
 		this.updateReading("#longest-rx-value", longestRxDuration)
 		this.updateReading("#suggested-delay-value", suggestedDelay)
@@ -457,7 +441,7 @@ class VailClient {
 	}
 }
 
-function vailInit() {
+function init() {
 	if (navigator.serviceWorker) {
 		navigator.serviceWorker.register("sw.js")
 	}
@@ -471,9 +455,9 @@ function vailInit() {
 
 
 if (document.readyState === "loading") {
-	document.addEventListener("DOMContentLoaded", vailInit)
+	document.addEventListener("DOMContentLoaded", init)
 } else {
-	vailInit()
+	init()
 }
 
 // vim: noet sw=2 ts=2

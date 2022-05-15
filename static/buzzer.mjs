@@ -267,27 +267,27 @@ class TelegraphBuzzer extends AudioBuzzer{
 }
 
 class Lamp extends Buzzer {
-	constructor() {
+	constructor(element) {
 		super()
-		this.lamp = document.querySelector("#recv")
+		this.element = element
 	}
 
 	Buzz(tx, when=0) {
 		if (tx) return
 
-		let ms = when - Date.now()
-		setTimeout(e => {
-			recv.classList.add("rx")
-		}, ms)
+		let ms = when?when - Date.now():0
+		setTimeout(
+			() =>{
+				this.element.classList.add("rx")
+			},
+			ms,
+		)
 	}
 	Silence(tx, when=0) {
 		if (tx) return
 
-		let recv = document.querySelector("#recv")
-		let ms = when - Date.now()
-		setTimeout(e => {
-			recv.classList.remove("rx")
-		}, ms)
+		let ms = when?when - Date.now():0
+		setTimeout(() => this.element.classList.remove("rx"), ms)
 	}
 }
 
