@@ -63,15 +63,18 @@ class VailClient {
 		this.inputInit("#keyer-mode", e => this.setKeyer(e.target.value))
 		this.inputInit("#keyer-rate", e => {
 			let rate = e.target.value
-			let ditDuration = Minute / rate / 50
-			this.keyer.SetDitDuration(ditDuration)
-			this.roboKeyer.SetDitDuration(ditDuration)
+			this.ditDuration = Minute / rate / 50
+			for (let e of document.querySelectorAll("[data-fill='keyer-ms']")) {
+				e.textContent = this.ditDuration.toFixed(0)
+			}
+			this.keyer.SetDitDuration(this.ditDuration)
+			this.roboKeyer.SetDitDuration(this.ditDuration)
 			for (let i of Object.values(this.inputs)) {
-				i.SetDitDuration(ditDuration)
+				i.SetDitDuration(this.ditDuration)
 			}
 		})
 		this.inputInit("#rx-delay", e => { 
-			this.rxDelay = Number(e.target.value) 
+			this.rxDelay = e.target.value * Second
 		})
 		this.inputInit("#telegraph-buzzer", e => {
 			this.setTelegraphBuzzer(e.target.checked)
@@ -193,6 +196,9 @@ class VailClient {
 		// XXX: UI code shouldn't be in the Keyer class.
 		// Actually, the charts calls should be in vail
 		let chartsContainer = document.querySelector("#charts")
+		if (!chartsContainer) {
+			return
+		}
 		if (enable) {
 			chartsContainer.classList.remove("hidden")
 			this.keyCharts = [
@@ -415,7 +421,7 @@ class VailClient {
 	  */
 	 test() {
 		let when = Date.now()
-		let dit = Number(document.querySelector("#iambic-duration-value").value)
+		let dit = this.ditDuration
 		let dah = dit * 3
 		let s = dit
 		let message = [

@@ -65,7 +65,7 @@ export class Keyboard extends Input{
 			(event.code == "KeyX")
 			|| (event.code == "Period")
 			|| (event.code == "BracketLeft")
-			|| (event.code == "ControlLeft" && this.iambic) // VBand
+			|| (event.code == "ControlLeft")
 			|| (event.key == "[")
 		) {
 			// Dit
@@ -78,7 +78,7 @@ export class Keyboard extends Input{
 			(event.code == "KeyZ")
 			|| (event.code == "Slash")
 			|| (event.code == "BracketRight")
-			|| (event.code == "ControlRight" && this.iambic) // VBand
+			|| (event.code == "ControlRight")
 			|| (event.key == "]")
 		) {
 			if (this.dahDown != down) {
@@ -90,7 +90,6 @@ export class Keyboard extends Input{
 			(event.code == "KeyC")
 			|| (event.code == "Comma")
 			|| (event.key == "Enter")
-			|| (event.key == "Control" && !this.iambic) // VBand
 			|| (event.key == "NumpadEnter")
 		) {
 			if (this.straightDown != down) {

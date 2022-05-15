@@ -3,7 +3,7 @@
 }
 
 .key {
-  width: 95%;
+	width: 95%;
 	height: 6em;
 }
 
@@ -53,6 +53,7 @@ input[type=range] {
 
 kbd {
     background-color: #eee;
+	color: black;
     border: 1px solid #bbb;
     border-radius: 3px;
     font-size: 66%;
