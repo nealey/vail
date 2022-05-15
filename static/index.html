@@ -27,7 +27,8 @@
 			</div>
 			<div class="navbar-menu">
 				<div class="navbar-end">
-					<a class="navbar-item" href="https://github.com/nealey/vail/wiki" target="_blank">Help</a>
+					<a class="navbar-item" href="https://discord.gg/GBzj8cBat7" target="_blank" title="Text/voice chat on Discord"><i class="mdi mdi-discord"></i></a>
+					<a class="navbar-item" href="https://github.com/nealey/vail/wiki" target="_blank" title="Vail Wiki">Help</a>
 				</div>
 			</div>
 		</nav>
@@ -40,30 +41,29 @@
 						<div class="level">
 							<div class="level-left">
 								<div class="level-item">
-
-									<div class="field is-horizontal">
-										<div class="field-label is-hidden">
-											<label class="label" for="repeater">Repeater</label>
+									<input class="input" type="text" id="repeater" list="repeater-list">
+									<datalist id="repeater-list"></datalist>
+									<div class="dropdown is-right is-hoverable">
+										<div class="dropdown-trigger">
+											<button class="button" aria-haspopup="true" aria-controls="stock-repeaters">
+												<span class="icon is-small">
+													<i class="mdi mdi-chevron-down" aria-hidden="true"></i>
+												</span>
+											</button>
 										</div>
-										<div class="field-body">
-											<div class="field">
-												<div class="control">
-													<input class="input" type="text" id="repeater" list="repeater-list">
-													<datalist id="repeater-list">
-														<option>General</option>
-														<option value="1">Channel 1</option>
-														<option value="2">Channel 2</option>
-														<option value="3">Channel 3</option>
-														<option value="Null">No transmit</option>
-														<option>Echo</option>
-														<option>Echo 5s</option>
-														<option>Echo 10s</option>
-														<option>Fortunes</option>
-														<option>Fortunes: Pauses ×2</option>
-														<option>Fortunes: Pauses ×4</option>
-														<option>Fortunes: Pauses ×8</option>
-													</datalist>
-												</div>
+										<div class="dropdown-menu" id="stock-repeaters" role="menu">
+											<div class="dropdown-content">
+												<a class="dropdown-item" data-value="">General</a>
+												<a class="dropdown-item" data-value="1">Channel 1</a>
+												<a class="dropdown-item" data-value="2">Channel 2</a>
+												<a class="dropdown-item" data-value="3">Channel 3</a>
+												<hr class="dropdown-divider">
+												<a class="dropdown-item" data-value="Null">Null (no transmit)</a>
+												<a class="dropdown-item">Echo</a>
+												<a class="dropdown-item">Fortunes</a>
+												<a class="dropdown-item">Fortunes: Pauses ×2</a>
+												<a class="dropdown-item">Fortunes: Pauses ×4</a>
+												<a class="dropdown-item">Fortunes: Pauses ×8</a>
 											</div>
 										</div>
 									</div>
@@ -245,7 +245,12 @@
 		<div class="box">
 			<h2 class="title">Notes</h2>
 			<textarea class="textarea" placeholder="Enter your own notes here" id="notes"></textarea>
-			<a href="https://github.com/nealey/vail/wiki" target="_blank">Vail Wiki</a>
+			<nav class="breadcrumb has-bullet-separator">
+				<ul>
+					<li><a href="https://discord.gg/GBzj8cBat7" target="_blank" title="Text/voice chat on Discord"><i class="mdi mdi-discord"></i></a></li>
+					<li><a href="https://github.com/nealey/vail/wiki" target="_blank" title="Vail Wiki">Help</a></li>
+				</ul>
+			</nav>
 		</div>
 
 		<div class="columns is-centered bottom">

@@ -1,35 +1,34 @@
 /**
- * If the user clicked on the little down arrow,
- * clear the input field so all autocomplete options are shown.
- * 
- * This kludge may not work properly on every browser.
- * 
- * @param event Triggering event
+ * Set up repeater autofill list, and make dropdown active
+ *
+ * This fills the dataset from the dropdown, and make each dropdown element set
+ * the value in the input field.
  */
-function maybeDropdown(event) {
-    let el = event.target
-    switch (event.type) {
-        case "click":
-            let offset = el.clientWidth + el.offsetLeft - event.clientX;
-            if (el.value) {
-                el.dataset.value = el.value
+function setRepeaterList() {
+    let input = document.querySelector("#repeater")
+    let datalist = document.querySelector("datalist#repeater-list")
+    let repeaterList = document.querySelector("#stock-repeaters .dropdown-content")
+    for (let a of repeaterList.children) {
+        if (a.tagName == "A") {
+            let opt = datalist.appendChild(document.createElement("option"))
+            if (a.dataset.value != undefined) {
+                opt.value = a.dataset.value
             }
-            if (offset < 0) {
-                el.value = ""
-            }
-            break
-        case "mouseleave":
-            if (!el.value) {
-                el.value = el.dataset.value
-            }
-            break;
+            opt.textContent = a.textContent
+
+            a.addEventListener(
+                "click", 
+                () => {
+                    input.value = opt.value
+                    input.dispatchEvent(new Event("change"))
+                },
+            )
+        }
     }
 }
 
 function init() {
-    let rep = document.querySelector("#repeater")
-    rep.addEventListener("click", maybeDropdown)
-    rep.addEventListener("mouseleave", maybeDropdown)
+    setRepeaterList()
 }
 
 if (document.readyState === "loading") {

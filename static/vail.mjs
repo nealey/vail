@@ -285,9 +285,6 @@ class VailClient {
 			this.roboKeyer.SetPauseMultiplier(number || 1)
 			this.repeater = new Repeaters.Fortune(rx, this.roboKeyer)
 		} else if (name.startsWith("Echo")) {
-			let delayElement = document.querySelector("#rx-delay")
-			delayElement.value = (number || 2) * Second
-			delayElement.dispatchEvent(new Event("input"))
 			this.repeater = new Repeaters.Echo(rx)
 		} else if (name == "Null") {
 			this.repeater = new Repeaters.Null(rx)

@@ -1,5 +1,5 @@
-const HIGH_FREQ = 666
-const LOW_FREQ = 555
+const HIGH_FREQ = 555
+const LOW_FREQ = 444
 
 
  /**

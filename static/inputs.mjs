@@ -26,14 +26,14 @@ export class HTML extends Input{
 	}
 
 	keyButton(event) {
-		let begin = event.type.endsWith("down") || event.type.endsWith("start")
-		let key = event.target.dataset.key
+		let down = event.type.endsWith("down") || event.type.endsWith("start")
+		let key = Number(event.target.dataset.key)
 		
 		// Button 2 does the other key (assuming 2 keys)
 		if (event.button == 2) {
 			key = 1 - key
 		}
-		this.keyer.Key(key, begin)
+		this.keyer.Key(key, down)
 
 		if (event.cancelable) {
 			event.preventDefault()
