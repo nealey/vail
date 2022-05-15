@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"log"
 )
 
 // A Repeater is just a list of Writers.
@@ -29,9 +30,14 @@ func (r *Repeater) Part(w io.Writer) {
 	}
 }
 
-func (r *Repeater) Send(p []byte) {
+func (r *Repeater) Send(m Message) {
+	m.Clients = uint16(r.Listeners())
+	buf, err := m.MarshalBinary()
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, s := range r.writers {
-		s.Write(p)
+		s.Write(buf)
 	}
 }
 

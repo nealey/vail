@@ -29,7 +29,7 @@ type bookEvent struct {
 	eventType bookEventType
 	name      string
 	w         io.Writer
-	p         []byte
+	m         Message
 }
 
 func (b Book) Join(name string, w io.Writer) {
@@ -48,11 +48,11 @@ func (b Book) Part(name string, w io.Writer) {
 	}
 }
 
-func (b Book) Send(name string, p []byte) {
+func (b Book) Send(name string, m Message) {
 	b.events <- bookEvent{
 		eventType: sendEvent,
 		name:      name,
-		p:         p,
+		m:         m,
 	}
 }
 
@@ -87,6 +87,6 @@ func (b Book) loop() {
 			log.Println("WARN: Sending to an empty channel:", event.name)
 			break
 		}
-		repeater.Send(event.p)
+		repeater.Send(event.m)
 	}
 }
