@@ -1,69 +1,57 @@
 package main
 
 import (
-	"bytes"
 	"testing"
 )
 
 func TestBook(t *testing.T) {
-	b := NewBook()
-	m := TestMessage{Message{1, 2, []uint8{3, 4}}}
+	b := Book{
+		entries:      make(map[string]*Repeater),
+		events:       make(chan bookEvent, 5),
+		makeRepeater: NewTestingRepeater,
+	}
 
-	buf1 := bytes.NewBufferString("buf1")
-	buf1Expect := bytes.NewBufferString("buf1")
-	b.Join("moo", buf1)
-	m.Clients = 1
+	c1 := NewTestingClient(t)
+	b.Join("moo", c1)
 	b.loop()
 	if len(b.entries) != 1 {
 		t.Error("Wrong number of entries")
 	}
+	c1.Expect(1)
 
 	// Send to an empty channel
-	b.Send("merf", m.Message)
+	m := Message{0, 0, []uint8{22, 33}}
+	b.Send("merf", m)
 	b.loop()
-	if buf1.String() != buf1Expect.String() {
+	if c1.Len() > 0 {
 		t.Error("Sending to empty channel sent to non-empty channel")
 	}
 
 	// Send to a non-empty channel!
-	b.Send("moo", m.Message)
+	b.Send("moo", m)
 	b.loop()
-	buf1Expect.Write(m.bytes())
-	if buf1.String() != buf1Expect.String() {
-		t.Error("Sending didn't work")
-	}
+	c1.Expect(1, 22, 33)
 
 	// Join another client
-	buf2 := bytes.NewBufferString("buf2")
-	buf2Expect := bytes.NewBufferString("buf2")
-	b.Join("moo", buf2)
-	m.Clients = 2
+	c2 := NewTestingClient(t)
+	b.Join("moo", c2)
 	b.loop()
+	c1.Expect(2)
+	c2.Expect(2)
 
 	// Send to both
-	b.Send("moo", m.Message)
+	m.Duration = append(m.Duration, 44)
+	b.Send("moo", m)
 	b.loop()
-	buf1Expect.Write(m.bytes())
-	buf2Expect.Write(m.bytes())
-	if buf1.String() != buf1Expect.String() {
-		t.Error("Send to 2-member channel busted", buf1)
-	}
-	if buf2.String() != buf2Expect.String() {
-		t.Error("Send to 2-member channel busted", buf2)
-	}
+	c1.Expect(2, 22, 33, 44)
+	c2.Expect(2, 22, 33, 44)
 
 	// Part a client
-	b.Part("moo", buf1)
+	b.Part("moo", c1)
 	b.loop()
-	m.Clients = 1
+	c2.Expect(1)
 
-	b.Send("moo", m.Message)
+	b.Send("moo", m)
 	b.loop()
-	buf2Expect.Write(m.bytes())
-	if buf1.String() != buf1Expect.String() {
-		t.Error("Parted channel but still getting messages", buf1)
-	}
-	if buf2.String() != buf2Expect.String() {
-		t.Error("Someone else parting somehow messed up sends", buf2)
-	}
+	c2.Expect(1, 22, 33, 44)
 }

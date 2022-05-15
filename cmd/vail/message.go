@@ -20,7 +20,7 @@ type Message struct {
 	Duration []uint8
 }
 
-func NewMessage(ts time.Time, durations []time.Duration) Message {
+func NewMessage(ts time.Time, durations ...time.Duration) Message {
 	msg := Message{
 		Timestamp: ts.UnixNano() / time.Millisecond.Nanoseconds(),
 		Duration:  make([]uint8, len(durations)),

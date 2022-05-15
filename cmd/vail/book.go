@@ -5,15 +5,20 @@ import (
 	"log"
 )
 
+// Book maps names to repeaters
+//
+// It ensures that names map 1-1 to repeaters.
 type Book struct {
-	entries map[string]*Repeater
-	events  chan bookEvent
+	entries      map[string]*Repeater
+	events       chan bookEvent
+	makeRepeater func() *Repeater
 }
 
 func NewBook() Book {
 	return Book{
-		entries: make(map[string]*Repeater),
-		events:  make(chan bookEvent, 5),
+		entries:      make(map[string]*Repeater),
+		events:       make(chan bookEvent, 5),
+		makeRepeater: NewRepeater,
 	}
 }
 
@@ -32,6 +37,7 @@ type bookEvent struct {
 	m         Message
 }
 
+// Join adds a writer to a named repeater
 func (b Book) Join(name string, w io.Writer) {
 	b.events <- bookEvent{
 		eventType: joinEvent,
@@ -40,6 +46,7 @@ func (b Book) Join(name string, w io.Writer) {
 	}
 }
 
+// Part removes a writer from a named repeater
 func (b Book) Part(name string, w io.Writer) {
 	b.events <- bookEvent{
 		eventType: partEvent,
@@ -48,6 +55,7 @@ func (b Book) Part(name string, w io.Writer) {
 	}
 }
 
+// Send transmits a message to the named repeater
 func (b Book) Send(name string, m Message) {
 	b.events <- bookEvent{
 		eventType: sendEvent,
@@ -56,6 +64,7 @@ func (b Book) Send(name string, m Message) {
 	}
 }
 
+// Run is the endless run loop
 func (b Book) Run() {
 	for {
 		b.loop()
@@ -69,7 +78,7 @@ func (b Book) loop() {
 	switch event.eventType {
 	case joinEvent:
 		if !ok {
-			repeater = NewRepeater()
+			repeater = b.makeRepeater()
 			b.entries[event.name] = repeater
 		}
 		repeater.Join(event.w)

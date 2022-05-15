@@ -40,11 +40,9 @@ func TestMessageStruct(t *testing.T) {
 			0,
 			m.Timestamp*time.Millisecond.Nanoseconds(),
 		),
-		[]time.Duration{
-			time.Duration(m.Duration[0]) * time.Millisecond,
-			time.Duration(m.Duration[1]) * time.Millisecond,
-			time.Duration(m.Duration[2]) * time.Millisecond,
-		},
+		time.Duration(m.Duration[0])*time.Millisecond,
+		time.Duration(m.Duration[1])*time.Millisecond,
+		time.Duration(m.Duration[2])*time.Millisecond,
 	)
 	if !m.Equal(m3) {
 		t.Error("NewMessage didn't work", m, m3)

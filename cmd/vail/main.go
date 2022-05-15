@@ -12,6 +12,21 @@ import (
 
 var book Book
 
+// Clock defines an interface for getting the current time.
+//
+// We use this in testing to provide a fixed value for the current time, so we
+// can still compare clocks.
+type Clock interface {
+	Now() time.Time
+}
+
+// WallClock provides the actual time
+type WallClock struct{}
+
+func (WallClock) Now() time.Time {
+	return time.Now()
+}
+
 type Client struct {
 	repeaterName string
 }
@@ -21,9 +36,6 @@ func (c Client) Handle(ws *websocket.Conn) {
 	ws.MaxPayloadBytes = 50
 	book.Join(c.repeaterName, ws)
 	defer book.Part(c.repeaterName, ws)
-
-	// Tell the client what time we think it is
-	fmt.Fprintf(ws, "[%d]", time.Now().UnixNano()/time.Millisecond.Nanoseconds())
 
 	for {
 		buf := make([]byte, ws.MaxPayloadBytes)
