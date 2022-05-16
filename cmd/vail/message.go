@@ -3,8 +3,25 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"time"
 )
+
+// MessageSender can send Messages
+type MessageSender interface {
+	Send(m Message) error
+}
+
+// MessageReceiver can receive Messages
+type MessageReceiver interface {
+	Receive() (Message, error)
+}
+
+// MessageSocket can send and receive Messages
+type MessageSocket interface {
+	MessageSender
+	MessageReceiver
+}
 
 // VailMessage is a single Vail message.
 type Message struct {
@@ -67,6 +84,24 @@ func (m *Message) UnmarshalBinary(data []byte) error {
 		return err
 	}
 	return nil
+}
+
+func (m Message) MarshalJSON() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	fmt.Fprint(buf, "{")
+	fmt.Fprintf(buf, "\"Timestamp\":%d,", m.Timestamp)
+	fmt.Fprintf(buf, "\"Clients\":%d,", m.Clients)
+	fmt.Fprint(buf, "\"Duration\":[")
+	for i := 0; i < len(m.Duration); i++ {
+		fmt.Fprint(buf, m.Duration[i])
+		if i <= len(m.Duration)-1 {
+			fmt.Fprint(buf, ",")
+		}
+	}
+	fmt.Fprint(buf)
+	fmt.Fprint(buf, "]")
+	fmt.Fprint(buf, "}")
+	return buf.Bytes(), nil
 }
 
 func (m Message) Equal(m2 Message) bool {

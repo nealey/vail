@@ -53,7 +53,7 @@ class VailClient {
 			e.addEventListener("click", e => this.maximize(e))
 		}
 		for (let e of document.querySelectorAll("#ck")) {
-			e.addEventListener("click", e => this.test())
+			e.addEventListener("click", e => this.check())
 		}
 		for (let e of document.querySelectorAll("#reset")) {
 			e.addEventListener("click", e => this.reset())
@@ -416,7 +416,7 @@ class VailClient {
 	/**
 	  * Send "CK" to server, and don't squelch the echo
 	  */
-	 test() {
+	 check() {
 		let when = Date.now()
 		let dit = this.ditDuration
 		let dah = dit * 3

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"log"
 )
 
@@ -33,25 +32,25 @@ const (
 type bookEvent struct {
 	eventType bookEventType
 	name      string
-	w         io.Writer
+	sender    MessageSender
 	m         Message
 }
 
 // Join adds a writer to a named repeater
-func (b Book) Join(name string, w io.Writer) {
+func (b Book) Join(name string, sender MessageSender) {
 	b.events <- bookEvent{
 		eventType: joinEvent,
 		name:      name,
-		w:         w,
+		sender:    sender,
 	}
 }
 
 // Part removes a writer from a named repeater
-func (b Book) Part(name string, w io.Writer) {
+func (b Book) Part(name string, sender MessageSender) {
 	b.events <- bookEvent{
 		eventType: partEvent,
 		name:      name,
-		w:         w,
+		sender:    sender,
 	}
 }
 
@@ -81,13 +80,13 @@ func (b Book) loop() {
 			repeater = b.makeRepeater()
 			b.entries[event.name] = repeater
 		}
-		repeater.Join(event.w)
+		repeater.Join(event.sender)
 	case partEvent:
 		if !ok {
 			log.Println("WARN: Parting an empty channel:", event.name)
 			break
 		}
-		repeater.Part(event.w)
+		repeater.Part(event.sender)
 		if repeater.Listeners() == 0 {
 			delete(b.entries, event.name)
 		}

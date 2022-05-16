@@ -1,38 +1,36 @@
 package main
 
 import (
-	"io"
-	"log"
 	"time"
 )
 
-// A Repeater is just a list of Writers.
+// A Repeater is just a list of senders.
 type Repeater struct {
 	clock   Clock
-	writers []io.Writer
+	senders []MessageSender
 }
 
 // NewRepeater returns a newly-created repeater
 func NewRepeater() *Repeater {
 	return &Repeater{
 		clock:   WallClock{},
-		writers: make([]io.Writer, 0, 20),
+		senders: make([]MessageSender, 0, 20),
 	}
 }
 
 // Join joins a writer to this repeater
-func (r *Repeater) Join(w io.Writer) {
-	r.writers = append(r.writers, w)
+func (r *Repeater) Join(sender MessageSender) {
+	r.senders = append(r.senders, sender)
 	r.SendMessage()
 }
 
 // Part removes a writer from this repeater
-func (r *Repeater) Part(w io.Writer) {
-	for i, s := range r.writers {
-		if s == w {
-			nsubs := len(r.writers)
-			r.writers[i] = r.writers[nsubs-1]
-			r.writers = r.writers[:nsubs-1]
+func (r *Repeater) Part(sender MessageSender) {
+	for i, s := range r.senders {
+		if s == sender {
+			nsubs := len(r.senders)
+			r.senders[i] = r.senders[nsubs-1]
+			r.senders = r.senders[:nsubs-1]
 		}
 	}
 	r.SendMessage()
@@ -41,12 +39,8 @@ func (r *Repeater) Part(w io.Writer) {
 // Send send a message to all connected clients
 func (r *Repeater) Send(m Message) {
 	m.Clients = uint16(r.Listeners())
-	buf, err := m.MarshalBinary()
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, s := range r.writers {
-		s.Write(buf)
+	for _, s := range r.senders {
+		s.Send(m)
 	}
 }
 
@@ -58,5 +52,5 @@ func (r *Repeater) SendMessage(durations ...time.Duration) {
 
 // Listeners returns the number of connected clients
 func (r *Repeater) Listeners() int {
-	return len(r.writers)
+	return len(r.senders)
 }

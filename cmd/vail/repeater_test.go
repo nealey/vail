@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"io"
 	"testing"
 	"time"
 )
@@ -14,35 +12,46 @@ func (f FakeClock) Now() time.Time {
 }
 
 type TestingClient struct {
-	bytes.Buffer
-	expected bytes.Buffer
-	repeater *Repeater
+	buf      []Message
+	expected []Message
 	t        *testing.T
 }
 
 func NewTestingClient(t *testing.T) *TestingClient {
 	return &TestingClient{
-		Buffer:   bytes.Buffer{},
-		expected: bytes.Buffer{},
-		t:        t,
+		t: t,
 	}
+}
+
+func (tc *TestingClient) Send(m Message) error {
+	tc.buf = append(tc.buf, m)
+	return nil
+}
+
+func (tc *TestingClient) Len() int {
+	return len(tc.buf)
 }
 
 func (tc *TestingClient) Expect(clients uint16, payload ...uint8) {
 	m := Message{0, clients, payload}
-	buf, _ := m.MarshalBinary()
-	tc.expected.Write(buf)
-	if tc.String() != tc.expected.String() {
-		tc.t.Errorf("Client buffer mismatch. Wanted %#v, got %#v", tc.expected.String(), tc.String())
+	tc.expected = append(tc.expected, m)
+	if len(tc.buf) != len(tc.expected) {
+		tc.t.Errorf("Client buffer mismatch. Wanted length %d, got length %d", len(tc.expected), len(tc.buf))
 	}
-	tc.Reset()
-	tc.expected.Reset()
+	for i := 0; i < len(tc.buf); i++ {
+		if !tc.buf[i].Equal(tc.expected[i]) {
+			tc.t.Errorf("Client buffer mismatch at entry %d. Wanted %#v, got %#v", i, tc.expected[i], tc.buf[i])
+		}
+	}
+
+	tc.buf = []Message{}
+	tc.expected = []Message{}
 }
 
 func NewTestingRepeater() *Repeater {
 	return &Repeater{
 		clock:   FakeClock{},
-		writers: make([]io.Writer, 0, 2),
+		senders: make([]MessageSender, 0, 2),
 	}
 }
 

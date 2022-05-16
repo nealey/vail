@@ -27,31 +27,41 @@ func (WallClock) Now() time.Time {
 	return time.Now()
 }
 
+// VailWebSocketConnection reads and writes Message structs
+type VailWebSocketConnection struct {
+	*websocket.Conn
+}
+
+func (c *VailWebSocketConnection) Receive() (Message, error) {
+	var m Message
+	err := websocket.JSON.Receive(c.Conn, &m)
+	return m, err
+}
+
+func (c *VailWebSocketConnection) Send(m Message) error {
+	return websocket.JSON.Send(c.Conn, m)
+}
+
 type Client struct {
 	repeaterName string
 }
 
 func (c Client) Handle(ws *websocket.Conn) {
+	sock := &VailWebSocketConnection{ws}
 	nowMilli := time.Now().UnixMilli()
 	ws.MaxPayloadBytes = 50
-	book.Join(c.repeaterName, ws)
-	defer book.Part(c.repeaterName, ws)
+	book.Join(c.repeaterName, sock)
+	defer book.Part(c.repeaterName, sock)
 
 	for {
-		buf := make([]byte, ws.MaxPayloadBytes)
-
-		if n, err := ws.Read(buf); err != nil {
+		m, err := sock.Receive()
+		if err != nil {
 			break
-		} else {
-			buf = buf[:n]
 		}
 
-		// Decode into a Message
-		var m Message
-		if err := m.UnmarshalBinary(buf); err != nil {
-			fmt.Fprintln(ws, err)
-			ws.Close()
-			return
+		// If it's empty, skip it
+		if len(m.Duration) == 0 {
+			continue
 		}
 
 		// If it's wildly out of time, reject it
