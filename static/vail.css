@@ -16,7 +16,7 @@
 	-webkit-user-select: none; /* 2022-04-26 Safari still needs this */  
 }
 
-#recv.rx {
+.recv-lamp.rx {
 	background-color: orange;
 }
 

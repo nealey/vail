@@ -27,7 +27,9 @@ const Second = 1000 * Millisecond
  const OscillatorRampDuration = 5*Millisecond
 
 console.warn("Chrome will now complain about an AudioContext not being allowed to start. This is normal, and there is no way to make Chrome stop complaining about this.")
-const BuzzerAudioContext = new AudioContext()
+const BuzzerAudioContext = new AudioContext({
+	latencyHint: 0,
+})
 /**
  * Compute the special "Audio Context" time
  * 
@@ -40,13 +42,6 @@ function BuzzerAudioContextTime(when) {
     if (!when) return 0
     let acOffset = Date.now() - (BuzzerAudioContext.currentTime * Second)
     return Math.max(when - acOffset, 0) / Second
-}
-
-/**
- * Block until the audio system is able to start making noise.
- */
-async function Ready() {
-    await BuzzerAudioContext.resume()
 }
 
 class Oscillator {
@@ -155,7 +150,7 @@ class Buzzer {
 	  * @param {boolean} tx Transmit or receive tone
 	  * @param {number} when Time to begin, in ms (0=now)
 	  */
-	Buzz(tx, when=0) {
+	async Buzz(tx, when=0) {
 		console.log("Buzz", tx, when)
 	}
 
@@ -165,7 +160,7 @@ class Buzzer {
 	  * @param {boolean} tx Transmit or receive tone
 	  * @param {number} when Time to end, in ms (0=now)
 	  */
-	Silence(tx, when=0) {
+	async Silence(tx, when=0) {
 		console.log("Silence", tx, when)
 	}
 
@@ -210,6 +205,10 @@ class ToneBuzzer extends AudioBuzzer {
 
 		this.rxOsc = new Oscillator(lowFreq, txGain)
 		this.txOsc = new Oscillator(highFreq, txGain)
+
+		// Keep the speaker going always. This keeps the browser from "swapping out" our audio context.
+		this.bgOsc = new Oscillator(1, 0.001)
+		this.bgOsc.SoundAt()
 	}
 
 	/**
@@ -218,7 +217,7 @@ class ToneBuzzer extends AudioBuzzer {
 	  * @param {boolean} tx Transmit or receive tone
 	  * @param {number} when Time to begin, in ms (0=now)
 	  */
-	Buzz(tx, when = null) {
+	async Buzz(tx, when = null) {
         let osc = tx?this.txOsc:this.rxOsc
         osc.SoundAt(when)
 	}
@@ -229,7 +228,7 @@ class ToneBuzzer extends AudioBuzzer {
 	  * @param {boolean} tx Transmit or receive tone
 	  * @param {number} when Time to end, in ms (0=now)
 	  */
-	Silence(tx, when = null) {
+	async Silence(tx, when = null) {
         let osc = tx?this.txOsc:this.rxOsc
         osc.HushAt(when)
 	}
@@ -249,7 +248,7 @@ class TelegraphBuzzer extends AudioBuzzer{
         this.openSample = new Sample("telegraph-b.mp3")
 	}
 
-	Buzz(tx, when=0) {
+	async Buzz(tx, when=0) {
         if (tx) {
             this.hum.SoundAt(when)
         } else {
@@ -257,7 +256,7 @@ class TelegraphBuzzer extends AudioBuzzer{
         }
 	}
 
-	Silence(tx ,when=0) {
+	async Silence(tx ,when=0) {
         if (tx) {
             this.hum.HushAt(when)
         } else {
@@ -266,29 +265,174 @@ class TelegraphBuzzer extends AudioBuzzer{
 	}
 }
 
-class Lamp extends Buzzer {
-	constructor(element) {
+class LampBuzzer extends Buzzer {
+	constructor() {
 		super()
-		this.element = element
+		this.elements = document.querySelectorAll(".recv-lamp")
 	}
 
-	Buzz(tx, when=0) {
+	async Buzz(tx, when=0) {
 		if (tx) return
 
 		let ms = when?when - Date.now():0
 		setTimeout(
 			() =>{
-				this.element.classList.add("rx")
+				for (let e of this.elements) {
+					e.classList.add("rx")
+				}
 			},
 			ms,
 		)
 	}
-	Silence(tx, when=0) {
+	async Silence(tx, when=0) {
 		if (tx) return
 
 		let ms = when?when - Date.now():0
-		setTimeout(() => this.element.classList.remove("rx"), ms)
+		setTimeout(
+			() => {
+				for (let e of this.elements) {
+					e.classList.remove("rx")
+				}
+			},
+			ms,
+		)
 	}
 }
 
-export {Ready, ToneBuzzer, TelegraphBuzzer, Lamp}
+class MIDIBuzzer extends Buzzer {
+	constructor() {
+		super()
+		this.SetNote(69) // A4; 440Hz
+
+		this.midiAccess = {outputs: []} // stub while we wait for async stuff
+		if (navigator.requestMIDIAccess) {
+			this.midiInit()
+		}
+	}
+
+	async midiInit(access) {
+		this.outputs = new Set()
+		this.midiAccess = await navigator.requestMIDIAccess()
+		this.midiAccess.addEventListener("statechange", e => this.midiStateChange(e))
+		this.midiStateChange()
+	}
+
+	midiStateChange(event) {
+		let newOutputs = new Set()
+		for (let output of this.midiAccess.outputs.values()) {
+			console.log(output.state)
+			if ((output.state != "connected") || (output.name.includes("Through"))) {
+				continue
+			}
+			newOutputs.add(output)
+		}
+		this.outputs = newOutputs
+	}
+
+	sendAt(when, message) {
+		let ms = when?when - Date.now():0
+		setTimeout(
+			() => {
+				for (let output of this.outputs) {
+					output.send(message)
+				}
+			},
+			ms,
+		)
+	}
+
+	async Buzz(tx, when=0) {
+		if (tx) {
+			return
+		}
+
+		this.sendAt(when, [0x90, this.note, 0x7f])
+	}
+
+	async Silence(tx, when=0) {
+		if (tx) {
+			return
+		}
+
+		this.sendAt(when, [0x80, this.note, 0x7f])
+	}
+
+	/*
+	* Set note to transmit
+	*/
+	SetNote(tx, note) {
+		if (tx) {
+			return
+		}
+		this.note = note
+	}
+}
+
+/**
+ * Block until the audio system is able to start making noise.
+ */
+async function AudioReady() {
+    await BuzzerAudioContext.resume()
+}
+
+class Collection {
+	constructor() {
+		this.tone = new ToneBuzzer()
+		this.telegraph = new TelegraphBuzzer()
+		this.lamp = new LampBuzzer()
+		this.midi = new MIDIBuzzer()
+		this.collection = new Set([this.tone, this.lamp, this.midi])
+	}
+
+	/**
+	 * Set the audio output type.
+	 * 
+	 * @param {string} audioType "telegraph" for telegraph mode, otherwise tone mode
+	 */
+	SetAudioType(audioType) {
+		this.collection.delete(this.telegraph)
+		this.collection.delete(this.tone)
+		if (audioType == "telegraph") {
+			this.collection.add(this.telegraph)
+		} else {
+			this.collection.add(this.tone)
+		}
+	}
+
+	/**
+	 * Buzz all outputs.
+	 * 
+	 * @param tx True if transmitting
+	 */
+	Buzz(tx=False) {
+		for (let b of this.collection) {
+			b.Buzz(tx)
+		}
+	}
+
+	/**
+	 * Silence all outputs.
+	 * 
+	 * @param tx True if transmitting
+	 */
+	Silence(tx=False) {
+		for (let b of this.collection) {
+			b.Silence(tx)
+		}
+	}
+
+	/**
+	 * Buzz for a certain duration at a certain time
+	 * 
+	 * @param tx True if transmitting
+	 * @param when Time to begin
+	 * @param duration How long to buzz
+	 */
+	BuzzDuration(tx, when, duration) {
+		for (let b of this.collection) {
+			b.BuzzDuration(tx, when, duration)
+		}
+	}
+}
+
+export {AudioReady, Collection}
