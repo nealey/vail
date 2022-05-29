@@ -8,7 +8,7 @@
 		<!-- Bulma CSS -->
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css">
-		
+
 		<!-- Vail stuff -->
 		<link rel="manifest" href="manifest.json">
 		<link rel="icon" href="vail.png" sizes="256x256" type="image/png">
@@ -21,7 +21,7 @@
 		<nav class="navbar is-dark">
 			<div class="navbar-brand">
 				<a class="navbar-item">
-					<img class="" src="vail.svg" alt=""> 
+					<img class="" src="vail.svg" alt="">
 					<div class="block">Vail</div>
 				</a>
 			</div>
@@ -34,39 +34,13 @@
 		</nav>
 
 		<section class="section">
-			<div class="columns">
+			<div class="columns is-multiline">
 				<div class="column">
 					<div class="box" id="transciever">
-						<h1 class="title">Repeater</h1>
 						<div class="level">
 							<div class="level-left">
 								<div class="level-item">
-									<input class="input" type="text" id="repeater" list="repeater-list">
-									<datalist id="repeater-list"></datalist>
-									<div class="dropdown is-right is-hoverable">
-										<div class="dropdown-trigger">
-											<button class="button" aria-haspopup="true" aria-controls="stock-repeaters">
-												<span class="icon is-small">
-													<i class="mdi mdi-chevron-down" aria-hidden="true"></i>
-												</span>
-											</button>
-										</div>
-										<div class="dropdown-menu" id="stock-repeaters" role="menu">
-											<div class="dropdown-content">
-												<a class="dropdown-item" data-value="">General</a>
-												<a class="dropdown-item" data-value="1">Channel 1</a>
-												<a class="dropdown-item" data-value="2">Channel 2</a>
-												<a class="dropdown-item" data-value="3">Channel 3</a>
-												<hr class="dropdown-divider">
-												<a class="dropdown-item" data-value="Null">Null (no transmit)</a>
-												<a class="dropdown-item">Echo</a>
-												<a class="dropdown-item">Fortunes</a>
-												<a class="dropdown-item">Fortunes: Pauses ×2</a>
-												<a class="dropdown-item">Fortunes: Pauses ×4</a>
-												<a class="dropdown-item">Fortunes: Pauses ×8</a>
-											</div>
-										</div>
-									</div>
+									<h1 class="title">Repeater</h1>
 								</div>
 							</div>
 							<div class="level-right">
@@ -80,6 +54,36 @@
 							</div>
 						</div>
 
+						<div class="block is-flex">
+							<input class="input" type="text" id="repeater" list="repeater-list">
+							<datalist id="repeater-list"></datalist>
+							<div class="dropdown is-right is-hoverable">
+								<div class="dropdown-trigger">
+									<button class="button" aria-haspopup="true" aria-controls="stock-repeaters">
+										<span class="icon is-small">
+											<i class="mdi mdi-chevron-down" aria-hidden="true"></i>
+										</span>
+									</button>
+								</div>
+								<div class="dropdown-menu" id="stock-repeaters" role="menu">
+									<div class="dropdown-content">
+										<a class="dropdown-item" data-value="">General</a>
+										<a class="dropdown-item" data-value="1">Channel 1</a>
+										<a class="dropdown-item" data-value="2">Channel 2</a>
+										<a class="dropdown-item" data-value="3">Channel 3</a>
+										<hr class="dropdown-divider">
+										<a class="dropdown-item" data-value="Null">Null (no transmit)</a>
+										<a class="dropdown-item">Echo</a>
+										<a class="dropdown-item">Fortunes</a>
+										<a class="dropdown-item">Fortunes: Pauses ×2</a>
+										<a class="dropdown-item">Fortunes: Pauses ×4</a>
+										<a class="dropdown-item">Fortunes: Pauses ×8</a>
+									</div>
+								</div>
+							</div>
+						</div>
+
+
 						<div class="block">
 							<div class="" id="charts">
 								<canvas class="chart" id="rxChart" data-color="orange"></canvas>
@@ -88,7 +92,7 @@
 								<canvas class="chart" id="key1Chart" data-color="purple"></canvas>
 							</div>
 						</div>
-		
+
 						<div class="block">
 							<table class="wide">
 								<tr>
@@ -165,7 +169,20 @@
 								</div>
 							</div>
 						</div>
-	
+
+					</div>
+				</div>
+
+				<div class="column">
+					<div class="box">
+						<h2 class="title">Notes</h2>
+						<textarea class="textarea" placeholder="Enter your own notes here" id="notes"></textarea>
+						<nav class="breadcrumb has-bullet-separator">
+							<ul>
+								<li><a href="https://discord.gg/GBzj8cBat7" target="_blank" title="Text/voice chat on Discord"><i class="mdi mdi-discord"></i></a></li>
+								<li><a href="https://github.com/nealey/vail/wiki" target="_blank" title="Vail Wiki">Help</a></li>
+							</ul>
+						</nav>
 					</div>
 				</div>
 
@@ -198,7 +215,7 @@
 							<div class="field-label">
 								<label class="label">
 									<output for="rx-delay"></output>s
-									rx delay									
+									rx delay
 								</label>
 							</div>
 							<div class="field-body">
@@ -241,17 +258,6 @@
 				</div>
 			</div>
 		</section>
-		
-		<div class="box">
-			<h2 class="title">Notes</h2>
-			<textarea class="textarea" placeholder="Enter your own notes here" id="notes"></textarea>
-			<nav class="breadcrumb has-bullet-separator">
-				<ul>
-					<li><a href="https://discord.gg/GBzj8cBat7" target="_blank" title="Text/voice chat on Discord"><i class="mdi mdi-discord"></i></a></li>
-					<li><a href="https://github.com/nealey/vail/wiki" target="_blank" title="Vail Wiki">Help</a></li>
-				</ul>
-			</nav>
-		</div>
 
 		<div class="columns is-centered bottom">
 			<div class="column is-half" id="errors"></div>
