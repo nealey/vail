@@ -5,9 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
-	"golang.org/x/net/websocket"
+	"nhooyr.io/websocket"
 )
 
 var book Book
@@ -20,7 +21,7 @@ type Clock interface {
 	Now() time.Time
 }
 
-// WallClock provides the actual time
+// WallClock is a Clock which provides the actual time
 type WallClock struct{}
 
 func (WallClock) Now() time.Time {
@@ -30,24 +31,47 @@ func (WallClock) Now() time.Time {
 // VailWebSocketConnection reads and writes Message structs
 type VailWebSocketConnection struct {
 	*websocket.Conn
+	usingJSON bool
 }
 
 func (c *VailWebSocketConnection) Receive() (Message, error) {
 	var m Message
-	err := websocket.JSON.Receive(c.Conn, &m)
+	var err error
+	if c.usingJSON {
+		err = websocket.JSON.Receive(c.Conn, &m)
+	} else {
+		buf := make([]byte, 64)
+		if err := websocket.Message.Receive(c.Conn, &buf); err != nil {
+			return m, err
+		}
+		if err := m.UnmarshalBinary(buf)
+	}
 	return m, err
 }
 
 func (c *VailWebSocketConnection) Send(m Message) error {
-	return websocket.JSON.Send(c.Conn, m)
+	if c.usingJSON {
+		return websocket.JSON.Send(c.Conn, m)
+	} else {
+		return websocket.Message.Send(c.Conn, m)
+	}
+}
+
+func (c *VailWebSocketConnection) Error(err error) {
+	msg := fmt.Sprintf("Error: %#v", err)
+	websocket.JSON.Send(c.Conn, msg)
 }
 
 type Client struct {
 	repeaterName string
+	usingJSON    bool
 }
 
 func (c Client) Handle(ws *websocket.Conn) {
-	sock := &VailWebSocketConnection{ws}
+	sock := &VailWebSocketConnection{
+		Conn:      ws,
+		usingJSON: c.usingJSON,
+	}
 	nowMilli := time.Now().UnixMilli()
 	ws.MaxPayloadBytes = 50
 	book.Join(c.repeaterName, sock)
@@ -56,6 +80,7 @@ func (c Client) Handle(ws *websocket.Conn) {
 	for {
 		m, err := sock.Receive()
 		if err != nil {
+			sock.Error(err)
 			break
 		}
 
@@ -82,6 +107,10 @@ func (c Client) Handle(ws *websocket.Conn) {
 func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	c := Client{
 		repeaterName: r.FormValue("repeater"),
+	}
+	accept := r.Header.Get("Accept")
+	if strings.Contains(accept, "json") {
+		c.usingJSON = true
 	}
 
 	// This API is confusing as hell.

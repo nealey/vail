@@ -72,6 +72,10 @@ export class Vail {
             clockOffset: this.clockOffset,
             clients: msg.Clients,
         }
+        if (typeof(msg) == "string") {
+            console.error(msg)
+            return
+        }
 
 		// XXX: Why is this happening?
 		if (msg.Timestamp == 0) {
