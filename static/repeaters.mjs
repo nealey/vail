@@ -30,6 +30,7 @@ export class Vail {
         this.lagDurations = []
         this.sent = []
         this.wantConnected = true
+        this.connected = false
         
 		this.wsUrl = new URL("chat", window.location)
 		this.wsUrl.protocol = this.wsUrl.protocol.replace("http", "ws")
@@ -43,10 +44,18 @@ export class Vail {
         if (!this.wantConnected) {
             return
         }
+        this.rx(0, 0, {connected: false})
         console.info("Attempting to reconnect", this.wsUrl.href)
         this.clockOffset = 0
 		this.socket = new WebSocket(this.wsUrl, ["json.vail.woozle.org"])
 		this.socket.addEventListener("message", e => this.wsMessage(e))
+        this.socket.addEventListener(
+            "open",
+            msg => {
+                this.connected = true
+                this.rx(0, 0, {connected: true})
+            }
+        )
 		this.socket.addEventListener(
             "close",
             msg => {
@@ -71,6 +80,7 @@ export class Vail {
             averageLag: this.lagDurations.reduce((a,b) => (a+b), 0) / this.lagDurations.length,
             clockOffset: this.clockOffset,
             clients: msg.Clients,
+            connected: this.connected,
         }
         console.log(msg)
         if (typeof(msg) == "string") {
@@ -152,13 +162,14 @@ export class Vail {
 }
 
 export class Null {
-    constructor(rx) {
+    constructor(rx, interval=3*Second) {
         this.rx = rx
-        this.interval = setInterval(() => this.pulse(), 3 * Second)
+        this.interval = setInterval(() => this.pulse(), interval)
+        this.pulse()
     }
 
     pulse() {
-        this.rx(0, 0, {note: "local"})
+        this.rx(0, 0, {note: "local", connected: false})
     }
 
     Transmit(time, duration, squelch=true) {
@@ -169,51 +180,41 @@ export class Null {
     }
 }
 
-export class Echo {
+export class Echo extends Null {
     constructor(rx, delay=0) {
-        this.rx = rx
+        super(rx)
         this.delay = delay
-        this.Transmit(0, 0)
     }
 
     Transmit(time, duration, squelch=true) {
         this.rx(time + this.delay, duration, {note: "local"})
     }
-
-    Close() {
-    }
 }
 
-export class Fortune {
+export class Fortune extends Null {
     /**
      * 
      * @param rx Receive callback
      * @param {Keyer} keyer Keyer object
      */
     constructor(rx, keyer) {
-        this.rx = rx
+        super(rx, 1*Minute)
         this.keyer = keyer
-
-        this.interval = setInterval(() => this.pulse(), 1 * Minute)
         this.pulse()
     }
 
     pulse() {
-        this.rx(0, 0, {note: "local"})
-        if (this.keyer.Busy()) {
+        super.pulse()
+        if (!this.keyer || this.keyer.Busy()) {
             return
         }
 
         let fortune = GetFortune()
-        this.keyer.EnqueueAsciiString(`${fortune}\x04    `)
-    }
-
-    Transmit(time, duration, squelch=true) {
-        // Do nothing.
+        this.keyer.EnqueueAsciiString(`${fortune} \x04    `)
     }
 
     Close() {
         this.keyer.Flush()
-        clearInterval(this.interval)
+        super.Close()
     }
 }

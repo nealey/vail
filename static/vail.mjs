@@ -375,6 +375,9 @@ class VailClient {
 		let longestRxDuration = this.rxDurations.reduce((a,b) => Math.max(a,b))
 		let suggestedDelay = ((averageLag + longestRxDuration) * 1.2).toFixed(0)
 
+		if (stats.connected !== undefined) {
+			this.outputs.SetConnected(stats.connected)
+		}
 		this.updateReading("#note", stats.note || "☁")
 		this.updateReading("#lag-value", averageLag)
 		this.updateReading("#longest-rx-value", longestRxDuration)

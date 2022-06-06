@@ -16,7 +16,15 @@
 	-webkit-user-select: none; /* 2022-04-26 Safari still needs this */  
 }
 
-.recv-lamp.rx {
+.tag.recv-lamp {
+	background-color: #444;
+	color: white;
+}
+.tag.recv-lamp.connected {
+	background-color: #fec;
+}
+.tag.recv-lamp.rx,
+.tag.recv-lamp.connected.rx {
 	background-color: orange;
 }
 

@@ -137,6 +137,10 @@ class Sample {
  * A (mostly) virtual class defining a buzzer.
  */
 class Buzzer {
+	constructor() {
+		this.connected = true
+	}
+
 	/**
 	  * Signal an error
 	  */
@@ -174,6 +178,15 @@ class Buzzer {
 	 BuzzDuration(tx, when, duration) {
 		this.Buzz(tx, when)
 		this.Silence(tx, when + duration)
+	}
+
+	/**
+	 * Set the "connectedness" indicator.
+	 * 
+	 * @param {boolean} connected True if connected
+	 */
+	SetConnected(connected) {
+		this.connected = connected
 	}
 }
 
@@ -297,6 +310,17 @@ class LampBuzzer extends Buzzer {
 			ms,
 		)
 	}
+
+	SetConnected(connected) {
+		console.log(connected)
+		for (let e of this.elements) {
+			if (connected) {
+				e.classList.add("connected")
+			} else {
+				e.classList.remove("connected")
+			}
+		}
+	}
 }
 
 class MIDIBuzzer extends Buzzer {
@@ -415,7 +439,7 @@ class Collection {
 	 * 
 	 * @param tx True if transmitting
 	 */
-	Silence(tx=False) {
+	Silence(tx=false) {
 		for (let b of this.collection) {
 			b.Silence(tx)
 		}
@@ -431,6 +455,19 @@ class Collection {
 	BuzzDuration(tx, when, duration) {
 		for (let b of this.collection) {
 			b.BuzzDuration(tx, when, duration)
+		}
+	}
+
+	/**
+	 * Update the "connected" status display.
+	 * 
+	 * For example, turn the receive light to black if the repeater is not connected.
+	 * 
+	 * @param {boolean} connected True if we are "connected"
+	 */
+	SetConnected(connected) {
+		for (let b of this.collection) {
+			b.SetConnected(connected)
 		}
 	}
 }
