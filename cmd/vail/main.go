@@ -126,11 +126,11 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// If it's wildly out of time, reject it
-		timeDelta := (time.Now().UnixMilli() - m.Timestamp)
+		timeDelta := time.Duration(time.Now().UnixMilli()-m.Timestamp) * time.Millisecond
 		if timeDelta < 0 {
 			timeDelta = -timeDelta
 		}
-		if timeDelta > 9999 {
+		if timeDelta > 2*time.Second {
 			log.Println(err)
 			ws.Close(websocket.StatusInvalidFramePayloadData, "Your clock is off by too much")
 			break
