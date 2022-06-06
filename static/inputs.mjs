@@ -53,9 +53,7 @@ export class Keyboard extends Input{
 		// Listen for keystrokes
 		document.addEventListener("keydown", e => this.keyboard(e))
 		document.addEventListener("keyup", e => this.keyboard(e))
-
-		// VBand: the keyboard input needs to know whether vband's "left" should be dit or straight
-		this.iambic = false
+		window.addEventListener("blur", e => this.loseFocus(e))
 	}
 
 	keyboard(event) {
@@ -101,6 +99,21 @@ export class Keyboard extends Input{
 				this.keyer.Straight(down)
 				this.straightDown = down
 			}
+		}
+	}
+
+	loseFocus(event) {
+		if (this.ditDown) {
+			this.keyer.Key(0, false)
+			this.ditDown = false
+		}
+		if (this.dahDown) {
+			this.keyer.Key(1, false)
+			this.dahDown = false
+		}
+		if (this.straightDown) {
+			this.keyer.key(2, false)
+			this.straightDown = false
 		}
 	}
 }
