@@ -220,8 +220,10 @@ class ToneBuzzer extends AudioBuzzer {
 		this.txOsc = new Oscillator(highFreq, txGain)
 
 		// Keep the speaker going always. This keeps the browser from "swapping out" our audio context.
-		this.bgOsc = new Oscillator(1, 0.001)
-		this.bgOsc.SoundAt()
+		if (false) {
+			this.bgOsc = new Oscillator(1, 0.001)
+			this.bgOsc.SoundAt()
+		}
 	}
 
 	/**
