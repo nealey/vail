@@ -22,10 +22,12 @@
 }
 .tag.recv-lamp.connected {
 	background-color: #fec;
+	color: black;
 }
 .tag.recv-lamp.rx,
 .tag.recv-lamp.connected.rx {
 	background-color: orange;
+	color: black;
 }
 
 input[type=range] {

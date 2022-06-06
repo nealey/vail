@@ -312,7 +312,6 @@ class LampBuzzer extends Buzzer {
 	}
 
 	SetConnected(connected) {
-		console.log(connected)
 		for (let e of this.elements) {
 			if (connected) {
 				e.classList.add("connected")
@@ -344,7 +343,6 @@ class MIDIBuzzer extends Buzzer {
 	midiStateChange(event) {
 		let newOutputs = new Set()
 		for (let output of this.midiAccess.outputs.values()) {
-			console.log(output.state)
 			if ((output.state != "connected") || (output.name.includes("Through"))) {
 				continue
 			}

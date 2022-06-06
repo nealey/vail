@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -57,7 +58,6 @@ func (c *VailWebSocketConnection) Send(m Message) error {
 	var buf []byte
 	var messageType websocket.MessageType
 
-	log.Println("Send", m)
 	if c.usingJSON {
 		messageType = websocket.MessageText
 		buf, err = json.Marshal(m)
@@ -65,16 +65,17 @@ func (c *VailWebSocketConnection) Send(m Message) error {
 		messageType = websocket.MessageBinary
 		buf, err = m.MarshalBinary()
 	}
-	log.Println(buf, err)
 	if err != nil {
 		return err
 	}
 
-	log.Println("Sending")
 	return c.Write(context.Background(), messageType, buf)
 }
 
 func ChatHandler(w http.ResponseWriter, r *http.Request) {
+	forwardedFor := r.Header.Get("X-Forwarded-For")
+	client := fmt.Sprintf("<%s|%s>", forwardedFor, r.RemoteAddr)
+
 	// Set up websocket
 	ws, err := websocket.Accept(
 		w, r,
@@ -109,11 +110,12 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	book.Join(repeaterName, &sock)
 	defer book.Part(repeaterName, &sock)
 
+	log.Println(client, repeaterName, "connect")
+
 	for {
 		// Read a packet
 		m, err := sock.Receive()
 		if err != nil {
-			log.Println(err)
 			ws.Close(websocket.StatusInvalidFramePayloadData, err.Error())
 			break
 		}
@@ -136,6 +138,8 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 		book.Send(repeaterName, m)
 	}
+
+	log.Println(client, repeaterName, "disconnect")
 }
 
 func main() {

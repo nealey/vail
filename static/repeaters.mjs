@@ -82,7 +82,6 @@ export class Vail {
             clients: msg.Clients,
             connected: this.connected,
         }
-        console.log(msg)
         if (typeof(msg) == "string") {
             console.error(msg)
             return
