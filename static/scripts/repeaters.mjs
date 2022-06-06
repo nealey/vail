@@ -53,12 +53,13 @@ export class Vail {
             "open",
             msg => {
                 this.connected = true
-                this.rx(0, 0, {connected: true})
+                this.rx(0, 0, {connected: true, notice: "Repeater connected"})
             }
         )
 		this.socket.addEventListener(
             "close",
             msg => {
+                this.rx(0, 0, {connected: false, notice: `Repeater disconnected: ${msg.reason}`})
                 console.error("Repeater connection dropped:", msg.reason)
                 setTimeout(() => this.reopen(), 2*Second)
             }
@@ -158,26 +159,30 @@ export class Vail {
 export class Null {
     constructor(rx, interval=3*Second) {
         this.rx = rx
-        this.interval = setInterval(() => this.pulse(), interval)
-        this.pulse()
+        this.init()
     }
 
-    pulse() {
-        this.rx(0, 0, {note: "local", connected: false})
+    notice(msg) {
+        this.rx(0, 0, {connected: false, notice: msg})
     }
 
-    Transmit(time, duration, squelch=true) {
+    init() {
+        this.notice("Null repeater: nobody will hear you.")
     }
 
-    Close() {
-        clearInterval(this.interval)
-    }
+    Transmit(time, duration, squelch=true) {}
+
+    Close() {}
 }
 
 export class Echo extends Null {
     constructor(rx, delay=0) {
         super(rx)
         this.delay = delay
+    }
+
+    init () {
+        this.notice("Echo repeater: you can only hear yourself.")
     }
 
     Transmit(time, duration, squelch=true) {
@@ -189,22 +194,32 @@ export class Fortune extends Null {
     /**
      * 
      * @param rx Receive callback
-     * @param {Keyer} keyer Keyer object
+     * @param {Keyer} keyer Robokeyer
      */
     constructor(rx, keyer) {
-        super(rx, 1*Minute)
+        super(rx)
         this.keyer = keyer
-        this.pulse()
+    }
+
+    init() {
+        this.notice("Say something, and I will tell you your fortune.")
     }
 
     pulse() {
-        super.pulse()
+        this.timeout = null
         if (!this.keyer || this.keyer.Busy()) {
             return
         }
 
         let fortune = GetFortune()
         this.keyer.EnqueueAsciiString(`${fortune} \x04    `)
+    }
+
+    Transmit(time, duration, squelch=true) {
+        if (this.timeout) {
+            clearTimeout(this.timeout)
+        }
+        this.timeout = setTimeout(() => this.pulse(), 3 * Second)
     }
 
     Close() {

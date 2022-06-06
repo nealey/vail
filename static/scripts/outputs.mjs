@@ -259,8 +259,8 @@ class TelegraphBuzzer extends AudioBuzzer{
 
         this.hum = new Oscillator(140, 0.005, "sawtooth")
 
-        this.closeSample = new Sample("telegraph-a.mp3")
-        this.openSample = new Sample("telegraph-b.mp3")
+        this.closeSample = new Sample("../assets/telegraph-a.mp3")
+        this.openSample = new Sample("../assets/telegraph-b.mp3")
 	}
 
 	async Buzz(tx, when=0) {

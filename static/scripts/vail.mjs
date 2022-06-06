@@ -281,7 +281,7 @@ class VailClient {
 			number = Number(numberMatch[0])
 		}
 
-		if (name.startsWith("Fortunesf")) {
+		if (name.startsWith("Fortunes")) {
 			this.roboKeyer.SetPauseMultiplier(number || 1)
 			this.repeater = new Repeaters.Fortune(rx, this.roboKeyer)
 		} else if (name.startsWith("Echo")) {
@@ -291,8 +291,6 @@ class VailClient {
 		} else {
 			this.repeater = new Repeaters.Vail(rx, name)
 		}
-
-		toast(`Now using repeater: ${name}`)
 	}
 
 	/**
@@ -369,6 +367,10 @@ class VailClient {
 
 			this.rxDurations.unshift(duration)
 			this.rxDurations.splice(20, 2)
+		}
+
+		if (stats.notice) {
+			toast(stats.notice)
 		}
 
 		let averageLag = (stats.averageLag || 0).toFixed(2)
