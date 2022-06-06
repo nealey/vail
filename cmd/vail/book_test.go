@@ -1,59 +1,57 @@
 package main
 
 import (
-	"bytes"
 	"testing"
 )
 
 func TestBook(t *testing.T) {
-	b := NewBook()
+	b := Book{
+		entries:      make(map[string]*Repeater),
+		events:       make(chan bookEvent, 5),
+		makeRepeater: NewTestingRepeater,
+	}
 
-	buf1 := bytes.NewBufferString("buf1")
-	b.Join("moo", buf1)
+	c1 := NewTestingClient(t)
+	b.Join("moo", c1)
 	b.loop()
 	if len(b.entries) != 1 {
 		t.Error("Wrong number of entries")
 	}
+	c1.Expect(1)
 
 	// Send to an empty channel
-	b.Send("merf", []byte("goober"))
+	m := Message{0, 0, []uint16{22, 33}}
+	b.Send("merf", m)
 	b.loop()
-	if buf1.String() != "buf1" {
+	if c1.Len() > 0 {
 		t.Error("Sending to empty channel sent to non-empty channel")
 	}
 
 	// Send to a non-empty channel!
-	b.Send("moo", []byte("goober"))
+	b.Send("moo", m)
 	b.loop()
-	if buf1.String() != "buf1goober" {
-		t.Error("Sending didn't work")
-	}
+	c1.Expect(1, 22, 33)
 
 	// Join another client
-	buf2 := bytes.NewBufferString("buf2")
-	b.Join("moo", buf2)
+	c2 := NewTestingClient(t)
+	b.Join("moo", c2)
 	b.loop()
+	c1.Expect(2)
+	c2.Expect(2)
 
 	// Send to both
-	b.Send("moo", []byte("snerk"))
+	m.Duration = append(m.Duration, 44)
+	b.Send("moo", m)
 	b.loop()
-	if buf1.String() != "buf1goobersnerk" {
-		t.Error("Send to 2-member channel busted", buf1)
-	}
-	if buf2.String() != "buf2snerk" {
-		t.Error("Send to 2-member channel busted", buf2)
-	}
+	c1.Expect(2, 22, 33, 44)
+	c2.Expect(2, 22, 33, 44)
 
 	// Part a client
-	b.Part("moo", buf1)
+	b.Part("moo", c1)
 	b.loop()
+	c2.Expect(1)
 
-	b.Send("moo", []byte("peanut"))
+	b.Send("moo", m)
 	b.loop()
-	if buf1.String() != "buf1goobersnerk" {
-		t.Error("Parted channel but still getting messages", buf1)
-	}
-	if buf2.String() != "buf2snerkpeanut" {
-		t.Error("Someone else parting somehow messed up sends", buf2)
-	}
+	c2.Expect(1, 22, 33, 44)
 }

@@ -1,19 +1,23 @@
 package main
 
 import (
-	"io"
 	"log"
 )
 
+// Book maps names to repeaters
+//
+// It ensures that names map 1-1 to repeaters.
 type Book struct {
-	entries map[string]*Repeater
-	events  chan bookEvent
+	entries      map[string]*Repeater
+	events       chan bookEvent
+	makeRepeater func() *Repeater
 }
 
 func NewBook() Book {
 	return Book{
-		entries: make(map[string]*Repeater),
-		events:  make(chan bookEvent, 5),
+		entries:      make(map[string]*Repeater),
+		events:       make(chan bookEvent, 5),
+		makeRepeater: NewRepeater,
 	}
 }
 
@@ -28,34 +32,38 @@ const (
 type bookEvent struct {
 	eventType bookEventType
 	name      string
-	w         io.Writer
-	p         []byte
+	sender    MessageSender
+	m         Message
 }
 
-func (b Book) Join(name string, w io.Writer) {
+// Join adds a writer to a named repeater
+func (b Book) Join(name string, sender MessageSender) {
 	b.events <- bookEvent{
 		eventType: joinEvent,
 		name:      name,
-		w:         w,
+		sender:    sender,
 	}
 }
 
-func (b Book) Part(name string, w io.Writer) {
+// Part removes a writer from a named repeater
+func (b Book) Part(name string, sender MessageSender) {
 	b.events <- bookEvent{
 		eventType: partEvent,
 		name:      name,
-		w:         w,
+		sender:    sender,
 	}
 }
 
-func (b Book) Send(name string, p []byte) {
+// Send transmits a message to the named repeater
+func (b Book) Send(name string, m Message) {
 	b.events <- bookEvent{
 		eventType: sendEvent,
 		name:      name,
-		p:         p,
+		m:         m,
 	}
 }
 
+// Run is the endless run loop
 func (b Book) Run() {
 	for {
 		b.loop()
@@ -69,16 +77,16 @@ func (b Book) loop() {
 	switch event.eventType {
 	case joinEvent:
 		if !ok {
-			repeater = NewRepeater()
+			repeater = b.makeRepeater()
 			b.entries[event.name] = repeater
 		}
-		repeater.Join(event.w)
+		repeater.Join(event.sender)
 	case partEvent:
 		if !ok {
 			log.Println("WARN: Parting an empty channel:", event.name)
 			break
 		}
-		repeater.Part(event.w)
+		repeater.Part(event.sender)
 		if repeater.Listeners() == 0 {
 			delete(b.entries, event.name)
 		}
@@ -87,6 +95,6 @@ func (b Book) loop() {
 			log.Println("WARN: Sending to an empty channel:", event.name)
 			break
 		}
-		repeater.Send(event.p)
+		repeater.Send(event.m)
 	}
 }

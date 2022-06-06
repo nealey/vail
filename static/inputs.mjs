@@ -2,7 +2,12 @@ class Input {
 	constructor(keyer) {
 		this.keyer = keyer
 	}
+
 	SetDitDuration(delay) {
+		// Nothing
+	}
+
+	SetKeyerMode(mode) {
 		// Nothing
 	}
 }
@@ -103,6 +108,8 @@ export class Keyboard extends Input{
 export class MIDI extends Input{
 	constructor(keyer) {
 		super(keyer)
+		this.ditDuration = 100
+		this.keyerMode = 0
 
 		this.midiAccess = {outputs: []} // stub while we wait for async stuff
 		if (navigator.requestMIDIAccess) {
@@ -117,12 +124,28 @@ export class MIDI extends Input{
 		this.midiStateChange()
 	}
 
-	SetIntervalDuration(delay) {
-		// Send the Vail adapter the current iambic delay setting
+	sendState() {
 		for (let output of this.midiAccess.outputs.values()) {
-			// MIDI only supports 7-bit values, so we have to divide it by two
-			output.send([0x8B, 0x01, delay/2])
+			// Turn off keyboard mode
+			output.send([0xB0, 0x00, 0x00])
+
+			// MIDI only supports 7-bit values, so we have to divide ditduration by two
+			output.send([0xB0, 0x01, this.ditDuration/2])
+
+			// Send keyer mode
+			output.send([0xC0, this.keyerMode])
 		}
+
+	}
+
+	SetDitDuration(duration) {
+		this.ditDuration = duration
+		this.sendState()
+	}
+
+	SetKeyerMode(mode) {
+		this.keyerMode = mode
+		this.sendState()
 	}
 
 	midiStateChange(event) {
@@ -135,9 +158,7 @@ export class MIDI extends Input{
 		}
 
 		// Tell the Vail adapter to disable keyboard events: we can do MIDI!
-		for (let output of this.midiAccess.outputs.values()) {
-			output.send([0x8B, 0x00, 0x00]) // Turn off keyboard mode
-		}
+		this.sendState()
 	}
 
 	midiMessage(event) {
@@ -229,16 +250,36 @@ export class Gamepad extends Input{
 	}
 }
 
-/**
- * Set up all input methods
- * 
- * @param keyer Keyer object for everyone to use
- */
-export function SetupAll(keyer) {
-	return {
-		HTML: new HTML(keyer),
-		Keyboard: new Keyboard(keyer),
-		MIDI: new MIDI(keyer),
-		Gamepad: new Gamepad(keyer),
+class Collection {
+	constructor(keyer) {
+		this.html =new HTML(keyer)
+		this.keyboard =new Keyboard(keyer)
+		this.midi =new MIDI(keyer)
+		this.gamepad =new Gamepad(keyer)
+		this.collection = [this.html, this.keyboard, this.midi, this.gamepad]
+	}
+
+	/**
+	 * Set duration of all inputs
+	 * 
+	 * @param duration Duration to set
+	 */
+	SetDitDuration(duration) {
+		for (let e of this.collection) {
+			e.SetDitDuration(duration)
+		}
+	}
+
+	/**
+	 * Set keyer mode of all inputs
+	 * 
+	 * @param mode Keyer mode to set
+	 */
+	SetKeyerMode(mode) {
+		for (let e of this.collection) {
+			e.SetKeyerMode(mode)
+		}
 	}
 }
+
+export {Collection}

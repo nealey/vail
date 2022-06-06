@@ -1,5 +1,5 @@
-import {Keyers} from "./keyers.mjs"
-import * as Buzzer from "./buzzer.mjs"
+import * as Keyers from "./keyers.mjs"
+import * as Outputs from "./outputs.mjs"
 import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
 import * as Chart from "./chart.mjs"
@@ -10,7 +10,7 @@ const Second = 1000 * Millisecond
 const Minute = 60 * Second
 
 /**
- * Pop up a message, using an notification..
+ * Pop up a message, using an notification.
  * 
  * @param {string} msg Message to display
  */
@@ -37,23 +37,24 @@ class VailClient {
 		this.rxDelay = 0 * Millisecond // Time to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 
-		// Make helpers
-		this.lamp = new Buzzer.Lamp(document.querySelector("#recv"))
-		this.buzzer = new Buzzer.ToneBuzzer()
-		this.straightKeyer = new Keyers.straight(() => this.beginTx(), () => this.endTx())
-		this.keyer = new Keyers.straight(() => this.beginTx(), () => this.endTx())
-		this.roboKeyer = new Keyers.robo(() => this.Buzz(), () => this.Silence())
+		// Outputs
+		this.outputs = new Outputs.Collection()
+
+		// Keyers
+		this.straightKeyer = new Keyers.Keyers.straight(this)
+		this.keyer = new Keyers.Keyers.straight(this)
+		this.roboKeyer = new Keyers.Keyers.robo(() => this.Buzz(), () => this.Silence())
 
 		// Set up various input methods
 		// Send this as the keyer so we can intercept dit and dah events for charts
-		this.inputs = Inputs.SetupAll(this)
+		this.inputs = new Inputs.Collection(this)
 
 		// Maximize button
 		for (let e of document.querySelectorAll("button.maximize")) {
 			e.addEventListener("click", e => this.maximize(e))
 		}
 		for (let e of document.querySelectorAll("#ck")) {
-			e.addEventListener("click", e => this.test())
+			e.addEventListener("click", e => this.check())
 		}
 		for (let e of document.querySelectorAll("#reset")) {
 			e.addEventListener("click", e => this.reset())
@@ -69,9 +70,7 @@ class VailClient {
 			}
 			this.keyer.SetDitDuration(this.ditDuration)
 			this.roboKeyer.SetDitDuration(this.ditDuration)
-			for (let i of Object.values(this.inputs)) {
-				i.SetDitDuration(this.ditDuration)
-			}
+			this.inputs.SetDitDuration(this.ditDuration)
 		})
 		this.inputInit("#rx-delay", e => { 
 			this.rxDelay = e.target.value * Second
@@ -89,7 +88,7 @@ class VailClient {
 		this.setTimingCharts(true)
 
 		// Turn off the "muted" symbol when we can start making noise
-		Buzzer.Ready()
+		Outputs.AudioReady()
 		.then(() => {
 			console.log("Audio context ready")
 			document.querySelector("#muted").classList.add("is-hidden")
@@ -117,12 +116,13 @@ class VailClient {
 	}
 
 	setKeyer(keyerName) {
-		let newKeyerClass = Keyers[keyerName]
+		let newKeyerClass = Keyers.Keyers[keyerName]
+		let newKeyerNumber = Keyers.Numbers[keyerName]
 		if (!newKeyerClass) {
 			console.error("Keyer not found", keyerName)
 			return
 		}
-		let newKeyer = new newKeyerClass(() => this.beginTx(), () => this.endTx())
+		let newKeyer = new newKeyerClass(this)
 		let i = 0
 		for (let keyName of newKeyer.KeyNames()) {
 			let e = document.querySelector(`.key[data-key="${i}"]`)
@@ -132,24 +132,23 @@ class VailClient {
 		this.keyer.Release()
 		this.keyer = newKeyer
 
+		this.inputs.SetKeyerMode(newKeyerNumber)
+
 		document.querySelector("#keyer-rate").dispatchEvent(new Event("input"))
 	}
 
 	Buzz() {
-		this.buzzer.Buzz()
-		this.lamp.Buzz()
+		this.outputs.Buzz(false)
 		if (this.rxChart) this.rxChart.Set(1)
 	}
 
 	Silence() {
-		this.buzzer.Silence()
-		this.lamp.Silence()
+		this.outputs.Silence()
 		if (this.rxChart) this.rxChart.Set(0)
 	}
 
 	BuzzDuration(tx, when, duration) {
-		this.buzzer.BuzzDuration(tx, when, duration)
-		this.lamp.BuzzDuration(tx, when, duration)
+		this.outputs.BuzzDuration(tx, when, duration)
 
 		let chart = tx?this.txChart:this.rxChart
 		if (chart) {
@@ -163,10 +162,11 @@ class VailClient {
 	 * 
 	 * Called from the keyer.
 	 */
-	 beginTx() {
+	 BeginTx() {
 		this.beginTxTime = Date.now()
-		this.buzzer.Buzz(true)
+		this.outputs.Buzz(true)
 		if (this.txChart) this.txChart.Set(1)
+
 	}
 
 	/**
@@ -174,13 +174,13 @@ class VailClient {
 	 * 
 	 * Called from the keyer
 	 */
-	endTx() {
+	EndTx() {
 		if (!this.beginTxTime) {
 			return
 		}
 		let endTxTime = Date.now()
 		let duration = endTxTime - this.beginTxTime
-		this.buzzer.Silence(true)
+		this.outputs.Silence(true)
 		this.repeater.Transmit(this.beginTxTime, duration)
 		this.beginTxTime = null
 		if (this.txChart) this.txChart.Set(0)
@@ -222,10 +222,10 @@ class VailClient {
 	 */
 	setTelegraphBuzzer(enable) {
 		if (enable) {
-			this.buzzer = new Buzzer.TelegraphBuzzer()
+			this.outputs.SetAudioType("telegraph")
 			toast("Telegraphs only make sound when receiving!")
 		} else {
-			this.buzzer = new Buzzer.ToneBuzzer()
+			this.outputs.SetAudioType()
 		}
 	}
 
@@ -281,7 +281,7 @@ class VailClient {
 			number = Number(numberMatch[0])
 		}
 
-		if (name.startsWith("Fortunes")) {
+		if (name.startsWith("Fortunesf")) {
 			this.roboKeyer.SetPauseMultiplier(number || 1)
 			this.repeater = new Repeaters.Fortune(rx, this.roboKeyer)
 		} else if (name.startsWith("Echo")) {
@@ -343,7 +343,7 @@ class VailClient {
 	 */
 	error(msg) {
 		toast(msg)
-		this.buzzer.Error()
+		this.outputs.Error()
 	}
 
 	/**
@@ -375,7 +375,10 @@ class VailClient {
 		let longestRxDuration = this.rxDurations.reduce((a,b) => Math.max(a,b))
 		let suggestedDelay = ((averageLag + longestRxDuration) * 1.2).toFixed(0)
 
-		this.updateReading("#note", stats.note || "☁")
+		if (stats.connected !== undefined) {
+			this.outputs.SetConnected(stats.connected)
+		}
+		this.updateReading("#note", stats.note || stats.clients || "😎")
 		this.updateReading("#lag-value", averageLag)
 		this.updateReading("#longest-rx-value", longestRxDuration)
 		this.updateReading("#suggested-delay-value", suggestedDelay)
@@ -416,7 +419,7 @@ class VailClient {
 	/**
 	  * Send "CK" to server, and don't squelch the echo
 	  */
-	 test() {
+	 check() {
 		let when = Date.now()
 		let dit = this.ditDuration
 		let dah = dit * 3

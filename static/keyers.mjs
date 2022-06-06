@@ -53,10 +53,17 @@ class QSet extends Set {
 }
 
 /**
- * A callback to start or stop transmission
+ * Definition of a transmitter type.
  * 
- * @callback TxControl
+ * The VailClient class implements this.
  */
+class Transmitter {
+	/** Begin transmitting */
+	BeginTx() {}
+
+	/** End transmitting */
+	EndTx() {}
+}
 
 /**
  * A straight keyer.
@@ -67,12 +74,10 @@ class QSet extends Set {
 */
 class StraightKeyer {
 	/**
-	 * @param {TxControl} beginTxFunc Callback to begin transmitting
-	 * @param {TxControl} endTxFunc Callback to end transmitting
+	 * @param {Transmitter} output Transmitter object
 	 */
-	constructor(beginTxFunc, endTxFunc) {
-		this.beginTxFunc = beginTxFunc
-		this.endTxFunc = endTxFunc
+	constructor(output) {
+		this.output = output
 		this.Reset()
 	}
 
@@ -89,7 +94,7 @@ class StraightKeyer {
 	 * Reset state and stop all transmissions.
 	 */
 	 Reset() {
-		this.endTxFunc()
+		this.output.EndTx()
 		this.txRelays = []
 	}
 
@@ -140,9 +145,9 @@ class StraightKeyer {
 
 		if (wasClosed != nowClosed) {
 			if (nowClosed) {
-				this.beginTxFunc()
+				this.output.BeginTx()
 			} else {
-				this.endTxFunc()
+				this.output.EndTx()
 			}
 		}
 	}
@@ -471,6 +476,19 @@ const Keyers = {
 	robo: RoboKeyer.Keyer,
 }
 
+const Numbers = {
+	straight: 1,
+	cootie: 1,
+	bug: 2,
+	elbug: 3,
+	singledot: 4,
+	ultimatic: 5,
+	iambic: 6,
+	iambica: 7,
+	iambicb: 8,
+	keyahead: 9,
+}
+
 export {
-	Keyers,
+	Keyers, Numbers,
 }
