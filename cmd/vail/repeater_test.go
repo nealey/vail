@@ -32,7 +32,7 @@ func (tc *TestingClient) Len() int {
 	return len(tc.buf)
 }
 
-func (tc *TestingClient) Expect(clients uint16, payload ...uint8) {
+func (tc *TestingClient) Expect(clients uint16, payload ...uint16) {
 	m := Message{0, clients, payload}
 	tc.expected = append(tc.expected, m)
 	if len(tc.buf) != len(tc.expected) {

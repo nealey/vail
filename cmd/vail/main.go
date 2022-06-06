@@ -1,17 +1,20 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"nhooyr.io/websocket"
 )
 
 var book Book
+
+const JsonProtocol = "json.vail.woozle.org"
+const BinaryProtocol = "binary.vail.woozle.org"
 
 // Clock defines an interface for getting the current time.
 //
@@ -36,51 +39,82 @@ type VailWebSocketConnection struct {
 
 func (c *VailWebSocketConnection) Receive() (Message, error) {
 	var m Message
-	var err error
-	if c.usingJSON {
-		err = websocket.JSON.Receive(c.Conn, &m)
+	messageType, buf, err := c.Read(context.Background())
+	if err != nil {
+		return m, err
+	}
+
+	if messageType == websocket.MessageText {
+		err = json.Unmarshal(buf, &m)
 	} else {
-		buf := make([]byte, 64)
-		if err := websocket.Message.Receive(c.Conn, &buf); err != nil {
-			return m, err
-		}
-		if err := m.UnmarshalBinary(buf)
+		err = m.UnmarshalBinary(buf)
 	}
 	return m, err
 }
 
 func (c *VailWebSocketConnection) Send(m Message) error {
+	var err error
+	var buf []byte
+	var messageType websocket.MessageType
+
+	log.Println("Send", m)
 	if c.usingJSON {
-		return websocket.JSON.Send(c.Conn, m)
+		messageType = websocket.MessageText
+		buf, err = json.Marshal(m)
 	} else {
-		return websocket.Message.Send(c.Conn, m)
+		messageType = websocket.MessageBinary
+		buf, err = m.MarshalBinary()
 	}
-}
-
-func (c *VailWebSocketConnection) Error(err error) {
-	msg := fmt.Sprintf("Error: %#v", err)
-	websocket.JSON.Send(c.Conn, msg)
-}
-
-type Client struct {
-	repeaterName string
-	usingJSON    bool
-}
-
-func (c Client) Handle(ws *websocket.Conn) {
-	sock := &VailWebSocketConnection{
-		Conn:      ws,
-		usingJSON: c.usingJSON,
+	log.Println(buf, err)
+	if err != nil {
+		return err
 	}
-	nowMilli := time.Now().UnixMilli()
-	ws.MaxPayloadBytes = 50
-	book.Join(c.repeaterName, sock)
-	defer book.Part(c.repeaterName, sock)
+
+	log.Println("Sending")
+	return c.Write(context.Background(), messageType, buf)
+}
+
+func ChatHandler(w http.ResponseWriter, r *http.Request) {
+	// Set up websocket
+	ws, err := websocket.Accept(
+		w, r,
+		&websocket.AcceptOptions{
+			Subprotocols: []string{JsonProtocol, BinaryProtocol},
+		},
+	)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer ws.Close(websocket.StatusInternalError, "Internal error")
+
+	// Create our Vail websocket connection for books to send to
+	sock := VailWebSocketConnection{
+		Conn: ws,
+	}
+
+	// websockets apparently sends a subprotocol string, so we can ignore Accept headers!
+	switch ws.Subprotocol() {
+	case JsonProtocol:
+		sock.usingJSON = true
+	case BinaryProtocol:
+		sock.usingJSON = false
+	default:
+		ws.Close(websocket.StatusPolicyViolation, "client must speak a vail protocol")
+		return
+	}
+
+	// Join the repeater
+	repeaterName := r.FormValue("repeater")
+	book.Join(repeaterName, &sock)
+	defer book.Part(repeaterName, &sock)
 
 	for {
+		// Read a packet
 		m, err := sock.Receive()
 		if err != nil {
-			sock.Error(err)
+			log.Println(err)
+			ws.Close(websocket.StatusInvalidFramePayloadData, err.Error())
 			break
 		}
 
@@ -90,32 +124,18 @@ func (c Client) Handle(ws *websocket.Conn) {
 		}
 
 		// If it's wildly out of time, reject it
-		timeDelta := (nowMilli - m.Timestamp)
+		timeDelta := (time.Now().UnixMilli() - m.Timestamp)
 		if timeDelta < 0 {
 			timeDelta = -timeDelta
 		}
 		if timeDelta > 9999 {
-			fmt.Fprintln(ws, "Bad timestamp")
-			ws.Close()
-			return
+			log.Println(err)
+			ws.Close(websocket.StatusInvalidFramePayloadData, "Your clock is off by too much")
+			break
 		}
 
-		book.Send(c.repeaterName, m)
+		book.Send(repeaterName, m)
 	}
-}
-
-func ChatHandler(w http.ResponseWriter, r *http.Request) {
-	c := Client{
-		repeaterName: r.FormValue("repeater"),
-	}
-	accept := r.Header.Get("Accept")
-	if strings.Contains(accept, "json") {
-		c.usingJSON = true
-	}
-
-	// This API is confusing as hell.
-	// I suspect there's a better way to do this.
-	websocket.Handler(c.Handle).ServeHTTP(w, r)
 }
 
 func main() {

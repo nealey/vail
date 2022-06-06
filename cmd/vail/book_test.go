@@ -20,7 +20,7 @@ func TestBook(t *testing.T) {
 	c1.Expect(1)
 
 	// Send to an empty channel
-	m := Message{0, 0, []uint8{22, 33}}
+	m := Message{0, 0, []uint16{22, 33}}
 	b.Send("merf", m)
 	b.loop()
 	if c1.Len() > 0 {

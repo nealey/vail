@@ -34,13 +34,13 @@ type Message struct {
 	// Message timing in ms.
 	// Timings alternate between tone and silence.
 	// For example, `A` could be sent as [80, 80, 240]
-	Duration []uint8
+	Duration []uint16
 }
 
 func NewMessage(ts time.Time, durations ...time.Duration) Message {
 	msg := Message{
 		Timestamp: ts.UnixNano() / time.Millisecond.Nanoseconds(),
-		Duration:  make([]uint8, len(durations)),
+		Duration:  make([]uint16, len(durations)),
 	}
 	for i, dns := range durations {
 		ms := dns.Milliseconds()
@@ -49,7 +49,7 @@ func NewMessage(ts time.Time, durations ...time.Duration) Message {
 		} else if ms < 0 {
 			ms = 0
 		}
-		msg.Duration[i] = uint8(ms)
+		msg.Duration[i] = uint16(ms)
 	}
 	return msg
 }
@@ -69,7 +69,7 @@ func (m Message) MarshalBinary() ([]byte, error) {
 	return w.Bytes(), nil
 }
 
-// Unmarshaling presumes something else is keeping track of lengths
+// UnmarshalBinary unpacks a binary buffer into a Message.
 func (m *Message) UnmarshalBinary(data []byte) error {
 	r := bytes.NewReader(data)
 	if err := binary.Read(r, binary.BigEndian, &m.Timestamp); err != nil {
@@ -78,30 +78,12 @@ func (m *Message) UnmarshalBinary(data []byte) error {
 	if err := binary.Read(r, binary.BigEndian, &m.Clients); err != nil {
 		return err
 	}
-	dlen := r.Len()
-	m.Duration = make([]uint8, dlen)
+	dlen := r.Len() / 2
+	m.Duration = make([]uint16, dlen)
 	if err := binary.Read(r, binary.BigEndian, &m.Duration); err != nil {
 		return err
 	}
 	return nil
-}
-
-func (m Message) MarshalJSON() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	fmt.Fprint(buf, "{")
-	fmt.Fprintf(buf, "\"Timestamp\":%d,", m.Timestamp)
-	fmt.Fprintf(buf, "\"Clients\":%d,", m.Clients)
-	fmt.Fprint(buf, "\"Duration\":[")
-	for i := 0; i < len(m.Duration); i++ {
-		fmt.Fprint(buf, m.Duration[i])
-		if i <= len(m.Duration)-1 {
-			fmt.Fprint(buf, ",")
-		}
-	}
-	fmt.Fprint(buf)
-	fmt.Fprint(buf, "]")
-	fmt.Fprint(buf, "}")
-	return buf.Bytes(), nil
 }
 
 func (m Message) Equal(m2 Message) bool {

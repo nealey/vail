@@ -45,13 +45,13 @@ export class Vail {
         }
         console.info("Attempting to reconnect", this.wsUrl.href)
         this.clockOffset = 0
-		this.socket = new WebSocket(this.wsUrl)
+		this.socket = new WebSocket(this.wsUrl, ["json.vail.woozle.org"])
 		this.socket.addEventListener("message", e => this.wsMessage(e))
 		this.socket.addEventListener(
-            "close", 
-            () => {
-                console.info("Repeater connection dropped.")
-                setTimeout(() => this.reopen(), 5*Second)
+            "close",
+            msg => {
+                console.error("Repeater connection dropped:", msg.reason)
+                setTimeout(() => this.reopen(), 2*Second)
             }
         )
     }
@@ -72,6 +72,7 @@ export class Vail {
             clockOffset: this.clockOffset,
             clients: msg.Clients,
         }
+        console.log(msg)
         if (typeof(msg) == "string") {
             console.error(msg)
             return
