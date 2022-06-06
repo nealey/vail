@@ -73,7 +73,7 @@ export class Vail {
             msg = JSON.parse(jmsg)
         }
         catch (err) {
-            console.error(jmsg)
+            console.error(err, jmsg)
             return
         }
         let stats = {
@@ -82,13 +82,10 @@ export class Vail {
             clients: msg.Clients,
             connected: this.connected,
         }
-        if (typeof(msg) == "string") {
-            console.error(msg)
-            return
-        }
 
 		// XXX: Why is this happening?
 		if (msg.Timestamp == 0) {
+            console.debug("Got timestamp=0", msg)
 			return
         }
         
@@ -107,10 +104,8 @@ export class Vail {
         // Packets with 0 length tell us what time the server thinks it is,
         // and how many clients are connected
 		if (msg.Duration.length == 0) {
-			if (this.clockOffset == 0) {
-                this.clockOffset = now - msg.Timestamp
-                this.rx(0, 0, stats)
-			}
+            this.clockOffset = now - msg.Timestamp
+            this.rx(0, 0, stats)
 			return
 		}
 
