@@ -40,7 +40,7 @@
 						<div class="level">
 							<div class="level-left">
 								<div class="level-item">
-									<h1 class="title">Repeater</h1>
+									<h1 class="title" data-i18n="heading.repeater">Repeater</h1>
 								</div>
 							</div>
 							<div class="level-right">
@@ -123,22 +123,22 @@
 						<div>
 							<div class="field is-horizontal">
 								<div class="field-label">
-									<label class="label">Mode</label>
+									<label class="label" data-i18n="heading.mode">Mode</label>
 								</div>
 								<div class="field-body">
 									<div class="field">
 										<div class="control">
 											<div class="select">
 												<select id="keyer-mode">
-													<option value="cootie">Straight Key / Cootie</option>
-													<option value="bug">Bug</option>
-													<option value="elbug">ElBug</option>
-													<option value="singledot">Single Dot</option>
-													<option value="ultimatic">Ultimatic</option>
-													<option value="iambic">Iambic (Plain)</option>
-													<option value="iambica">Iambic A</option>
-													<option value="iambicb">Iambic B</option>
-													<option value="keyahead">Keyahead</option>
+													<option value="cootie" data-i18n="keyer.cootie">Straight Key / Cootie</option>
+													<option value="bug" data-i18n="keyer.bug">Bug</option>
+													<option value="elbug" data-i18n="keyer.elbug">ElBug</option>
+													<option value="singledot" data-i18n="keyer.singledot">Single Dot</option>
+													<option value="ultimatic" data-i18n="keyer.ultimatic">Ultimatic</option>
+													<option value="iambic" data-i18n="keyer.iambic">Iambic (Plain)</option>
+													<option value="iambica" data-i18n="keyer.iambica">Iambic A</option>
+													<option value="iambicb" data-i18n="keyer.iambicb">Iambic B</option>
+													<option value="keyahead" data-i18n="keyer.keyahead">Keyahead</option>
 												</select>
 											</div>
 										</div>
@@ -149,9 +149,10 @@
 							<div class="field is-horizontal">
 								<div class="field-label">
 									<label class="label">
-										<output for="keyer-rate"></output>&nbsp;WPM
+										<output for="keyer-rate"></output>&nbsp;
+										<span data-i18n="label.wpm">WPM</span>
 										/
-										<span data-fill="keyer-ms"></span>ms
+										<span data-fill="keyer-ms"></span><span data-i18n="label:ms">ms</span>
 									</label>
 								</div>
 								<div class="field-body">
@@ -175,12 +176,12 @@
 
 				<div class="column">
 					<div class="box">
-						<h2 class="title">Notes</h2>
-						<textarea class="textarea" placeholder="Enter your own notes here" id="notes"></textarea>
+						<h2 class="title" data-i18n="heading.notes" data-i18n="heading.notes"></h2>
+						<textarea class="textarea" data-i18n-placeholder="description.notes" id="notes"></textarea>
 						<nav class="breadcrumb has-bullet-separator">
 							<ul>
-								<li><a href="https://discord.gg/GBzj8cBat7" target="_blank" title="Text/voice chat on Discord"><i class="mdi mdi-discord"></i></a></li>
-								<li><a href="https://github.com/nealey/vail/wiki" target="_blank" title="Vail Wiki">Help</a></li>
+								<li><a href="https://discord.gg/GBzj8cBat7" target="_blank" data-i18n-title="title.discord"><i class="mdi mdi-discord"></i></a></li>
+								<li><a href="https://github.com/nealey/vail/wiki" target="_blank" data-i18n-title="title.wiki">Help</a></li>
 							</ul>
 						</nav>
 					</div>
@@ -188,24 +189,24 @@
 
 				<div class="column">
 					<div class="box">
-						<h2 class="title">Knobs</h2>
+						<h2 class="title" data-i18n="heading.knobs">Knobs</h2>
 						<div class="block">
 							<div class="control">
 								<button id="ck" class="button is-primary">
 									CK
 								</button>
 							</div>
-							<div class="">
+							<div class="" data-i18n="description.ck">
 								Send <code>CK</code> (check) to the repeater, and play when it comes back.
 							</div>
 						</div>
 						<div class="block">
 							<div class="control">
-								<button id="reset" class="button">
+								<button id="reset" class="button" data-i18n="label.reset">
 									Reset
 								</button>
 							</div>
-							<div>
+							<div data-i18n="description.reset">
 								Reset all Vail preferences to default.
 							</div>
 						</div>
@@ -215,7 +216,7 @@
 							<div class="field-label">
 								<label class="label">
 									<output for="rx-delay"></output>s
-									rx delay
+									<span data-i18n="label.rx-delay">rx delay</span>
 								</label>
 							</div>
 							<div class="field-body">
@@ -250,7 +251,7 @@
 						<p>
 							<label class="checkbox">
 								<input type="checkbox" id="telegraph-buzzer">
-								Telegraph sounds
+								<span data-i18n="label.telegraph-sounds">Telegraph sounds</span>
 							</label>
 						</p>
 

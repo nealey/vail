@@ -3,6 +3,7 @@ import * as Outputs from "./outputs.mjs"
 import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
 import * as Chart from "./chart.mjs"
+import * as I18n from "./i18n.mjs"
 
 const DefaultRepeater = "General"
 const Millisecond = 1
@@ -453,6 +454,7 @@ function init() {
 	if (navigator.serviceWorker) {
 		navigator.serviceWorker.register("sw.js")
 	}
+	I18n.Setup()
 	try {
 		window.app = new VailClient()
 	} catch (err) {
