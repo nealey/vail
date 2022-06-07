@@ -21,7 +21,7 @@ label:
     wpm: WPM
     ms: ms
     wiki: Help
-    rx-delay: rx delay
+    rx-delay: receive delay
     telegraph-sounds: Telegraph sounds
 title:
     discord: Text/Voice chat on Discord
