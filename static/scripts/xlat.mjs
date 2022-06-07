@@ -41,7 +41,7 @@ export const Xlat = {
   },
   "en": {
     "heading": {
-      "repeater": "Repeater eater",
+      "repeater": "Repeater",
       "mode": "Mode",
       "notes": "Notes",
       "knobs": "Knobs"
@@ -60,7 +60,7 @@ export const Xlat = {
       "iambic": "Iambic (plain)",
       "iambica": "Iambic A",
       "iambicb": "Iambic B",
-      "keyahead": "Keyahea"
+      "keyahead": "Keyahead"
     },
     "label": {
       "wpm": "WPM",
