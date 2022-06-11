@@ -130,7 +130,7 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		if timeDelta < 0 {
 			timeDelta = -timeDelta
 		}
-		if timeDelta > 2*time.Second {
+		if timeDelta > 10*time.Second {
 			log.Println(err)
 			ws.Close(websocket.StatusInvalidFramePayloadData, "Your clock is off by too much")
 			break
