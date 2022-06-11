@@ -106,9 +106,6 @@ export class Vail {
         // and how many clients are connected
 		if (msg.Duration.length == 0) {
             this.clockOffset = now - msg.Timestamp
-            console.log("them:", msg.Timestamp)
-            console.log("  us:", now)
-            console.log("Clock offset", this.clockOffset)
             this.rx(0, 0, stats)
 			return
 		}
