@@ -54,9 +54,6 @@ class VailClient {
 		for (let e of document.querySelectorAll("button.maximize")) {
 			e.addEventListener("click", e => this.maximize(e))
 		}
-		for (let e of document.querySelectorAll("#ck")) {
-			e.addEventListener("click", e => this.check())
-		}
 		for (let e of document.querySelectorAll("#reset")) {
 			e.addEventListener("click", e => this.reset())
 		}
@@ -65,9 +62,9 @@ class VailClient {
 		this.inputInit("#keyer-mode", e => this.setKeyer(e.target.value))
 		this.inputInit("#keyer-rate", e => {
 			let rate = e.target.value
-			this.ditDuration = Minute / rate / 50
+			this.ditDuration = Math.round(Minute / rate / 50)
 			for (let e of document.querySelectorAll("[data-fill='keyer-ms']")) {
-				e.textContent = this.ditDuration.toFixed(0)
+				e.textContent = this.ditDuration
 			}
 			this.keyer.SetDitDuration(this.ditDuration)
 			this.roboKeyer.SetDitDuration(this.ditDuration)
@@ -417,30 +414,6 @@ class VailClient {
 		}
 		element.classList.toggle("maximized")
 		console.log(element)
-	}
-
-	/**
-	  * Send "CK" to server, and don't squelch the echo
-	  */
-	 check() {
-		let when = Date.now()
-		let dit = this.ditDuration
-		let dah = dit * 3
-		let s = dit
-		let message = [
-			dah, s, dit, s, dah, s, dit,
-			s * 3,
-			dah, s, dit, s, dah
-		]
-
-		this.repeater.Transmit(when, 0) // Get round-trip time
-		for (let i in message) {
-			let duration = message[i]
-			if (i % 2 == 0) {
-				this.repeater.Transmit(when, duration, false)
-			}
-			when += duration
-		}
 	}
 
 	/** Reset to factory defaults */
