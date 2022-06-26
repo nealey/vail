@@ -142,7 +142,7 @@ export class MIDI extends Input{
 			// Turn off keyboard mode
 			output.send([0xB0, 0x00, 0x00])
 
-			// MIDI only supports 7-bit values, so we have to divide ditduration by two
+			// MIDI only supports 7-bit values, so we have to divide dit duration by two
 			output.send([0xB0, 0x01, this.ditDuration/2])
 
 			// Send keyer mode

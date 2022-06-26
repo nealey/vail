@@ -357,7 +357,7 @@ class MIDIBuzzer extends Buzzer {
 		let ms = when?when - Date.now():0
 		setTimeout(
 			() => {
-				for (let output of this.outputs) {
+				for (let output of (this.outputs || [])) {
 					output.send(message)
 				}
 			},
