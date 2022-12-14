@@ -16,8 +16,18 @@
 	-webkit-user-select: none; /* 2022-04-26 Safari still needs this */  
 }
 
-#recv.rx {
+.tag.recv-lamp {
+	background-color: #444;
+	color: white;
+}
+.tag.recv-lamp.connected {
+	background-color: #fec;
+	color: black;
+}
+.tag.recv-lamp.rx,
+.tag.recv-lamp.connected.rx {
 	background-color: orange;
+	color: black;
 }
 
 input[type=range] {

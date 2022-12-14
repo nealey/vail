@@ -2,4 +2,8 @@ module github.com/nealey/vail
 
 go 1.12
 
-require golang.org/x/net v0.0.0-20200501053045-e0ff5e5a1de5
+require (
+	github.com/gin-gonic/gin v1.8.1 // indirect
+	github.com/klauspost/compress v1.15.6 // indirect
+	nhooyr.io/websocket v1.8.7
+)

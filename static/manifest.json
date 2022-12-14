@@ -7,7 +7,7 @@
   "theme_color": "#009688",
   "description": "Internet Morse Code client",
   "icons": [
-    {"src": "vail.png", "sizes": "250x250"},
-    {"src": "vail.svg", "sizes": "150x150"}
+    {"src": "assets/vail.png", "sizes": "250x250"},
+    {"src": "assets/vail.svg", "sizes": "150x150"}
   ]
 }

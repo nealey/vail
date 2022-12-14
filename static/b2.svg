@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg viewBox="-1 -1 15 15" xmlns="http://www.w3.org/2000/svg">
-  <circle cx= "6" cy="10" r="2" style="stroke: #000; fill: none;"/>
-  <circle cx="10" cy= "6" r="2" style="stroke: #000; fill: none;"/>
-  <circle cx= "2" cy= "6" r="2" style="stroke: #000;"/>
-  <circle cx= "6" cy= "2" r="2" style="stroke: #000; fill: none;"/>
-</svg>

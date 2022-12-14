@@ -1,39 +1,85 @@
 package main
 
 import (
-	"bytes"
 	"testing"
+	"time"
 )
 
+type FakeClock struct{}
+
+func (f FakeClock) Now() time.Time {
+	return time.UnixMilli(0)
+}
+
+type TestingClient struct {
+	buf      []Message
+	expected []Message
+	t        *testing.T
+}
+
+func NewTestingClient(t *testing.T) *TestingClient {
+	return &TestingClient{
+		t: t,
+	}
+}
+
+func (tc *TestingClient) Send(m Message) error {
+	tc.buf = append(tc.buf, m)
+	return nil
+}
+
+func (tc *TestingClient) Len() int {
+	return len(tc.buf)
+}
+
+func (tc *TestingClient) Expect(clients uint16, payload ...uint16) {
+	m := Message{0, clients, payload}
+	tc.expected = append(tc.expected, m)
+	if len(tc.buf) != len(tc.expected) {
+		tc.t.Errorf("Client buffer mismatch. Wanted length %d, got length %d", len(tc.expected), len(tc.buf))
+	}
+	for i := 0; i < len(tc.buf); i++ {
+		if !tc.buf[i].Equal(tc.expected[i]) {
+			tc.t.Errorf("Client buffer mismatch at entry %d. Wanted %#v, got %#v", i, tc.expected[i], tc.buf[i])
+		}
+	}
+
+	tc.buf = []Message{}
+	tc.expected = []Message{}
+}
+
+func NewTestingRepeater() *Repeater {
+	return &Repeater{
+		clock:   FakeClock{},
+		senders: make([]MessageSender, 0, 2),
+	}
+}
+
 func TestRepeater(t *testing.T) {
-	r := NewRepeater()
+	r := NewTestingRepeater()
 
-	buf1 := bytes.NewBufferString("buf1")
-	r.Join(buf1)
-	if r.Listeners() != 1 {
-		t.Error("Joining did nothing")
-	}
-	r.Send([]byte("moo"))
-	if buf1.String() != "buf1moo" {
-		t.Error("Client 1 not repeating", buf1)
-	}
+	c1 := NewTestingClient(t)
+	r.Join(c1)
+	c1.Expect(1)
 
-	buf2 := bytes.NewBufferString("buf2")
-	r.Join(buf2)
-	r.Send([]byte("bar"))
-	if buf1.String() != "buf1moobar" {
-		t.Error("Client 1 not repeating", buf1)
-	}
-	if buf2.String() != "buf2bar" {
-		t.Error("Client 2 not repeating", buf2)
-	}
+	r.SendMessage(15 * time.Millisecond)
+	c1.Expect(1, 15)
 
-	r.Part(buf1)
-	r.Send([]byte("baz"))
-	if buf1.String() != "buf1moobar" {
-		t.Error("Client 1 still getting data after part", buf1)
-	}
-	if buf2.String() != "buf2barbaz" {
-		t.Error("Client 2 not getting data after part", buf2)
+	c2 := NewTestingClient(t)
+	r.Join(c2)
+	c1.Expect(2)
+	c2.Expect(2)
+
+	r.SendMessage(58 * time.Millisecond)
+	c1.Expect(2, 58)
+	c2.Expect(2, 58)
+
+	r.Part(c1)
+	c2.Expect(1)
+
+	r.SendMessage(5 * time.Millisecond)
+	c2.Expect(1, 5)
+	if c1.Len() > 0 {
+		t.Error("Client 1 still getting data after part")
 	}
 }
