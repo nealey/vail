@@ -1,0 +1,18 @@
+@media (prefers-color-scheme: dark) {
+    html {
+        background-color: black;
+        color: white;
+    }
+
+    .box {
+        color: #eee; /* Make this darker to make the on-screen lighter. I don't know why. */
+    }
+
+    .button.is-primary {
+        background-color: #096;
+    }
+
+    input[type=range] {
+        accent-color: #096;
+    }
+}
