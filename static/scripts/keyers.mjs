@@ -7,6 +7,7 @@
  */
 
 import * as RoboKeyer from "./robokeyer.mjs"
+import * as time from "./time.mjs"
 
 /** Silent period between dits and dash */
 const PAUSE = -1
@@ -14,24 +15,6 @@ const PAUSE = -1
 const DIT = 1
 /** Length of a dah */
 const DAH = 3
-
-/** 
- * A time duration.
- * 
- * JavaScript uses milliseconds in most (but not all) places.
- * I've found it helpful to be able to multiply by a unit, so it's clear what's going on.
- * 
- * @typedef  {number} Duration
- */
-/** @type {Duration} */
-const Millisecond = 1
-/** @type {Duration} */
-const Second = 1000 * Millisecond
-/** @type {Duration} */
-const Minute = 60 * Second
-/** @type {Duration} */
-const Hour = 60 * Minute
-
 
 /**
  * Queue Set: A Set you can shift and pop.
@@ -185,7 +168,7 @@ class BugKeyer extends StraightKeyer {
 
 	Reset() {
 		super.Reset()
-		this.SetDitDuration(100 * Millisecond)
+		this.SetDitDuration(100 * time.Millisecond)
 		if (this.pulseTimer) {
 			clearInterval(this.pulseTimer)
 			this.pulseTimer = null

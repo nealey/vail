@@ -2,6 +2,8 @@
  * @file Provides some base audio tools.
  */
 
+import * as time from "./time.mjs"
+
 /**
  * Compute the special "Audio Context" time
  * 
@@ -13,8 +15,8 @@
  */
  function AudioContextTime(context, when) {
     if (!when) return 0
-    let acOffset = Date.now() - (context.currentTime * Second)
-    return Math.max(when - acOffset, 0) / Second
+    let acOffset = Date.now() - (context.currentTime * time.Second)
+    return Math.max(when - acOffset, 0) / time.Second
 }
 
 class AudioSource {
