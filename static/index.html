@@ -57,7 +57,7 @@
 									<!-- This appears as a little light that turns on when someone's sending -->
 									<span class="tag recv-lamp">
 										<output class="has-text-info" id="note"></output>
-										<i class="mdi mdi-volume-off" id="muted"></i>
+										<i class="mdi mdi-volume-off muted"></i>
 									</span>
 								</div>
 							</div>
@@ -213,8 +213,8 @@
 						<div class="field is-horizontal">
 							<div class="field-label">
 								<label class="label">
+									<span data-i18n="label.rx-delay">rx delay:</span>
 									<output for="rx-delay"></output>s
-									<span data-i18n="label.rx-delay">rx delay</span>
 								</label>
 							</div>
 							<div class="field-body">
@@ -245,6 +245,89 @@
 								</div>
 							</div>
 						</div>
+
+						<div class="field is-horizontal">
+							<div class="field-label">
+								<label class="label">
+									<span data-i18n="label.gain">volume:</span>
+									<output for="masterGain"></output>%
+									<i class="mdi mdi-volume-off muted"></i>
+								</label>
+							</div>
+							<div class="field-body">
+								<div class="field">
+									<div class="control">
+										<input
+											id="masterGain"
+											type="range"
+											min="0"
+											max="100"
+											value="100"
+											step="1">
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="field is-horizontal">
+							<div class="field-label">
+								<label class="label">
+									<span data-i18n="label.tx-tone">tx tone:</span>
+									<output for="tx-tone"></output>
+								</label>
+							</div>
+							<div class="field-body">
+								<div class="field">
+									<div class="control">
+										<input
+											id="tx-tone"
+											type="range"
+											min="0"
+											max="127"
+											value="69"
+											step="1"
+											list="tones">
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="field is-horizontal">
+							<div class="field-label">
+								<label class="label">
+									<span data-i18n="label.rx-tone">rx tone:</span>
+									<output for="rx-tone"></output>
+								</label>
+							</div>
+							<div class="field-body">
+								<div class="field">
+									<div class="control">
+										<input
+											id="rx-tone"
+											type="range"
+											min="0"
+											max="127"
+											value="69"
+											step="1"
+											list="tones">
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<datalist id="tones">
+							<option value="0" label="C-1"></option>
+							<option value="12" label="C0"></option>
+							<option value="24" label="C1"></option>
+							<option value="36" label="C2"></option>
+							<option value="48" label="C3"></option>
+							<option value="60" label="C4"></option>
+							<option value="72" label="C5"></option>
+							<option value="84" label="C6"></option>
+							<option value="96" label="C7"></option>
+							<option value="108" label="C8"></option>
+							<option value="120" label="C9"></option>
+						</datalist>
 
 						<p>
 							<label class="checkbox">

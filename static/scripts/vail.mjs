@@ -4,11 +4,17 @@ import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
 import * as Chart from "./chart.mjs"
 import * as I18n from "./i18n.mjs"
+import * as Music from "./music.mjs"
 
 const DefaultRepeater = "General"
 const Millisecond = 1
 const Second = 1000 * Millisecond
 const Minute = 60 * Second
+
+console.warn("Chrome will now complain about an AudioContext not being allowed to start. This is normal, and there is no way to make Chrome stop complaining about this.")
+const globalAudioContext = new AudioContext({
+	latencyHint: "interactive",
+})
 
 /**
  * Pop up a message, using an notification.
@@ -39,7 +45,8 @@ class VailClient {
 		this.beginTxTime = null // Time when we began transmitting
 
 		// Outputs
-		this.outputs = new Outputs.Collection()
+		this.outputs = new Outputs.Collection(globalAudioContext)
+		this.outputs.connect(globalAudioContext.destination)
 
 		// Keyers
 		this.straightKeyer = new Keyers.Keyers.straight(this)
@@ -49,6 +56,13 @@ class VailClient {
 		// Set up various input methods
 		// Send this as the keyer so we can intercept dit and dah events for charts
 		this.inputs = new Inputs.Collection(this)
+
+		// If the user clicks anything, try immediately to resume the audio context
+		document.body.addEventListener(
+			"click",
+			e => globalAudioContext.resume(),
+			true,
+		)
 
 		// Maximize button
 		for (let e of document.querySelectorAll("button.maximize")) {
@@ -73,6 +87,19 @@ class VailClient {
 		this.inputInit("#rx-delay", e => { 
 			this.rxDelay = e.target.value * Second
 		})
+		this.inputInit("#masterGain", e => {
+			this.outputs.SetGain(e.target.value / 100)
+		})
+		this.inputInit(
+			"#rx-tone", 
+			e => this.outputs.SetMIDINote(false, e.target.value),
+			Music.MIDINoteName,
+		)
+		this.inputInit(
+			"#tx-tone", 
+			e => this.outputs.SetMIDINote(true, e.target.value),
+			Music.MIDINoteName,
+		)
 		this.inputInit("#telegraph-buzzer", e => {
 			this.setTelegraphBuzzer(e.target.checked)
 		})
@@ -86,10 +113,11 @@ class VailClient {
 		this.setTimingCharts(true)
 
 		// Turn off the "muted" symbol when we can start making noise
-		Outputs.AudioReady()
+		globalAudioContext.resume()
 		.then(() => {
-			console.log("Audio context ready")
-			document.querySelector("#muted").classList.add("is-hidden")
+			for (let e of document.querySelectorAll(".muted")) {
+				e.classList.add("is-hidden")
+			}
 		})
 	}
 	
@@ -300,8 +328,9 @@ class VailClient {
 	 * 
 	 * @param {string} selector CSS path to the element
 	 * @param {function} callback Callback to call with any new value that is set
+	 * @param {function} transform A function to transform the value into displayed text
 	 */
-	inputInit(selector, callback) {
+	inputInit(selector, callback, transform=null) {
 		let element = document.querySelector(selector)
 		if (!element) {
 			console.warn("Unable to find an input to init", selector)
@@ -322,8 +351,12 @@ class VailClient {
 			}
 			localStorage[element.id] = value
 	
+			let displayValue = value
+			if (transform) {
+				displayValue = transform(value)
+			}
 			if (outputElement) {
-				outputElement.value = value
+				outputElement.value = displayValue
 			}
 			if (callback) {
 				callback(e)
