@@ -66,7 +66,7 @@ export const Xlat = {
       "wpm": "WPM",
       "ms": "ms",
       "wiki": "Help",
-      "rx-delay": "receive delay",
+      "rx-delay": "rx delay",
       "telegraph-sounds": "Telegraph sounds"
     },
     "title": {

@@ -90,15 +90,19 @@ class VailClient {
 		this.inputInit("#masterGain", e => {
 			this.outputs.SetGain(e.target.value / 100)
 		})
+		let toneTransform = {
+			note: Music.MIDINoteName,
+			freq: Music.MIDINoteFrequency,
+		}
 		this.inputInit(
 			"#rx-tone", 
 			e => this.outputs.SetMIDINote(false, e.target.value),
-			Music.MIDINoteName,
+			toneTransform,
 		)
 		this.inputInit(
 			"#tx-tone", 
 			e => this.outputs.SetMIDINote(true, e.target.value),
-			Music.MIDINoteName,
+			toneTransform,
 		)
 		this.inputInit("#telegraph-buzzer", e => {
 			this.setTelegraphBuzzer(e.target.checked)
@@ -328,9 +332,9 @@ class VailClient {
 	 * 
 	 * @param {string} selector CSS path to the element
 	 * @param {function} callback Callback to call with any new value that is set
-	 * @param {function} transform A function to transform the value into displayed text
+	 * @param {Object.<string, function>} transform Transform functions
 	 */
-	inputInit(selector, callback, transform=null) {
+	inputInit(selector, callback, transform={}) {
 		let element = document.querySelector(selector)
 		if (!element) {
 			console.warn("Unable to find an input to init", selector)
@@ -342,7 +346,7 @@ class VailClient {
 			element.checked = (storedValue == "on")
 		}
 		let id = element.id
-		let outputElement = document.querySelector(`[for="${id}"]`)
+		let outputElements = document.querySelectorAll(`[for="${id}"]`)
 
 		element.addEventListener("input", e => {
 			let value = element.value
@@ -350,13 +354,14 @@ class VailClient {
 				value = element.checked?"on":"off"
 			}
 			localStorage[element.id] = value
-	
-			let displayValue = value
-			if (transform) {
-				displayValue = transform(value)
-			}
-			if (outputElement) {
-				outputElement.value = displayValue
+
+			for (let e of outputElements) {
+				if (e.dataset.transform) {
+					let tf = transform[e.dataset.transform]
+					e.value = tf(value)
+				} else {
+					e.value = value
+				}
 			}
 			if (callback) {
 				callback(e)

@@ -31,8 +31,9 @@ const note_names = [
  * @param {Number} note MIDI note number
  * @returns {Number} Frequency (Hz)
  */
-function MIDINoteFrequency(note) {
-    return Cn1_freq * Math.pow(semitone, note)
+function MIDINoteFrequency(note, precision=0) {
+    let freq = Cn1_freq * Math.pow(semitone, note)
+    return freq.toFixed(precision)
 }
 
 /**

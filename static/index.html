@@ -213,7 +213,7 @@
 						<div class="field is-horizontal">
 							<div class="field-label">
 								<label class="label">
-									<span data-i18n="label.rx-delay">rx delay:</span>
+									<span data-i18n="label.rx-delay">rx delay</span>:
 									<output for="rx-delay"></output>s
 								</label>
 							</div>
@@ -249,7 +249,7 @@
 						<div class="field is-horizontal">
 							<div class="field-label">
 								<label class="label">
-									<span data-i18n="label.gain">volume:</span>
+									<span data-i18n="label.gain">volume</span>:
 									<output for="masterGain"></output>%
 									<i class="mdi mdi-volume-off muted"></i>
 								</label>
@@ -272,8 +272,9 @@
 						<div class="field is-horizontal">
 							<div class="field-label">
 								<label class="label">
-									<span data-i18n="label.tx-tone">tx tone:</span>
-									<output for="tx-tone"></output>
+									<span data-i18n="label.tx-tone">tx tone</span>:
+									<output for="tx-tone" data-transform="note"></output>
+									<output for="tx-tone" data-transform="freq"></output>Hz
 								</label>
 							</div>
 							<div class="field-body">
@@ -295,8 +296,9 @@
 						<div class="field is-horizontal">
 							<div class="field-label">
 								<label class="label">
-									<span data-i18n="label.rx-tone">rx tone:</span>
-									<output for="rx-tone"></output>
+									<span data-i18n="label.rx-tone">rx tone</span>:
+									<output for="rx-tone" data-transform="note"></output>
+									<output for="rx-tone" data-transform="freq"></output>Hz
 								</label>
 							</div>
 							<div class="field-body">
