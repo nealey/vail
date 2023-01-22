@@ -165,13 +165,12 @@ class VailClient {
 		document.querySelector("#keyer-rate").dispatchEvent(new Event("input"))
 	}
 
-	setIconBase(icon) {
-		for (let e of document.querySelectorAll("link.icon")) {
-			if (e.classList.contains(icon)) {
-				e.relList.add("icon")
-			} else {
-				e.relList.remove("icon")
+	setIconType(iconType="silent") {
+		for (let e of document.querySelectorAll("link[rel=icon]")) {
+			if (! e.dataset.silent) {
+				e.dataset.silent = e.href
 			}
+			e.href = e.dataset[iconType]
 		}
 	}
 
@@ -179,8 +178,8 @@ class VailClient {
 		this.outputs.Buzz(false)
 
 		clearTimeout(this.activityTimeout)
-		this.activityTimeout = setTimeout(() => this.setIconBase("quiet"), 2*time.Second)
-		this.setIconBase("rx")
+		this.activityTimeout = setTimeout(() => this.setIconType(), 2*time.Second)
+		this.setIconType("rx")
 
 		if (this.rxChart) this.rxChart.Set(1)
 	}
