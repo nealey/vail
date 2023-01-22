@@ -165,8 +165,20 @@ class VailClient {
 		document.querySelector("#keyer-rate").dispatchEvent(new Event("input"))
 	}
 
+	setIconBase(base) {
+		for (let e of document.querySelectorAll("link[rel=icon]")) {
+			let ext = e.href.split(".")[1]
+			e.href = `${base}.${ext}`
+		}
+	}
+
 	Buzz() {
 		this.outputs.Buzz(false)
+
+		clearTimeout(this.activityTimeout)
+		this.activityTimeout = setTimeout(() => this.setIconBase("assets/vail"), 2*time.Second)
+		this.setIconBase("assets/vail-rx")
+
 		if (this.rxChart) this.rxChart.Set(1)
 	}
 
