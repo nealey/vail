@@ -1,8 +1,5 @@
 import {GetFortune} from "./fortunes.mjs"
-
-const Millisecond = 1
-const Second = 1000 * Millisecond
-const Minute = 60 * Second
+import * as time from "./time.mjs"
 
 /**
  * Compare two messages
@@ -61,7 +58,7 @@ export class Vail {
             msg => {
                 this.rx(0, 0, {connected: false, notice: `Repeater disconnected: ${msg.reason}`})
                 console.error("Repeater connection dropped:", msg.reason)
-                setTimeout(() => this.reopen(), 2*Second)
+                setTimeout(() => this.reopen(), 2*time.Second)
             }
         )
     }
@@ -157,7 +154,7 @@ export class Vail {
 }
 
 export class Null {
-    constructor(rx, interval=3*Second) {
+    constructor(rx, interval=3*time.Second) {
         this.rx = rx
         this.init()
     }
@@ -219,7 +216,7 @@ export class Fortune extends Null {
         if (this.timeout) {
             clearTimeout(this.timeout)
         }
-        this.timeout = setTimeout(() => this.pulse(), 3 * Second)
+        this.timeout = setTimeout(() => this.pulse(), 3 * time.Second)
     }
 
     Close() {

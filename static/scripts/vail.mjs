@@ -4,12 +4,10 @@ import * as Inputs from "./inputs.mjs"
 import * as Repeaters from "./repeaters.mjs"
 import * as Chart from "./chart.mjs"
 import * as I18n from "./i18n.mjs"
+import * as time from "./time.mjs"
 import * as Music from "./music.mjs"
 
 const DefaultRepeater = "General"
-const Millisecond = 1
-const Second = 1000 * Millisecond
-const Minute = 60 * Second
 
 console.warn("Chrome will now complain about an AudioContext not being allowed to start. This is normal, and there is no way to make Chrome stop complaining about this.")
 const globalAudioContext = new AudioContext({
@@ -21,7 +19,7 @@ const globalAudioContext = new AudioContext({
  * 
  * @param {string} msg Message to display
  */
-function toast(msg, timeout=4*Second) {
+function toast(msg, timeout=4*time.Second) {
 	console.info(msg)
 
 	let errors = document.querySelector("#errors")
@@ -41,7 +39,7 @@ class VailClient {
 		this.lagTimes = [0]
 		this.rxDurations = [0]
 		this.clockOffset = null // How badly our clock is off of the server's
-		this.rxDelay = 0 * Millisecond // Time to add to incoming timestamps
+		this.rxDelay = 0 * time.Millisecond // Time to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 
 		// Outputs
@@ -76,7 +74,7 @@ class VailClient {
 		this.inputInit("#keyer-mode", e => this.setKeyer(e.target.value))
 		this.inputInit("#keyer-rate", e => {
 			let rate = e.target.value
-			this.ditDuration = Math.round(Minute / rate / 50)
+			this.ditDuration = Math.round(time.Minute / rate / 50)
 			for (let e of document.querySelectorAll("[data-fill='keyer-ms']")) {
 				e.textContent = this.ditDuration
 			}
@@ -85,7 +83,7 @@ class VailClient {
 			this.inputs.SetDitDuration(this.ditDuration)
 		})
 		this.inputInit("#rx-delay", e => { 
-			this.rxDelay = e.target.value * Second
+			this.rxDelay = e.target.value * time.Second
 		})
 		this.inputInit("#masterGain", e => {
 			this.outputs.SetGain(e.target.value / 100)
@@ -464,7 +462,7 @@ class VailClient {
 
 function init() {
 	if (navigator.serviceWorker) {
-		navigator.serviceWorker.register("sw.js")
+		navigator.serviceWorker.register("scripts/sw.js")
 	}
 	I18n.Setup()
 	try {

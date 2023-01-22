@@ -1,6 +1,4 @@
-/** @typedef {Number} Duration */
- const Millisecond = 1
- const Second = 1000 * Millisecond
+import * as time from "./time.mjs"
 
  /**
   * A chart of historical values.
@@ -14,7 +12,7 @@ class HistoryChart {
      * @param {string} style style to draw in; falls back to the `data-style` attribute
      * @param {Duration} duration Time to display history for
      */
-    constructor(canvas, style=null, duration=20*Second) {
+    constructor(canvas, style=null, duration=20*time.Second) {
         this.canvas = canvas
         this.ctx = canvas.getContext("2d")
         this.duration = duration
@@ -22,7 +20,7 @@ class HistoryChart {
         this.data = []
 
         // One canvas pixel = 20ms
-        canvas.width = duration / (20 * Millisecond)
+        canvas.width = duration / (20 * time.Millisecond)
 
         // Set origin to lower-left corner
         this.ctx.scale(1, -1)
@@ -113,7 +111,7 @@ class HistoryChart {
  * @param duration duration of chart window
  * @returns new chart, or null if it couldn't find a canvas
  */
-function FromSelector(selector, style, duration=20*Second) {
+function FromSelector(selector, style, duration=20*time.Second) {
     let canvas = document.querySelector(selector)
     if (canvas) {
         return new HistoryChart(canvas, style, duration)

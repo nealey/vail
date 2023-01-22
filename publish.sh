@@ -8,6 +8,6 @@ case "$1" in
 	docker -H ssh://melville.woozle.org service update --image ghcr.io/nealey/vail:main melville_vail
         ;;
     "")
-        rsync -va static/ melville.woozle.org:/srv/vail/testing/
+        rsync --delete -va static/ melville.woozle.org:/srv/vail/testing/
         ;;
 esac

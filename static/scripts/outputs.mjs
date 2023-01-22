@@ -1,4 +1,5 @@
 import {AudioSource, AudioContextTime} from "./audio.mjs"
+import * as time from "./time.mjs"
 
 const HIGH_FREQ = 555
 const LOW_FREQ = 444
@@ -19,36 +20,33 @@ const LOW_FREQ = 444
  * @typedef {number} Date
  */
 
-const Millisecond = 1
-const Second = 1000 * Millisecond
-
 /** The amount of time it should take an oscillator to ramp to and from zero gain
  *
  * @constant {Duration}
  */
- const OscillatorRampDuration = 5*Millisecond
+ const OscillatorRampDuration = 5*time.Millisecond
 
 
 class Oscillator extends AudioSource {
     /**
      * Create a new oscillator, and encase it in a Gain for control.
      *
-	 * @param {AudioContext} context Audio context
+     * @param {AudioContext} context Audio context
      * @param {number} frequency Oscillator frequency (Hz)
      * @param {number} maxGain Maximum gain (volume) of this oscillator (0.0 - 1.0)
      * @param {string} type Oscillator type
      */
     constructor(context, frequency, maxGain = 0.5, type = "sine") {
-		super(context)
+	super(context)
         this.maxGain = maxGain
 		
-		// Start quiet
-		this.masterGain.gain.value = 0
+	// Start quiet
+	this.masterGain.gain.value = 0
 
         this.osc = new OscillatorNode(this.context)
-		this.osc.type = type
+	this.osc.type = type
         this.osc.connect(this.masterGain)
-		this.setFrequency(frequency)
+	this.setFrequency(frequency)
         this.osc.start()
     }
 
@@ -88,7 +86,7 @@ class Oscillator extends AudioSource {
         this.masterGain.gain.setTargetAtTime(
             target,
             AudioContextTime(this.context, when),
-            timeConstant/Second,
+            timeConstant/time.Second,
         )
     }
 
@@ -227,7 +225,7 @@ class AudioBuzzer extends Buzzer {
 	Error() {
         let now = Date.now()
         this.errorTone.SoundAt(now)
-        this.errorTone.HushAt(now + 200*Millisecond)
+        this.errorTone.HushAt(now + 200*time.Millisecond)
 	}
 }
 

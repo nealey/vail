@@ -6,15 +6,13 @@
  * 
  * @typedef  {number} Duration
  */
-
 /** @type {Duration} */
-export const Millisecond = 1
-
+const Millisecond = 1
 /** @type {Duration} */
-export const Second = 1000 * Millisecond
-
+const Second = 1000 * Millisecond
 /** @type {Duration} */
-export const Minute = 60 * Second
-
+const Minute = 60 * Second
 /** @type {Duration} */
-export const Hour = 60 * Minute
+const Hour = 60 * Minute
+
+export {Millisecond, Second, Minute, Hour}
