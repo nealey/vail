@@ -299,6 +299,7 @@ class VailClient {
 			return
 		}
 		
+		this.Silence()
 		if (this.repeater) {
 			this.repeater.Close()
 		}
