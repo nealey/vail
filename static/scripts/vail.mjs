@@ -7,6 +7,7 @@ import * as I18n from "./i18n.mjs"
 import * as time from "./time.mjs"
 import * as Music from "./music.mjs"
 import * as Icon from "./icon.mjs"
+import * as Noise from "./noise.mjs"
 
 const DefaultRepeater = "General"
 
@@ -46,6 +47,12 @@ class VailClient {
 		// Outputs
 		this.outputs = new Outputs.Collection(globalAudioContext)
 		this.outputs.connect(globalAudioContext.destination)
+
+		// Noise
+		this.noise = new Noise.Noise(globalAudioContext)
+		this.noise.connect(globalAudioContext.destination)
+
+		// App icon
 		this.icon = new Icon.Icon()
 
 		// Keyers
@@ -89,6 +96,9 @@ class VailClient {
 		})
 		this.inputInit("#masterGain", e => {
 			this.outputs.SetGain(e.target.value / 100)
+		})
+		this.inputInit("#noiseGain", e => {
+			this.noise.SetGain(e.target.value / 100)
 		})
 		let toneTransform = {
 			note: Music.MIDINoteName,
