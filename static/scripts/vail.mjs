@@ -6,6 +6,7 @@ import * as Chart from "./chart.mjs"
 import * as I18n from "./i18n.mjs"
 import * as time from "./time.mjs"
 import * as Music from "./music.mjs"
+import * as Icon from "./icon.mjs"
 
 const DefaultRepeater = "General"
 
@@ -45,6 +46,7 @@ class VailClient {
 		// Outputs
 		this.outputs = new Outputs.Collection(globalAudioContext)
 		this.outputs.connect(globalAudioContext.destination)
+		this.icon = new Icon.Icon()
 
 		// Keyers
 		this.straightKeyer = new Keyers.Keyers.straight(this)
@@ -165,21 +167,9 @@ class VailClient {
 		document.querySelector("#keyer-rate").dispatchEvent(new Event("input"))
 	}
 
-	setIconType(iconType="silent") {
-		for (let e of document.querySelectorAll("link[rel=icon]")) {
-			if (! e.dataset.silent) {
-				e.dataset.silent = e.href
-			}
-			e.href = e.dataset[iconType]
-		}
-	}
-
 	Buzz() {
 		this.outputs.Buzz(false)
-
-		clearTimeout(this.activityTimeout)
-		this.activityTimeout = setTimeout(() => this.setIconType(), 2*time.Second)
-		this.setIconType("rx")
+		this.icon.Set("rx")
 
 		if (this.rxChart) this.rxChart.Set(1)
 	}
@@ -192,7 +182,13 @@ class VailClient {
 	BuzzDuration(tx, when, duration) {
 		this.outputs.BuzzDuration(tx, when, duration)
 
-		let chart = tx?this.txChart:this.rxChart
+		let chart
+		if (tx) {
+			chart = this.txChart
+		} else {
+			chart = this.rxChart
+			this.icon.SetAt("rx", when)
+		}
 		if (chart) {
 			chart.SetAt(1, when)
 			chart.SetAt(0, when+duration)
