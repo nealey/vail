@@ -123,19 +123,22 @@ export class MIDI extends Input{
 		super(keyer)
 		this.ditDuration = 100
 		this.keyerMode = 0
-
+		
 		this.midiAccess = {outputs: []} // stub while we wait for async stuff
 		if (navigator.requestMIDIAccess) {
 			this.midiInit()
 		}
 	}
-
+	
 	async midiInit(access) {
 		this.inputs = []
 		this.midiAccess = await navigator.requestMIDIAccess()
 		this.midiAccess.addEventListener("statechange", e => this.midiStateChange(e))
 		this.midiStateChange()
 	}
+	
+	// If you're looking for the thing that sets the tx tone,
+	// that's in outputs.mjs:SetMIDINote
 
 	sendState() {
 		for (let output of this.midiAccess.outputs.values()) {

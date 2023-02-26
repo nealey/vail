@@ -423,7 +423,6 @@ class MIDIBuzzer extends Buzzer {
 		if (tx) {
 			return
 		}
-
 		this.sendAt(when, [0x90, this.note, 0x7f])
 	}
 
@@ -443,9 +442,10 @@ class MIDIBuzzer extends Buzzer {
 	 */
 	SetMIDINote(tx, note) {
 		if (tx) {
-			return
+			this.sendAt(0, [0xB0, 0x02, note])
+		} else {
+			this.note = note
 		}
-		this.note = note
 	}
 }
 

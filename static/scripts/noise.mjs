@@ -44,23 +44,26 @@ class Noise extends AudioSource {
                 modulatorGain: new GainNode(context),
                 filter: WhiteNoise(context),
                 filterGain: new GainNode(context),
+                filterGainModulator: new OscillatorNode(context),
+                filterGainModulatorGain: new GainNode(context),
             }
 
             wn.modulator.frequency.value = 0
             wn.modulatorGain.gain.value = 0
             wn.filter.frequency.value = 800
             wn.filterGain.gain.value = 0.8 / noises
+            wn.filterGainModulator.frequency.value = 1
+            wn.filterGainModulatorGain.gain.value = 1
     
             wn.modulator.connect(wn.modulatorGain)
             wn.modulatorGain.connect(wn.filter.frequency)
-            wn.filter.connect(wn.filterGain)
-            wn.filterGain.connect(this.masterGain)
+            wn.filter.connect(this.masterGain)
 
             wn.modulator.start()
             this.whiteNoise.push(wn)
         }
 
-        this.SetNoiseParams(0, 0.07, 70, 400, 0.4)
+        this.SetNoiseParams(0, 0.07, 70, 400, 0.0)
         this.SetNoiseParams(1, 0.03, 200, 1600, 0.4)
         this.masterGain.gain.value = 0.5
     }

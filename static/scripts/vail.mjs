@@ -106,7 +106,10 @@ class VailClient {
 		}
 		this.inputInit(
 			"#rx-tone", 
-			e => this.outputs.SetMIDINote(false, e.target.value),
+			e => {
+				this.noise.SetNoiseFrequency(1, Music.MIDINoteFrequency(e.target.value))
+				this.outputs.SetMIDINote(false, e.target.value)
+			},
 			toneTransform,
 		)
 		this.inputInit(
