@@ -16,6 +16,21 @@ const globalAudioContext = new AudioContext({
 	latencyHint: "interactive",
 })
 
+function initLog(message) {
+	for (let modal of document.querySelectorAll(".modal.init")) {
+		if (!message) {
+			modal.remove()
+		} else {
+			let ul = modal.querySelector("ul")
+			while (ul.childNodes.length > 5) {
+				ul.firstChild.remove()
+			}
+			let li = ul.appendChild(document.createElement("li"))
+			li.textContent = message
+			}
+	}
+}
+
 /**
  * Pop up a message, using an notification.
  * 
@@ -44,34 +59,34 @@ class VailClient {
 		this.rxDelay = 0 * time.Millisecond // Time to add to incoming timestamps
 		this.beginTxTime = null // Time when we began transmitting
 
-		// Outputs
+		initLog("Initializing outputs")
 		this.outputs = new Outputs.Collection(globalAudioContext)
 		this.outputs.connect(globalAudioContext.destination)
 
-		// Noise
+		initLog("Starting up noise")
 		this.noise = new Noise.Noise(globalAudioContext)
 		this.noise.connect(globalAudioContext.destination)
 
-		// App icon
+		initLog("Setting app icon name")
 		this.icon = new Icon.Icon()
 
-		// Keyers
+		initLog("Initializing keyers")
 		this.straightKeyer = new Keyers.Keyers.straight(this)
 		this.keyer = new Keyers.Keyers.straight(this)
 		this.roboKeyer = new Keyers.Keyers.robo(() => this.Buzz(), () => this.Silence())
 
-		// Set up various input methods
 		// Send this as the keyer so we can intercept dit and dah events for charts
+		initLog("Setting up input methods")
 		this.inputs = new Inputs.Collection(this)
 
-		// If the user clicks anything, try immediately to resume the audio context
+		initLog("Listening on AudioContext")
 		document.body.addEventListener(
 			"click",
 			e => globalAudioContext.resume(),
 			true,
 		)
 
-		// Maximize button
+		initLog('Setting up maximize button')
 		for (let e of document.querySelectorAll("button.maximize")) {
 			e.addEventListener("click", e => this.maximize(e))
 		}
@@ -79,7 +94,7 @@ class VailClient {
 			e.addEventListener("click", e => this.reset())
 		}
 
-		// Set up inputs
+		initLog("Initializing knobs")
 		this.inputInit("#keyer-mode", e => this.setKeyer(e.target.value))
 		this.inputInit("#keyer-rate", e => {
 			let rate = e.target.value
@@ -122,14 +137,15 @@ class VailClient {
 		})
 		this.inputInit("#notes")
 
-		// Fill in the name of our repeater
+		initLog("Filling in repeater name")
 		document.querySelector("#repeater").addEventListener("change", e => this.setRepeater(e.target.value.trim()))
 		window.addEventListener("hashchange", () => this.hashchange())
 		this.hashchange()
 	
+		initLog("Starting timing charts")
 		this.setTimingCharts(true)
 
-		// Turn off the "muted" symbol when we can start making noise
+		initLog("Setting up mute icon")
 		globalAudioContext.resume()
 		.then(() => {
 			for (let e of document.querySelectorAll(".muted")) {
@@ -483,17 +499,23 @@ class VailClient {
 	}
 }
 
-function init() {
+async function init() {
+	initLog("Starting service worker")
 	if (navigator.serviceWorker) {
 		navigator.serviceWorker.register("scripts/sw.js")
 	}
-	I18n.Setup()
+
+	initLog("Setting up internationalization")
+	await I18n.Setup()
+
+	initLog("Creating client")
 	try {
 		window.app = new VailClient()
 	} catch (err) {
 		console.log(err)
 		toast(err)
 	}
+	initLog(false)
 }
 
 
