@@ -391,6 +391,17 @@ class IambicAKeyer extends IambicKeyer {
 	}
 }
 
+/**
+ * "Iambic B"
+ *
+ * I have gotten a lot of helpful feedback on this one!
+ *
+ * Quoting DJ5IL:
+ *
+ *   > if anytime during generation of an element the
+ *   > opposite lever was pressed, generate one extra
+ *   > alternate element.
+ */
 class IambicBKeyer extends IambicKeyer {
 	Reset() {
 		super.Reset()
@@ -398,7 +409,7 @@ class IambicBKeyer extends IambicKeyer {
 	}
 
 	Key(key, pressed) {
-		if (pressed) {
+		if (pressed && (this.sending != key)) {
 			this.queue.add(key)
 		}
 		super.Key(key, pressed)
@@ -411,6 +422,7 @@ class IambicBKeyer extends IambicKeyer {
 			}
 		}
 		let next = this.queue.shift()
+		this.sending = next
 		if (next == null) {
 			return -1
 		}
