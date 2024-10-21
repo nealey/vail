@@ -194,19 +194,23 @@ export class MIDI extends Input{
 				return
 		}
 
-		switch (data[1] % 12) {
-			case 0: // C
+		switch (data[1]) {
+			case 0: // Vail Adapter
 				this.keyer.Straight(begin)
 				break
-			case 1: // C#
+			case 1: // Vail Adapter
+			case 20: // N6ARA TinyMIDI
 				this.keyer.Key(0, begin)
 				break
-			case 2: // D
+			case 2: // Vail Adapter
+			case 21: // N6ARA TinyMIDI
 				this.keyer.Key(1, begin)
 				break
 			default:
 				return
 		}
+
+
 	}	
 }
 
