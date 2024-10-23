@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Vail Protocol Demo</title>
+		<style>
+body {
+	font-family: sans-serif;
+}
+
+.log {
+	font-family: monospace;
+	max-height: 10em;
+	overflow: scroll;
+}
+		</style>
+		<script>
+const Millisecond = 1
+const Second = 1000 * Millisecond
+
+class Vail extends EventTarget {
+	constructor(repeater, protocols=["json.vail.woozle.org"]) {
+		super()
+		this.url = new URL("wss://vail.woozle.org/chat")
+		this.url.searchParams.set("repeater", repeater)
+		this.protocols = protocols
+		this.transmitters = 0
+		this.reopen()
+	}
+
+	reopen() {
+		/** Number of clients connected */
+		this.clients = 0
+
+		/** Timestamp offset for incoming messages */
+		this.offset = 0
+
+		this.socket = new WebSocket(this.url, this.protocols)
+		this.socket.addEventListener("open", event => {
+			switch (this.socket.protocol) {
+			case "json.vail.woozle.org":
+				this.socket.addEventListener("message", event => this.jsonMessage(event))
+				break
+			case "binary.vail.woozle.org":
+				this.socket.addEventListener("message", event => this.binaryMessage(event))
+				break
+			default:
+				console.error("Unrecognized protocol:", this.socket.protocol)
+			}
+		})
+		this.socket.addEventListener("close", event => {
+			setTimeout(() => this.reopen(), 3 * Second)
+		})
+	}
+
+	jsonMessage(event) {
+		log("#json", event.data)
+	}
+
+	async binaryMessage(event) {
+		let buf = await event.data.arrayBuffer()
+		let view = new DataView(buf)
+		let ts = view.getBigUint64(0)
+		let clients = view.getUint16(8)
+		let durations = []
+		for (let i = 10; i < view.byteLength; i += 2) {
+			durations.push(view.getUint16(i))
+		}
+		let raw = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, 0)).join(" ")
+
+		log("#binary", `${raw} ts=${ts} cli=${clients} dur=${durations}`)
+	}
+}
+
+function log(selector, text) {
+	let el = document.querySelector(selector)
+	if (!el) {
+		console.error("No match for selector", selector)
+		return
+	}
+	let log = el.querySelector(".log")
+	let line = log.appendChild(document.createElement("div"))
+	line.textContent = text
+	line.scrollIntoView()
+}
+
+function init(repeater) {
+	let cliJson = new Vail(repeater, ["json.vail.woozle.org"])
+	let cliBin = new Vail(repeater, ["binary.vail.woozle.org"])
+}
+
+init("demo")
+		</script>
+	</head>
+	<body>
+		<h1>Vail Protocol Demo</h1>
+
+		<div id="json">
+			<h2>JSON</h2>
+			<div class="log"></div>
+		</div>
+
+		<div id="binary">
+			<h2>Binary</h2>
+			<div class="log"></div>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Vail API Demo</title>
+		<style>
+body {
+	font-family: Arimo, Arial, monospace;
+}
+
+.log {
+	max-height: 10em;
+	overflow: scroll;
+}
+		</style>
+		<script type="module">
+const Millisecond = 1
+const Second = Millisecond * 1000
+
+/** Vail server connection.
+ *
+ * This opens a websocket to the given repeater on vail.woozle.org,
+ * and dispatches events to itself. Use .addEventListener to set up
+ * event handlers as you desire.
+ *
+ * Events:
+ *    message: a message was recieved
+ *    sound: your application should start making a sound
+ *    nosound: your application should stop making a sound
+ *
+ * Multiple sequential sound events may be dispatched before a nosound event is.
+ * This indicates "cross-talk": two people are sending to the repeater at the
+ * same time.
+ *
+ * Class variables you may enjoy:
+ *
+ *   delay: rx delay to add to incoming messages, higher-latency networks will need a larger value
+ *   transmitters: how many things are sending to the repeater right now
+ *   reconnect: if true, will try to maintain a connection to the server
+ *   reconnectDelay: how long to wait between disconnection and reconnect attempt
+ *   clients: how many connected clients the repeater last reported
+ *   offset: clock skew between us and the repeater
+ */
+class Vail extends EventTarget {
+	constructor(repeater) {
+		super()
+
+		/** URL to our WebSocket */
+		this.url = new URL("wss://vail.woozle.org/chat")
+		this.url.searchParams.set("repeater", repeater)
+
+		/** Delay to add */
+		this.delay = 4 * Second
+
+		/** How many things are making sound right now. 0 == be quiet */
+		this.transmitters = 0
+
+		/** Attempt to reconnect if the websocket closes */
+		this.reconnect = true
+
+		/** How long to wait before trying to reconnect */
+		this.reconnectDelay = 3 * Second
+
+		this.reopen()
+	}
+
+	/** Close the web socket and stop trying to reconnect */
+	close() {
+		this.reconnect = false
+		if (!this.socket) {
+			return
+		}
+		this.socket.close()
+	}
+
+	reopen() {
+		/** Number of clients connected */
+		this.clients = 0
+
+		/** Timestamp offset for incoming messages */
+		this.offset = 0
+
+		/** Our current websocket */
+		this.socket = new WebSocket(this.url, ["json.vail.woozle.org"])
+		this.socket.addEventListener("close", event => {
+			addTimeout(() => this.reopen(), this.reconnectDelay)
+		})
+		this.socket.addEventListener("message", event => {
+			this.message(event)
+		})
+	}
+
+	message(event) {
+		let message = JSON.parse(event.data)
+		if (message.Duration.length == 0) {
+			this.offset = Date.now() - message.Timestamp
+			return
+		}
+		this.clients = message.Clients
+
+		// Immediately dispatch a message event
+		let detail = {
+			message: message,
+		}
+		this.dispatchEvent(new CustomEvent("message", {detail}))
+
+		// Defer dispatching sound events
+		let now = Date.now()
+		let when = message.Timestamp + this.offset + this.delay
+		let tx = true
+		for (let duration of message.Duration) {
+			let delay = when - now
+			if (tx && (delay >= 0)) {
+				detail.when = when
+				detail.duration = duration
+				setTimeout(() => this.sound(true, detail), delay)
+				setTimeout(() => this.sound(false, detail), delay + duration)
+			}
+			when += duration
+			tx = !tx
+		}
+	}
+
+	/** Dispatch a sound event.
+	 *
+	 * This keeps an internal count of how many things are making sound at once.
+	 * When that count reaches 0, a "nosound" event is dispatched.
+	 *
+	 * @param {bool} tx True to make sound, false to stop making sound.
+	 * @param {Object} detail CustomEvent detail
+	 */
+	sound(tx, detail) {
+		if (tx) {
+			this.transmitters++
+		} else {
+			this.transmitters--
+		}
+		detail.transmitters = this.transmitters
+
+		if (this.transmitters > 0) {
+			this.dispatchEvent(new CustomEvent("sound", {detail}))
+		} else {
+			this.dispatchEvent(new CustomEvent("nosound", {detail}))
+		}
+	}
+}
+
+/** Handle the message event by logging it.
+ *
+ * We also take the opportunity to update the listed number of clients.
+ */
+function message(event) {
+	let log = document.querySelector("#messages .log")
+	let line = log.appendChild(document.createElement("div"))
+	line.textContent = JSON.stringify(event.detail.message)
+	line.scrollIntoView()
+
+	let clients = document.querySelector("#clients")
+	clients.textContent = event.target.clients
+}
+
+/** Handle the sound and nosound events by displaying different glyphs */
+function sound(event, enable) {
+	let sounder = document.querySelector("#sounder")
+	sounder.textContent = enable ? "█" : ""
+}
+
+let vail = new Vail("demo") // Connect to the "demo" repeater
+vail.addEventListener("message", event => message(event))
+vail.addEventListener("sound", event => sound(event, true))
+vail.addEventListener("nosound", event => sound(event, false))
+		</script>
+	</head>
+	<body>
+		<h1>Vail API Demo</h1>
+
+		<div><a href="https://vail.woozle.org/#demo" target="_blank">Repeater</a></div>
+		<div>Sounder: <span id="sounder"></span></div>
+		<div>Clients: <span id="clients">0</span></div>
+
+		<div id="messages">
+			<h2>messages</h2>
+			<div class="log"></div>
+		</div>
+	</body>
+</html>
