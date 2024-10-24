@@ -119,10 +119,8 @@ class Vail extends EventTarget {
 		for (let duration of message.Duration) {
 			let delay = when - now
 			if (tx && (delay >= 0)) {
-				detail.when = when
-				detail.duration = duration
-				setTimeout(() => this.sound(true, detail), delay)
-				setTimeout(() => this.sound(false, detail), delay + duration)
+				setTimeout(() => this.sound(true, {when, duration}), delay)
+				setTimeout(() => this.sound(false, {when: when+duration, duration}), delay + duration)
 			}
 			when += duration
 			tx = !tx
@@ -181,7 +179,7 @@ vail.addEventListener("sound", event => log("#sounds", event))
 vail.addEventListener("nosound", event => log("#sounds", event))
 
 vail.addEventListener("clients", event => clients(event))
-vail.addEventListener("sound", event => sounds(event, true))
+vail.addEventListener("sound", event => sound(event, true))
 vail.addEventListener("nosound", event => sound(event, false))
 		</script>
 	</head>
@@ -197,13 +195,7 @@ vail.addEventListener("nosound", event => sound(event, false))
 			<div class="log"></div>
 			<p>
 				Implementations should use sound events, which will be dispatched
-				in the correct order.
-			</p>
-			<p>
-				Even though most vail messages only have one duration,
-				it is valid to have more than one duration.
-				Use <tt>soundevent.detail.duration</tt> to obtain the duration
-				of the sound your client should currently consider.
+				in the correct order, and only have one duration per event.
 			</p>
 		</section>
 
