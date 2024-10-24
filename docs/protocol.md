@@ -26,11 +26,13 @@ JSON-encoded Vail messages are a direct encoding of the struct:
 ```json
 {
     "Timestamp": 1702846980,
+    "Clients": 2,
     "Duration": [80, 80, 240]
 }
 ```
 
 This represents a transmission at Sun 17 Dec 2023 09:03:00 PM UTC, consisting of an 80ms tone, an 80ms silence, and a 240ms tone.
+2 clients were connectd to the repeater at this time.
 
 
 Binary Marshalling
@@ -38,11 +40,12 @@ Binary Marshalling
 
 The binary marshalled version of a Vail message is encoded big-endian:
 
-    00 00 00 00 65 7f 62 04   00 50 00 50 00 f0
+    00 00 00 00 65 7f 62 04   00 02 00 50 00 50 00 f0
 
 Is decoded as:
 
 * Timestamp (int64): `00 00 00 00 65 7f 62 04` = 1702846980
+* Clients (uint16): `00 02` = 02
 * Duration ([]uint16):
   * `00 50` = 80
   * `00 50` = 80
