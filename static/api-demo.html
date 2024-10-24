@@ -7,6 +7,15 @@ body {
 	font-family: Arimo, Arial, monospace;
 }
 
+section {
+	border: 1px solid black;
+	margin: 1em;
+}
+
+p {
+	max-width: 40em;
+}
+
 .log {
 	max-height: 10em;
 	overflow: scroll;
@@ -23,6 +32,7 @@ const Second = Millisecond * 1000
  * event handlers as you desire.
  *
  * Events:
+ *    clients: the number of connected clients has changed
  *    message: a message was recieved
  *    sound: your application should start making a sound
  *    nosound: your application should stop making a sound
@@ -91,22 +101,21 @@ class Vail extends EventTarget {
 
 	message(event) {
 		let message = JSON.parse(event.data)
+		this.dispatchEvent(new CustomEvent("message", {detail: {message}}))
+		if (message.Clients != this.clients) {
+			this.clients = message.Clients
+			this.dispatchEvent(new CustomEvent("clients", {detail: {clients: this.clients}}))
+		}
 		if (message.Duration.length == 0) {
 			this.offset = Date.now() - message.Timestamp
 			return
 		}
-		this.clients = message.Clients
-
-		// Immediately dispatch a message event
-		let detail = {
-			message: message,
-		}
-		this.dispatchEvent(new CustomEvent("message", {detail}))
 
 		// Defer dispatching sound events
 		let now = Date.now()
 		let when = message.Timestamp + this.offset + this.delay
 		let tx = true
+		let detail = {}
 		for (let duration of message.Duration) {
 			let delay = when - now
 			if (tx && (delay >= 0)) {
@@ -144,29 +153,35 @@ class Vail extends EventTarget {
 	}
 }
 
-/** Handle the message event by logging it.
- *
- * We also take the opportunity to update the listed number of clients.
- */
-function message(event) {
-	let log = document.querySelector("#messages .log")
+/** Log an event's detail */
+function log(selector, event) {
+	let section = document.querySelector(selector)
+	let log = section.querySelector(".log")
 	let line = log.appendChild(document.createElement("div"))
-	line.textContent = JSON.stringify(event.detail.message)
+	line.textContent = event.type + ": " + JSON.stringify(event.detail)
 	line.scrollIntoView()
+}
 
-	let clients = document.querySelector("#clients")
+/** Update the displayed number of clients. */
+function clients(event) {
+	let clients = document.querySelector("#nclients")
 	clients.textContent = event.target.clients
 }
 
-/** Handle the sound and nosound events by displaying different glyphs */
+/** Handle the sound and nosound events by displaying different glyphs. */
 function sound(event, enable) {
 	let sounder = document.querySelector("#sounder")
 	sounder.textContent = enable ? "█" : ""
 }
 
 let vail = new Vail("demo") // Connect to the "demo" repeater
-vail.addEventListener("message", event => message(event))
-vail.addEventListener("sound", event => sound(event, true))
+vail.addEventListener("message", event => log("#messages", event))
+vail.addEventListener("clients", event => log("#clients", event))
+vail.addEventListener("sound", event => log("#sounds", event))
+vail.addEventListener("nosound", event => log("#sounds", event))
+
+vail.addEventListener("clients", event => clients(event))
+vail.addEventListener("sound", event => sounds(event, true))
 vail.addEventListener("nosound", event => sound(event, false))
 		</script>
 	</head>
@@ -175,11 +190,41 @@ vail.addEventListener("nosound", event => sound(event, false))
 
 		<div><a href="https://vail.woozle.org/#demo" target="_blank">Repeater</a></div>
 		<div>Sounder: <span id="sounder"></span></div>
-		<div>Clients: <span id="clients">0</span></div>
+		<div>Clients: <span id="nclients">0</span></div>
 
-		<div id="messages">
-			<h2>messages</h2>
+		<section id="sounds">
+			<h2>sound events</h2>
 			<div class="log"></div>
-		</div>
+			<p>
+				Implementations should use sound events, which will be dispatched
+				in the correct order.
+			</p>
+			<p>
+				Even though most vail messages only have one duration,
+				it is valid to have more than one duration.
+				Use <tt>soundevent.detail.duration</tt> to obtain the duration
+				of the sound your client should currently consider.
+			</p>
+		</section>
+
+		<section id="clients">
+			<h2>clients events</h2>
+			<div class="log"></div>
+			<p>
+				Clients events are dispatched whenever the number of
+				connected clients changes.
+			</p>
+		</section>
+
+		<section id="messages">
+			<h2>message events</h2>
+			<div class="log"></div>
+			<p>
+				Message events are "raw" events. They may arrive out of order,
+				and can have multiple durations.
+				The Vail class parses these into properly-sequenced
+				"sound" events.
+			</p>
+		</section>
 	</body>
 </html>
