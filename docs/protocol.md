@@ -1,7 +1,9 @@
 The Vail Protocol
 =============
 
-Vail messages can be encoded with JSON or marshaled into a "binary" format.
+Vail uses [WebSockets](https://en.wikipedia.org/wiki/WebSocket) at https://vail.woozle.org/chat?repeater=Foo. It accepts two subprotocols: both of these provide the same message information, in different encodings.
+
+The server will accept packets in either format, but will only send packets in the format described by the subprotocol.
 
 Go Definition
 --------------------
@@ -18,7 +20,7 @@ type Message struct {
 }
 ```
 
-JSON
+# JSON: `json.vail.woozle.org`
 -------
 
 JSON-encoded Vail messages are a direct encoding of the struct:
@@ -35,7 +37,7 @@ This represents a transmission at Sun 17 Dec 2023 09:03:00 PM UTC, consisting of
 2 clients were connectd to the repeater at this time.
 
 
-Binary Marshalling
+Binary: `binary.vail.woozle.org`
 ---------------------
 
 The binary marshalled version of a Vail message is encoded big-endian:
