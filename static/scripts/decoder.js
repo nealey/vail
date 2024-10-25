@@ -35,10 +35,20 @@ const morseToAlphabet = new Map([
     ["22211", "8"],
     ["22221", "9"],
     ["22222", "0"],
+	["121212", "."],
+    ["221122", ","],
+    ["21121", "/"],
+    ["112211", "?"],
+    ["212122", "!"],
+    ["211112", "-"],
+    ["21221", "("],
+    ["212212", ")"],
+    ["222111", ":"],
 ]);
 
 class Decoder {
-	constructor() {
+	constructor(onLetterDecoded) {
+		this.onLetterDecoded = onLetterDecoded; // Store the callback function
 		this.lastLetter = '';
 		this.decodeArray = '';
 		this.unit = 80; // adjustment: short dit reduces, long dah lengthens
@@ -46,10 +56,13 @@ class Decoder {
 		this.keyEndTime = null;
 		this.spaceTimer = null;
         this.farnsworth = 3;
+		this.wordTimer = null; // Timer for word boundaries
+		this.wordTimeout = this.unit * 7; // A typical word gap is 7 units
 	}
 
 	keyOn() {
 		clearTimeout(this.spaceTimer);
+		clearTimeout(this.wordTimer); // Clear the wordTimer as well since we are receiving input
 		this.keyStartTime = Date.now();
 		//var pauseDuration = (this.keyEndTime) ? this.keyStartTime - this.keyEndTime : 0;
 		//if (pauseDuration > this.unit + (this.unit/10)) { // end sequence and decode letter
@@ -80,6 +93,7 @@ class Decoder {
 		this.spaceTimer = setTimeout(() => { // end sequence and decode letter
 			this.updateLastLetter(this.morseToLetter(this.decodeArray));
 			this.decodeArray = '';
+			this.startWordTimer(); // Start the word timer after finishing a letter
 		}, spaceTime, "keyOff");
 	}
 
@@ -92,9 +106,14 @@ class Decoder {
 	}
 
 	updateLastLetter(letter) {
-		updateCurrentLetter(letter);
+		//updateCurrentLetter(letter);
 		this.lastLetter = letter;
 		//console.log(this.lastLetter);
+
+		// Notify the callback function that a new letter is decoded
+        if (this.onLetterDecoded) {
+            this.onLetterDecoded(letter);
+        }
 	}
 
 	morseToLetter(sequence) {
@@ -106,6 +125,16 @@ class Decoder {
 		}
 	}
 
+	startWordTimer() {
+		// Set up the word timer to add a space after a word boundary
+		this.wordTimer = setTimeout(() => {
+			// Update with a space to indicate a word boundary
+			if (this.onLetterDecoded) {
+				this.onLetterDecoded(' ');
+			}
+		}, this.wordTimeout);
+	}
+
     calculateWpm() {
         return 60000 / (this.unit * 50);
     }
@@ -114,3 +143,5 @@ class Decoder {
         this.farnsworth = farnsworth;
     }
 }
+
+export { Decoder };
