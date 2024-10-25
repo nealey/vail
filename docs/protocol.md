@@ -13,6 +13,9 @@ type Message struct {
 	// Timestamp of this message. Milliseconds since epoch.
 	Timestamp int64
 
+	// Number of connected clients.
+	Clients uint16
+
 	// Message timing in milliseconds.
 	// Timings alternate between tone and silence.
 	// For example, `A` could be sent as [80, 80, 240]
