@@ -8,6 +8,7 @@ import * as time from "./time.mjs"
 import * as Music from "./music.mjs"
 import * as Icon from "./icon.mjs"
 import * as Noise from "./noise.mjs"
+import { Decoder } from "./decoder.js";
 
 const DefaultRepeater = "General"
 
@@ -78,6 +79,10 @@ class VailClient {
 		// Send this as the keyer so we can intercept dit and dah events for charts
 		initLog("Setting up input methods")
 		this.inputs = new Inputs.Collection(this)
+
+		// Instantiate the Decoder
+		initLog("Setting up the decoder")
+		this.decoder = new Decoder(letter => this.updateDecodedText(letter));
 
 		initLog("Listening on AudioContext")
 		document.body.addEventListener(
@@ -200,12 +205,17 @@ class VailClient {
 		this.outputs.Buzz(false)
 		this.icon.Set("rx")
 
+		// Start decoding the tone
+		this.decoder.keyOn(); // Let the decoder know a tone is being played
+
 		if (this.rxChart) this.rxChart.Set(1)
 	}
 
 	Silence() {
 		this.outputs.Silence()
 		if (this.rxChart) this.rxChart.Set(0)
+		// Stop decoding the tone
+		this.decoder.keyOff(); // Let the decoder know the tone has stopped
 	}
 
 	BuzzDuration(tx, when, duration) {
@@ -222,6 +232,16 @@ class VailClient {
 			chart.SetAt(1, when)
 			chart.SetAt(0, when+duration)
 		}
+		// Inform the decoder about tone events
+		if (!tx) {
+			// For received tones
+			setTimeout(() => {
+				this.decoder.keyOn(); // Start decoding the tone
+				setTimeout(() => {
+					this.decoder.keyOff(); // Stop decoding the tone after the duration
+				}, duration);
+			}, when - Date.now());
+		}
 	}
 
 	/**
@@ -232,6 +252,8 @@ class VailClient {
 	 BeginTx() {
 		this.beginTxTime = Date.now()
 		this.outputs.Buzz(true)
+		// Inform the decoder about tone start
+		this.decoder.keyOn();
 		if (this.txChart) this.txChart.Set(1)
 
 	}
@@ -249,6 +271,8 @@ class VailClient {
 		let duration = endTxTime - this.beginTxTime
 		this.outputs.Silence(true)
 		this.repeater.Transmit(this.beginTxTime, duration)
+		// Inform the decoder about tone stop
+		this.decoder.keyOff();
 		this.beginTxTime = null
 		if (this.txChart) this.txChart.Set(0)
 	}
@@ -460,6 +484,14 @@ class VailClient {
 		this.updateReading("#suggested-delay-value", suggestedDelay)
 		this.updateReading("#clock-off-value", this.clockOffset)
 	}
+
+	updateDecodedText(letter) {
+        const decodedTextArea = document.getElementById('decodedMorse');
+        if (decodedTextArea && letter) {
+            decodedTextArea.value += letter; // Append the new letter to the decoded Morse text area
+			decodedTextArea.scrollTop = decodedTextArea.scrollHeight; // Scroll to the bottom
+        }
+    }
 
 	/**
 	 * Update an element with a value, if that element exists
